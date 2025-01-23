@@ -2,6 +2,6 @@
 
 Quantitative Strategies to MAKE MONEY!
 
-# Django Projects
+# Run
 
-- To Run the projects run: docker compose -f docker-compose/docker-compose-local.yml up --build
+- To Run the projects run: docker compose -f docker-compose/docker-compose-local.yml up -d --build
