@@ -1,6 +1,12 @@
 # Local DB
 data/
 
+#DS_Store
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
 #Node Modules
 node_modules/
 build/
