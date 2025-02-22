@@ -1,6 +1,6 @@
 # zhuana-trading
 
-Quantitative Strategies to MAKE MONEY!
+Quantitative Strategies
 
 # Run
 
