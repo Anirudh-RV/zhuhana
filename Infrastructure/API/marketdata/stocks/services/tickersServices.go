@@ -1,9 +1,11 @@
 package stocks
 
 import (
-	"polygon/logger"
-	tickerModels "polygon/stocks/models"
-	tickersRepository "polygon/stocks/repositories"
+	"marketdata/logger"
+	tickerModels "marketdata/stocks/models"
+	tickersRepository "marketdata/stocks/repositories"
+
+	"go.uber.org/zap"
 )
 
 type TickersService struct {
@@ -21,6 +23,7 @@ func NewTickersService(tickersRepository *tickersRepository.TickersRepository, l
 func (ts *TickersService) GetAllTickersV1(limit int) (*tickerModels.AllTickersAPIResponse, error) {
 	tickers, err := ts.tickersRepository.GetAllTickersV1(limit)
 	if err != nil && tickers == nil {
+		ts.log.Error("Error getting Tickers", zap.String("Execution Level", "Service"), zap.String("Error", err.Error()))
 		return nil, err
 	}
 	return tickers, err

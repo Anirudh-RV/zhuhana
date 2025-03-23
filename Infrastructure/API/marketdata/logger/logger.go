@@ -33,12 +33,18 @@ func NewLogger() *Logger {
 
 // Info logs an informational message with timestamp
 func (l *Logger) Info(msg string, fields ...zap.Field) {
-	fields = append(fields, zap.Time("logged_at", time.Now())) // Add timestamp field
+	fields = append(fields, zap.Time("logged_at", time.Now()))
 	l.zapLogger.Info(msg, fields...)
+}
+
+// Warning logs an informational message with timestamp
+func (l *Logger) Warning(msg string, fields ...zap.Field) {
+	fields = append(fields, zap.Time("logged_at", time.Now()))
+	l.zapLogger.Warn(msg, fields...)
 }
 
 // Error logs an error message with timestamp
 func (l *Logger) Error(msg string, fields ...zap.Field) {
-	fields = append(fields, zap.Time("logged_at", time.Now())) // Add timestamp field
+	fields = append(fields, zap.Time("logged_at", time.Now()))
 	l.zapLogger.Error(msg, fields...)
 }
