@@ -1,15 +1,18 @@
 package main
 
 import (
+	"polygon/logger"
 	"polygon/routes"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-    router := gin.Default()
+	router := gin.Default()
+	log := logger.NewLogger()
+	log.Info("Application started")
 
-	routes.RegisterRoutes(router)
+	routes.RegisterRoutes(router, log)
 
-    router.Run("localhost:8080")
+	router.Run("localhost:8080")
 }

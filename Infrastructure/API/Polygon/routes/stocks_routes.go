@@ -1,14 +1,20 @@
 package routes
 
 import (
-	"polygon/stocks"
+	"polygon/logger"
+	tickersController "polygon/stocks/controllers"
+	tickersRepository "polygon/stocks/repositories"
+	tickersService "polygon/stocks/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func StocksRoutesV1(r *gin.RouterGroup) {
-	users := r.Group("stocks/")
+func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger) {
+	stocks := r.Group("stocks/")
 	{
-		users.GET("all-tickers/", stocks.GetAllTickersV1)
+		tickersRepo := tickersRepository.NewTickersRepository(log)
+		tickersService := tickersService.NewTickersService(tickersRepo, log)
+		tickersController := tickersController.NewTickersController(tickersService, log)
+		stocks.GET("all-tickers/", tickersController.GetAllTickersV1)
 	}
 }
