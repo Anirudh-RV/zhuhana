@@ -1,7 +1,6 @@
 package stocks
 
 import (
-	"fmt"
 	"marketdata/logger"
 	tickerModels "marketdata/stocks/models"
 	tickersService "marketdata/stocks/services"
@@ -38,19 +37,18 @@ func (tc *TickersController) GetAllTickersV1(c *gin.Context) {
 	var err error
 	param := c.DefaultQuery("limit", "10")
 	limit, _ := strconv.Atoi(param)
-	tc.log.Info("AllTickersV1 API called with:", zap.String("Execution Level", "Controller"), zap.String("limit", strconv.Itoa(limit)))
+	tc.log.Info("AllTickersV1 api called with:", zap.String("execution level", "controller"), zap.String("limit", strconv.Itoa(limit)))
 
 	tickers, err = tc.tickersService.GetAllTickersV1(limit)
 
 	if err != nil {
-		fmt.Printf("ERROR - %s", err)
-		tc.log.Error("Error", zap.String("Execution Level", "Controller"), zap.String("Error", err.Error()))
+		tc.log.Error("error", zap.String("execution level", "controller"), zap.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, err)
 	}
 	if tickers != nil {
 		c.JSON(http.StatusOK, tickers)
 	} else {
-		tc.log.Error("Empty Tickers", zap.String("Execution Level", "Controller"))
+		tc.log.Error("Empty Tickers", zap.String("execution level", "controller"))
 		c.JSON(http.StatusBadRequest, nil)
 	}
 }
