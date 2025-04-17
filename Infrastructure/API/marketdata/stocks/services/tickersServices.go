@@ -23,7 +23,7 @@ func NewTickersService(tickersRepository *tickersRepository.TickersRepository, l
 func (ts *TickersService) GetAllTickersV1(limit int) (*tickerModels.AllTickersAPIResponse, error) {
 	tickers, err := ts.tickersRepository.GetAllTickersV1(limit)
 	if err != nil && tickers == nil {
-		ts.log.Error("Error getting Tickers", zap.String("Execution Level", "Service"), zap.String("Error", err.Error()))
+		ts.log.Error("error getting Tickers", zap.String("execution level", "Service"), zap.String("error", err.Error()))
 		return nil, err
 	}
 	return tickers, err
