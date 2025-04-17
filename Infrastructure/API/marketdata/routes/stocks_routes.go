@@ -2,9 +2,9 @@ package routes
 
 import (
 	"marketdata/logger"
-	tickersController "marketdata/stocks/controllers"
-	tickersRepository "marketdata/stocks/repositories"
-	tickersService "marketdata/stocks/services"
+	polygonTickersController "marketdata/stocks/polygon/controllers"
+	polygonTickersRepository "marketdata/stocks/polygon/repositories"
+	polygonTickersService "marketdata/stocks/polygon/services"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -13,15 +13,19 @@ import (
 func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger) {
 	stocks := r.Group("stocks/")
 	{
-		tickersRepo := tickersRepository.NewTickersRepository(log)
-		log.Info("Tickers Repository created", zap.String("Execution Level", "Routes"))
+		polygon := stocks.Group("polygon/")
+		{
+			polygonTickersRepo := polygonTickersRepository.NewPolygonTickersRepository(log)
+			log.Info("Tickers Repository created", zap.String("Execution Level", "Routes"))
 
-		tickersService := tickersService.NewTickersService(tickersRepo, log)
-		log.Info("Tickers Service created", zap.String("Execution Level", "Routes"))
+			polygonTickersService := polygonTickersService.NewPolygonTickersService(polygonTickersRepo, log)
+			log.Info("Tickers Service created", zap.String("Execution Level", "Routes"))
 
-		tickersController := tickersController.NewTickersController(tickersService, log)
-		log.Info("Tickers Controller created", zap.String("Execution Level", "Routes"))
+			polygonTickersController := polygonTickersController.NewPolygonTickersController(polygonTickersService, log)
+			log.Info("Tickers Controller created", zap.String("Execution Level", "Routes"))
 
-		stocks.GET("all-tickers/", tickersController.GetAllTickersV1)
+			// TODO: Change full implementation for new Zhuana needs
+			polygon.GET("all-tickers/", polygonTickersController.GetAllTickersV1)
+		}
 	}
 }

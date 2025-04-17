@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/marketdata/v1/stocks/all-tickers": {
+        "/api/marketdata/v1/stocks/polygon/all-tickers": {
             "get": {
                 "description": "Fetches all tickers with an optional limit parameter",
                 "consumes": [
