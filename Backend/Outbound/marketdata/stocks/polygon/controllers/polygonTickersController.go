@@ -1,10 +1,10 @@
 package polygon
 
 import (
-	"marketdata/logger"
-	tickerModels "marketdata/stocks/models"
-	polygonTickersService "marketdata/stocks/polygon/services"
 	"net/http"
+	"outbound/logger"
+	tickerModels "outbound/marketdata/stocks/models"
+	polygonTickersService "outbound/marketdata/stocks/polygon/services"
 	"strconv"
 
 	"github.com/gin-gonic/gin"

@@ -1,9 +1,9 @@
 package polygon
 
 import (
-	"marketdata/logger"
-	tickerModels "marketdata/stocks/models"
-	tickersRepository "marketdata/stocks/polygon/repositories"
+	"outbound/logger"
+	tickerModels "outbound/marketdata/stocks/models"
+	tickersRepository "outbound/marketdata/stocks/polygon/repositories"
 
 	"go.uber.org/zap"
 )

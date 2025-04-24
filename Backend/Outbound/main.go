@@ -1,8 +1,8 @@
 package main
 
 import (
-	"marketdata/logger"
-	"marketdata/routes"
+	"outbound/logger"
+	"outbound/routes"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

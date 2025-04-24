@@ -1,4 +1,4 @@
-module marketdata
+module outbound
 
 go 1.23.0
 

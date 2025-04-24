@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"marketdata/logger"
-	polygonTickersController "marketdata/stocks/polygon/controllers"
-	polygonTickersRepository "marketdata/stocks/polygon/repositories"
-	polygonTickersService "marketdata/stocks/polygon/services"
+	"outbound/logger"
+	polygonTickersController "outbound/marketdata/stocks/polygon/controllers"
+	polygonTickersRepository "outbound/marketdata/stocks/polygon/repositories"
+	polygonTickersService "outbound/marketdata/stocks/polygon/services"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
