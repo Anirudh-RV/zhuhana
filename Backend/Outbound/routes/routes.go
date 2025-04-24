@@ -1,9 +1,11 @@
 package routes
 
 import (
-	"marketdata/logger"
+	"outbound/logger"
 
-	_ "marketdata/docs"
+	_ "outbound/docs"
+
+	stock_routes "outbound/marketdata/routes"
 
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -14,6 +16,6 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger) {
 	v1 := r.Group("/api/marketdata/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-		StocksRoutesV1(v1, log)
+		stock_routes.StocksRoutesV1(v1, log)
 	}
 }
