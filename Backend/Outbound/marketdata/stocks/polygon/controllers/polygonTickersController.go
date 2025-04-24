@@ -37,18 +37,18 @@ func (ptc *PolygonTickersController) GetAllTickersV1(c *gin.Context) {
 	var err error
 	param := c.DefaultQuery("limit", "10")
 	limit, _ := strconv.Atoi(param)
-	ptc.log.Info("AllTickersV1 api called with:", zap.String("execution level", "controller"), zap.String("limit", strconv.Itoa(limit)))
+	go ptc.log.Info("AllTickersV1 api called with:", zap.String("execution level", "controller"), zap.String("limit", strconv.Itoa(limit)))
 
 	tickers, err = ptc.polygonTickersService.GetAllTickersV1(limit)
 
 	if err != nil {
-		ptc.log.Error("error", zap.String("execution level", "controller"), zap.String("error", err.Error()))
+		go ptc.log.Error("error", zap.String("execution level", "controller"), zap.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, err)
 	}
 	if tickers != nil {
 		c.JSON(http.StatusOK, tickers)
 	} else {
-		ptc.log.Error("Empty Tickers", zap.String("execution level", "controller"))
+		go ptc.log.Error("Empty Tickers", zap.String("execution level", "controller"))
 		c.JSON(http.StatusBadRequest, nil)
 	}
 }

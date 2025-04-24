@@ -11,7 +11,7 @@ import (
 func main() {
 	router := gin.Default()
 	log := logger.NewLogger()
-	log.Info("Application started", zap.String("Execution Level", "Root"))
+	go log.Info("Application started", zap.String("Execution Level", "Root"))
 
 	routes.RegisterRoutes(router, log)
 

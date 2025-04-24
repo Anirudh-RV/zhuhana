@@ -39,12 +39,12 @@ func (ptr *PolygonTickersRepository) GetAllTickersV1(limit int) (*tickerModels.A
 	params.Add("apiKey", "USE_FROM_HEADER")
 
 	finalURL := fmt.Sprintf("%s?%s", polygonConstants.AllTickersBaseURL, params.Encode())
-	ptr.log.Info("AllTickersV1 API:", zap.String("execution level", "repository"), zap.String("url", finalURL))
+	go ptr.log.Info("AllTickersV1 API:", zap.String("execution level", "repository"), zap.String("url", finalURL))
 
 	// Create a GET request
 	resp, err := http.Get(finalURL)
 	if err != nil {
-		ptr.log.Error("error making request", zap.String("execution level", "repository"), zap.String("error", err.Error()))
+		go ptr.log.Error("error making request", zap.String("execution level", "repository"), zap.String("error", err.Error()))
 		return nil, fmt.Errorf("error making request: %v", err)
 	}
 	defer resp.Body.Close()
@@ -52,14 +52,14 @@ func (ptr *PolygonTickersRepository) GetAllTickersV1(limit int) (*tickerModels.A
 	// Read response body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		ptr.log.Error("error reading response", zap.String("execution level", "repository"), zap.String("error", err.Error()))
+		go ptr.log.Error("error reading response", zap.String("execution level", "repository"), zap.String("error", err.Error()))
 		return nil, fmt.Errorf("error reading response: %v", err)
 	}
 
 	// Unmarshal JSON response into struct
 	var apiResponse tickerModels.AllTickersAPIResponse
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		ptr.log.Error("error unmarshaling json", zap.String("execution level", "Repository"), zap.String("error", err.Error()))
+		go ptr.log.Error("error unmarshaling json", zap.String("execution level", "Repository"), zap.String("error", err.Error()))
 		return nil, fmt.Errorf("error unmarshaling json: %v", err)
 	}
 

@@ -16,13 +16,13 @@ func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger) {
 		polygon := stocks.Group("polygon/")
 		{
 			polygonTickersRepo := polygonTickersRepository.NewPolygonTickersRepository(log)
-			log.Info("Tickers Repository created", zap.String("Execution Level", "Routes"))
+			go log.Info("Tickers Repository created", zap.String("Execution Level", "Routes"))
 
 			polygonTickersService := polygonTickersService.NewPolygonTickersService(polygonTickersRepo, log)
-			log.Info("Tickers Service created", zap.String("Execution Level", "Routes"))
+			go log.Info("Tickers Service created", zap.String("Execution Level", "Routes"))
 
 			polygonTickersController := polygonTickersController.NewPolygonTickersController(polygonTickersService, log)
-			log.Info("Tickers Controller created", zap.String("Execution Level", "Routes"))
+			go log.Info("Tickers Controller created", zap.String("Execution Level", "Routes"))
 
 			// TODO: Change full implementation for new Zhuana needs
 			polygon.GET("all-tickers/", polygonTickersController.GetAllTickersV1)

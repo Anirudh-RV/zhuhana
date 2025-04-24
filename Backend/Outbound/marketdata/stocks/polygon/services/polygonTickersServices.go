@@ -23,7 +23,7 @@ func NewPolygonTickersService(tickersRepository *tickersRepository.PolygonTicker
 func (pts *PolygonTickersService) GetAllTickersV1(limit int) (*tickerModels.AllTickersAPIResponse, error) {
 	tickers, err := pts.polygonTickersRepository.GetAllTickersV1(limit)
 	if err != nil && tickers == nil {
-		pts.log.Error("error getting Tickers", zap.String("execution level", "Service"), zap.String("error", err.Error()))
+		go pts.log.Error("error getting Tickers", zap.String("execution level", "Service"), zap.String("error", err.Error()))
 		return nil, err
 	}
 	return tickers, err
