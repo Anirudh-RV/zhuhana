@@ -1,0 +1,27 @@
+services:
+  orchestrator:
+    build: ..
+    container_name: orchestrator-container
+    ports:
+      - "8006:8080"
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    depends_on:
+      - orchestrator-postgres
+
+  orchestrator-postgres:
+    image: postgres:17
+    container_name: orchestrator-postgres-container
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - orchestrator_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+
+volumes:
+  orchestrator_pgdata:
