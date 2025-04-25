@@ -1,0 +1,27 @@
+services:
+  secrets-manager:
+    build: ..
+    container_name: secrets-manager-container
+    ports:
+      - "8004:8080"
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    depends_on:
+      - secrets-manager-postgres
+
+  secrets-manager-postgres:
+    image: postgres:17
+    container_name: secrets-manager-postgres-container
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - secrets_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+
+volumes:
+  secrets_pgdata:
