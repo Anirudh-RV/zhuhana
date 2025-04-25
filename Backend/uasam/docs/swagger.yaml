@@ -1,0 +1,73 @@
+definitions:
+  stocks.AllTickerStockInformation:
+    properties:
+      active:
+        type: boolean
+      cik:
+        type: string
+      composite_figi:
+        type: string
+      currency_name:
+        type: string
+      last_updated_utc:
+        type: string
+      locale:
+        type: string
+      market:
+        type: string
+      name:
+        type: string
+      primary_exchange:
+        type: string
+      share_class_figi:
+        type: string
+      ticker:
+        type: string
+      type:
+        type: string
+    type: object
+  stocks.AllTickersAPIResponse:
+    properties:
+      count:
+        type: integer
+      next_url:
+        type: string
+      request_id:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/stocks.AllTickerStockInformation'
+        type: array
+      status:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/marketdata/v1/stocks/polygon/all-tickers:
+    get:
+      consumes:
+      - application/json
+      description: Fetches all tickers with an optional limit parameter
+      parameters:
+      - description: 'Number of tickers to retrieve (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of tickers
+          schema:
+            $ref: '#/definitions/stocks.AllTickersAPIResponse'
+        "400":
+          description: Error message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all tickers
+      tags:
+      - Tickers
+swagger: "2.0"

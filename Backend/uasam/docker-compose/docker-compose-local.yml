@@ -1,0 +1,27 @@
+services:
+  uasam:
+    build: ..
+    container_name: uasam-container
+    ports:
+      - "8002:8080"
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    depends_on:
+      - uasam-postgres
+
+  uasam-postgres:
+    image: postgres:17
+    container_name: uasam-postgres-container
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

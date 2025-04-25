@@ -25,7 +25,7 @@ func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger) {
 			go log.Info("Tickers Controller created", zap.String("Execution Level", "Routes"))
 
 			// TODO: Change full implementation for new Zhuana needs
-			polygon.GET("all-tickers/", polygonTickersController.GetAllTickersV1)
+			polygon.GET("ticker/", polygonTickersController.GetDailyTickerOHLCV_V1)
 		}
 	}
 }
