@@ -4,8 +4,6 @@ import (
 	"outbound/logger"
 	tickerModels "outbound/marketdata/stocks/models"
 	tickersRepository "outbound/marketdata/stocks/polygon/repositories"
-
-	"go.uber.org/zap"
 )
 
 type PolygonTickersService struct {
@@ -20,11 +18,6 @@ func NewPolygonTickersService(tickersRepository *tickersRepository.PolygonTicker
 	}
 }
 
-func (pts *PolygonTickersService) GetAllTickersV1(limit int) (*tickerModels.AllTickersAPIResponse, error) {
-	tickers, err := pts.polygonTickersRepository.GetAllTickersV1(limit)
-	if err != nil && tickers == nil {
-		pts.log.Error("error getting Tickers", zap.String("execution level", "Service"), zap.String("error", err.Error()))
-		return nil, err
-	}
-	return tickers, err
+func (pts *PolygonTickersService) GetDailyTickerOHLCV_V1(limit int) (*tickerModels.DailyTickerOHLCVResponse, error) {
+
 }
