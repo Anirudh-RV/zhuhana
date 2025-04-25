@@ -18,10 +18,10 @@ services:
     env_file:
       - ../env/local-env.env
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - uasam_pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  uasam_pgdata:
