@@ -1,8 +1,8 @@
 services:
-  usermodel:
+  governor:
     build:
       context: ..
-    container_name: usermodel-container
+    container_name: governor-container
     volumes:
       - ../:/app
     working_dir: /app
@@ -11,20 +11,20 @@ services:
     env_file:
       - ../env/local-env.env
     depends_on:
-      - usermodel-postgres
+      - governor-postgres
     command: >
-      sh -c "python manage.py migrate && gunicorn usermodel.wsgi:application --bind 0.0.0.0:8000"
+      sh -c "python manage.py migrate && gunicorn governor.wsgi:application --bind 0.0.0.0:8000"
 
-  usermodel-postgres:
+  governor-postgres:
     image: postgres:17
-    container_name: usermodel-postgres-container
+    container_name: governor-postgres-container
     env_file:
       - ../env/local-env.env
     volumes:
-      - usermodel_pgdata:/var/lib/postgresql/data
+      - governor_pgdata:/var/lib/postgresql/data
     ports:
       - "5435:5432"
     restart: unless-stopped
 
 volumes:
-  usermodel_pgdata:
+  governor_pgdata:
