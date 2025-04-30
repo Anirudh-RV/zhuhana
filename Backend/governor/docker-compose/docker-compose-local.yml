@@ -1,0 +1,27 @@
+services:
+  governor:
+    build: ..
+    container_name: governor-container
+    ports:
+      - "8008:8080"
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - .:/app
+    restart: unless-stopped
+    depends_on:
+      - governor-postgres
+
+  governor-postgres:
+    image: postgres:17
+    container_name: governor-postgres-container
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - governor_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+
+volumes:
+  governor_pgdata:
