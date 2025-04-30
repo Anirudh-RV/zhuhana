@@ -1,19 +1,16 @@
 services:
   governor:
-    build:
-      context: ..
+    build: ..
     container_name: governor-container
-    volumes:
-      - ../:/app
-    working_dir: /app
     ports:
-      - "8008:8000"
+      - "8008:8080"
     env_file:
       - ../env/local-env.env
+    volumes:
+      - .:/app
+    restart: unless-stopped
     depends_on:
       - governor-postgres
-    command: >
-      sh -c "python manage.py migrate && gunicorn governor.wsgi:application --bind 0.0.0.0:8000"
 
   governor-postgres:
     image: postgres:17
