@@ -1,0 +1,20 @@
+# Stage 1: Build the Go binary
+FROM golang:1.23 AS builder
+
+WORKDIR /app
+
+RUN go install github.com/air-verse/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+# Stage 2: Run the binary in a minimal image
+FROM cosmtrek/air:latest
+
+WORKDIR /app
+COPY . .
+
+EXPOSE 8080
+CMD ["air"]

@@ -17,7 +17,7 @@ import (
 func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB) {
 	v1 := r.Group("/api/users/v1/")
 	{
-		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("/swagger/v1/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		user_routes.UserRoutesV1(v1, log, db)
 		microservice_routes.MicroServiceRoutesV1(v1, log, db)
 	}
