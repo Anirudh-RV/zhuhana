@@ -1,4 +1,4 @@
-# marketdata API Suite
+# Secrets Manager
 
 - To Run the projects run:
 

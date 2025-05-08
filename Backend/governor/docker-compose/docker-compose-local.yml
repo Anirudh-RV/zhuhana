@@ -1,13 +1,15 @@
 services:
   governor:
-    build: ..
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile-local
     container_name: governor-container
     ports:
       - "8008:8080"
     env_file:
       - ../env/local-env.env
     volumes:
-      - .:/app
+      - ..:/app
     restart: unless-stopped
     depends_on:
       - governor-postgres

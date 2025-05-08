@@ -1,13 +1,15 @@
 services:
   uasam:
-    build: ..
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile-local
     container_name: uasam-container
     ports:
       - "8002:8080"
     env_file:
       - ../env/local-env.env
     volumes:
-      - .:/app
+      - ..:/app
     restart: unless-stopped
     depends_on:
       - uasam-postgres

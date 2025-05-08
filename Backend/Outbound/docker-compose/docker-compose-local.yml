@@ -1,11 +1,13 @@
 services:
   outbound:
-    build: ..
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile-local
     container_name: outbound-container
     ports:
       - "8000:8080"
     environment:
       - PORT=8080
     volumes:
-      - .:/app
+      - ..:/app
     restart: unless-stopped
