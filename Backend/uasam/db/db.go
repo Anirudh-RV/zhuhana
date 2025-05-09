@@ -23,7 +23,7 @@ func InitDB(logger *logger.Logger) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	go logger.Info("DSN for connection: "+dsn, zap.String("Execution Level", "Root"))
+	go logger.Info("DSN created for connection", zap.String("Execution Level", "Root"))
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
@@ -35,6 +35,4 @@ func InitDB(logger *logger.Logger) {
 	if err != nil {
 		log.Fatalf("Cannot connect to DB: %v", err)
 	}
-
-	log.Println("Successfully connected to the database")
 }

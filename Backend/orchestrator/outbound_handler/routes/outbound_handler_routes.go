@@ -5,8 +5,9 @@ import (
 	"orchestrator/logger"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 )
 
-func OutboundHandlerRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB) {
+func OutboundHandlerRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client) {
 
 }

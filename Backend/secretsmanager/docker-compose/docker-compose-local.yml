@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     depends_on:
       - secrets-manager-postgres
+      - secrets-manager-redis
 
   secrets-manager-postgres:
     image: postgres:17
@@ -24,6 +25,13 @@ services:
     ports:
       - "5433:5432"
     restart: unless-stopped
+
+  secrets-manager-redis:
+    image: redis:7
+    container_name: secrets-manager-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6389:6379"
 
 volumes:
   secrets_pgdata:

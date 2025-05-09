@@ -11,3 +11,12 @@ services:
     volumes:
       - ..:/app
     restart: unless-stopped
+    depends_on:
+      - outbound-redis
+
+  outbound-redis:
+    image: redis:7
+    container_name: outbound-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6369:6379"

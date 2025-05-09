@@ -1,6 +1,9 @@
 # Local DB
 data/
 
+*/*tmp/
+*/*/*tmp/
+
 #DS_Store
 .DS_Store
 ._.DS_Store

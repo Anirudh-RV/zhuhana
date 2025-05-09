@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"secretsmanager/cache"
 	"secretsmanager/db"
 	"secretsmanager/logger"
 	"secretsmanager/routes"
@@ -10,16 +12,21 @@ import (
 )
 
 func main() {
+	var ctx = context.Background()
+
 	log := logger.NewLogger()
 	go log.Info("Logger started", zap.String("Execution Level", "Root"))
 
 	db.InitDB(log)
 	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
 
+	cache.InitRedis(ctx, log)
+	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
+
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")
