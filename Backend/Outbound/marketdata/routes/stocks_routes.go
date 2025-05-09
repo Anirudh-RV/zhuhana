@@ -7,10 +7,11 @@ import (
 	polygonTickersService "outbound/marketdata/stocks/polygon/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
-func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger) {
+func StocksRoutesV1(r *gin.RouterGroup, log *logger.Logger, redis *redis.Client) {
 	stocks := r.Group("stocks/")
 	{
 		polygon := stocks.Group("polygon/")

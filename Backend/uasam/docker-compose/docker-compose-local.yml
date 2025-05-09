@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     depends_on:
       - uasam-postgres
+      - uasam-redis
 
   uasam-postgres:
     image: postgres:17
@@ -24,6 +25,13 @@ services:
     ports:
       - "5432:5432"
     restart: unless-stopped
+
+  uasam-redis:
+    image: redis:7
+    container_name: uasam-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6379:6379"
 
 volumes:
   uasam_pgdata:

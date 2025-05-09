@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     depends_on:
       - orchestrator-postgres
+      - orchestrator-redis
 
   orchestrator-postgres:
     image: postgres:17
@@ -24,6 +25,13 @@ services:
     ports:
       - "5434:5432"
     restart: unless-stopped
+
+  orchestrator-redis:
+    image: redis:7
+    container_name: orchestrator-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6399:6379"
 
 volumes:
   orchestrator_pgdata:

@@ -13,6 +13,7 @@ services:
     restart: unless-stopped
     depends_on:
       - governor-postgres
+      - governor-redis
 
   governor-postgres:
     image: postgres:17
@@ -24,6 +25,13 @@ services:
     ports:
       - "5435:5432"
     restart: unless-stopped
+
+  governor-redis:
+    image: redis:7
+    container_name: governor-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6349:6379"
 
 volumes:
   governor_pgdata:
