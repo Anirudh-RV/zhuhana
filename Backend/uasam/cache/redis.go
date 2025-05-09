@@ -14,7 +14,7 @@ import (
 
 var RedisObj *redis.Client
 
-func InitRedis(ctx context.Context, logger *logger.Logger) {
+func InitRedis(ctx *context.Context, logger *logger.Logger) {
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
 	redisPassword := os.Getenv("REDIS_PASSWORD")
@@ -26,12 +26,12 @@ func InitRedis(ctx context.Context, logger *logger.Logger) {
 	})
 	go logger.Info("redis instance creation successful", zap.String("Execution Level", "Root"))
 
-	errSet := RedisObj.Set(ctx, "key", "I got the value", 0).Err()
+	errSet := RedisObj.Set(*ctx, "key", "I got the value", 0).Err()
 	if errSet != nil {
 		log.Fatalf("error conneting to redis: %v", errSet)
 	}
 
-	value, errGet := RedisObj.Get(ctx, "key").Result()
+	value, errGet := RedisObj.Get(*ctx, "key").Result()
 	if errGet != nil {
 		panic(errGet)
 	}

@@ -4,9 +4,9 @@
         "contact": {}
     },
     "paths": {
-        "/api/marketdata/v1/stocks/polygon/all-tickers": {
-            "get": {
-                "description": "Fetches all tickers with an optional limit parameter",
+        "/v1/user/sign-up/init/": {
+            "post": {
+                "description": "Initiates user sign-up by checking if the user exists and sending OTP for verification",
                 "consumes": [
                     "application/json"
                 ],
@@ -14,31 +14,37 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Tickers"
+                    "User"
                 ],
-                "summary": "Get all tickers",
+                "summary": "Initialize Sign Up",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Number of tickers to retrieve (default: 10)",
-                        "name": "limit",
-                        "in": "query"
+                        "description": "Sign Up Init Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpInitRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of tickers",
+                        "description": "OTP verification initiated",
                         "schema": {
-                            "$ref": "#/definitions/stocks.AllTickersAPIResponse"
+                            "$ref": "#/definitions/models.SignUpInitResponse"
                         }
                     },
                     "400": {
-                        "description": "Error message",
+                        "description": "User already exists or invalid payload",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.SignUpInitResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpInitResponse"
                         }
                     }
                 }
@@ -46,66 +52,33 @@
         }
     },
     "definitions": {
-        "stocks.AllTickerStockInformation": {
+        "models.SignUpInitRequest": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "cik": {
+                "emailId": {
                     "type": "string"
                 },
-                "composite_figi": {
+                "firstName": {
                     "type": "string"
                 },
-                "currency_name": {
+                "lastName": {
                     "type": "string"
                 },
-                "last_updated_utc": {
+                "middleName": {
                     "type": "string"
                 },
-                "locale": {
-                    "type": "string"
-                },
-                "market": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primary_exchange": {
-                    "type": "string"
-                },
-                "share_class_figi": {
-                    "type": "string"
-                },
-                "ticker": {
-                    "type": "string"
-                },
-                "type": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "stocks.AllTickersAPIResponse": {
+        "models.SignUpInitResponse": {
             "type": "object",
             "properties": {
-                "count": {
+                "status": {
                     "type": "integer"
                 },
-                "next_url": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/stocks.AllTickerStockInformation"
-                    }
-                },
-                "status": {
+                "status_description": {
                     "type": "string"
                 }
             }

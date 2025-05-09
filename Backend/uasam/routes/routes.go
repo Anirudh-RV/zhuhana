@@ -1,7 +1,9 @@
 package routes
 
 import (
+	"context"
 	"database/sql"
+	"uasam/email"
 	"uasam/logger"
 
 	_ "uasam/docs"
@@ -15,11 +17,11 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client) {
-	v1 := r.Group("/api/users/v1/")
+func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService) {
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	v1 := r.Group("/v1/")
 	{
-		v1.GET("/swagger/v1/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-		user_routes.UserRoutesV1(v1, log, db, redis)
+		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService)
 		microservice_routes.MicroServiceRoutesV1(v1, log, db, redis)
 	}
 }
