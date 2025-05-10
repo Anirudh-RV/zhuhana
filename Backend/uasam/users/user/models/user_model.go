@@ -16,3 +16,13 @@ type User struct {
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at"`
 }
+
+type UserReturnObject struct {
+	ID         uuid.UUID `db:"id"`
+	FirstName  string    `db:"first_name"`
+	MiddleName *string   `db:"middle_name"`
+	LastName   string    `db:"last_name"`
+	EmailID    string    `db:"email_id"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at"`
+}

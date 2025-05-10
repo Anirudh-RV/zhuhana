@@ -60,6 +60,58 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/v1/user/sign-up/verify-otp/": {
+            "post": {
+                "description": "Verifies the OTP and creates the user account if valid.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Verify OTP and Sign Up User",
+                "parameters": [
+                    {
+                        "description": "Verify OTP Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpVerifyOTPRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Wrong OTP",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -89,7 +141,61 @@ const docTemplate = `{
                 "status": {
                     "type": "integer"
                 },
-                "status_description": {
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SignUpVerifyOTPRequest": {
+            "type": "object",
+            "properties": {
+                "emailId": {
+                    "type": "string"
+                },
+                "otp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SignUpVerifyOTPResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/models.UserReturnObject"
+                }
+            }
+        },
+        "models.UserReturnObject": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "emailID": {
+                    "type": "string"
+                },
+                "firstName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastName": {
+                    "type": "string"
+                },
+                "middleName": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }

@@ -59,6 +59,16 @@ func (ots *OTPService) generateAndStoreSecretKey(emailID string) (string, error)
 	return secret.Secret(), nil
 }
 
+func (ots *OTPService) getStoredSecretKey(emailID string) (string, error) {
+	secret, err := ots.redis.Get(*ots.ctx, emailID+ots.OTP_SECRETS_KEY_SUFFIX).Result()
+	if err != nil {
+		go ots.logger.Warning("Could not get User Secret from Redis", zap.String("Execution Level", "getStoredSecretKey"), zap.String("Error", err.Error()))
+		return "", err
+	}
+
+	return secret, nil
+}
+
 func (ots *OTPService) generateOTP(secret string) (string, error) {
 	code, err := totp.GenerateCode(secret, time.Now())
 	if err != nil {
@@ -67,7 +77,7 @@ func (ots *OTPService) generateOTP(secret string) (string, error) {
 	return code, nil
 }
 
-func (ots *OTPService) VerifyOTPWithWindow(secret, userInput string) (bool, error) {
+func (ots *OTPService) VerifyOTP(secret, userInput string) (bool, error) {
 
 	opts := totp.ValidateOpts{
 		Period:    30,                 // OTP changes every 30s

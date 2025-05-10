@@ -16,7 +16,42 @@ definitions:
     properties:
       status:
         type: integer
-      status_description:
+      statusDescription:
+        type: string
+    type: object
+  models.SignUpVerifyOTPRequest:
+    properties:
+      emailId:
+        type: string
+      otp:
+        type: string
+    type: object
+  models.SignUpVerifyOTPResponse:
+    properties:
+      accessToken:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserReturnObject'
+    type: object
+  models.UserReturnObject:
+    properties:
+      createdAt:
+        type: string
+      emailID:
+        type: string
+      firstName:
+        type: string
+      id:
+        type: string
+      lastName:
+        type: string
+      middleName:
+        type: string
+      updatedAt:
         type: string
     type: object
 info:
@@ -51,6 +86,40 @@ paths:
           schema:
             $ref: '#/definitions/models.SignUpInitResponse'
       summary: Initialize Sign Up
+      tags:
+      - User
+  /v1/user/sign-up/verify-otp/:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP and creates the user account if valid.
+      parameters:
+      - description: Verify OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpVerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+        "401":
+          description: Wrong OTP
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+        "500":
+          description: Server Error
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+      summary: Verify OTP and Sign Up User
       tags:
       - User
 swagger: "2.0"

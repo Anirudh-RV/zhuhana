@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"time"
+	"uasam/commonutils"
 	"uasam/users/user/models"
 	"uasam/users/user/repositories"
+	"uasam/users/user/utils"
 
 	"uasam/logger"
 
@@ -17,16 +19,18 @@ import (
 type UserService struct {
 	ctx            *context.Context
 	otpService     *OTPService
+	jwtService     *commonutils.JWTService
 	userRepository *repositories.UserRepository
 	logger         *logger.Logger
 	redis          *redis.Client
 }
 
-func NewUserService(ctx *context.Context, otpService *OTPService, userRepository *repositories.UserRepository, logger *logger.Logger, redis *redis.Client) *UserService {
+func NewUserService(ctx *context.Context, otpService *OTPService, jwtService *commonutils.JWTService, userRepository *repositories.UserRepository, logger *logger.Logger, redis *redis.Client) *UserService {
 
 	return &UserService{
 		ctx:            ctx,
 		otpService:     otpService,
+		jwtService:     jwtService,
 		userRepository: userRepository,
 		logger:         logger,
 		redis:          redis,
@@ -65,7 +69,7 @@ func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitR
 
 	hashedPassword, err := argon2id.CreateHash(signUpRequestObject.Password, argon2id.DefaultParams)
 	if err != nil {
-		go us.logger.Warning("Password hashing failed", zap.String("Execution Level", "signUpInitHandler"))
+		go us.logger.Warning("password hashing failed", zap.String("execution level", "signUpInitHandler"))
 		return err
 	}
 	signUpRequestObject.Password = hashedPassword
@@ -77,9 +81,59 @@ func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitR
 
 	err = us.redis.Set(*us.ctx, signUpRequestObject.EmailID, jsonSignUpRequestObject, time.Duration(us.otpService.OTP_DURATION_IN_SECONDS)*time.Second).Err()
 	if err != nil {
-		go us.logger.Warning("Could not store User Object in Redis", zap.String("Execution Level", "signUpInitHandler"))
+		go us.logger.Warning("could not store user object in redis", zap.String("execution level", "signUpInitHandler"))
 		return err
 	}
 
 	return nil
+}
+
+func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.SignUpVerifyOTPRequest) (*models.UserReturnObject, string, int, error) {
+	storedSecret, err := us.otpService.getStoredSecretKey(signUpVerifyOTPRequest.EmailID)
+	if err == redis.Nil {
+		go us.logger.Warning("user secret unavailable in redis", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	} else if err != nil {
+		go us.logger.Warning("error in getting user secret in redis", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+
+	status, err := us.otpService.VerifyOTP(storedSecret, signUpVerifyOTPRequest.Otp)
+	if err != nil {
+		go us.logger.Warning("error in verifying otp", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+	if !status {
+		go us.logger.Warning("wrong otp provided", zap.String("execution level", "SignUpVerifyOTPHandler"))
+		return nil, "", -1, err
+	}
+
+	userJSON, err := us.redis.Get(*us.ctx, signUpVerifyOTPRequest.EmailID).Result()
+	if err != nil {
+		go us.logger.Warning("could not get user object from redis", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+
+	var signUpInitRequestObject models.SignUpInitRequest
+	err = json.Unmarshal([]byte(userJSON), &signUpInitRequestObject)
+	if err != nil {
+		go us.logger.Warning("json decoding error for user object", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+
+	userObject, err := us.userRepository.CreateUser(signUpInitRequestObject.FirstName, signUpInitRequestObject.MiddleName, signUpInitRequestObject.LastName, signUpInitRequestObject.EmailID, signUpInitRequestObject.Password)
+	if err != nil {
+		go us.logger.Warning("errors creating user object", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+
+	userResponseObject := utils.MapUserToUserReturnObject(userObject)
+
+	generatedUserAccessToken, err := us.jwtService.GenerateJWT(userObject.ID.String(), "user")
+	if err != nil {
+		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", 0, err
+	}
+
+	return &userResponseObject, generatedUserAccessToken, 1, nil
 }

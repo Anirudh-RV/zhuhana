@@ -10,5 +10,17 @@ type SignUpInitRequest struct {
 
 type SignUpInitResponse struct {
 	Status            int    `json:"status"`
-	StatusDescription string `json:"status_description"`
+	StatusDescription string `json:"statusDescription"`
+}
+
+type SignUpVerifyOTPRequest struct {
+	EmailID string `json:"emailId"`
+	Otp     string `json:"otp"`
+}
+
+type SignUpVerifyOTPResponse struct {
+	Status            int              `json:"status"`
+	StatusDescription string           `json:"statusDescription"`
+	User              UserReturnObject `json:"user,omitempty"`
+	AccessToken       string           `json:"accessToken,omitempty"`
 }

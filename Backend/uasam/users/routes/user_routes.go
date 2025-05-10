@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"database/sql"
+	"uasam/commonutils"
 	"uasam/email"
 	"uasam/logger"
 
@@ -15,7 +16,7 @@ import (
 	userService "uasam/users/user/services"
 )
 
-func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService) {
+func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService) {
 	user := r.Group("user/")
 	{
 		signUp := user.Group("sign-up/")
@@ -26,14 +27,14 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			otpService := userService.NewOTPService(ctx, log, redis, emailService)
 			go log.Info("OTP Service created", zap.String("Execution Level", "UserRoutesV1"))
 
-			userService := userService.NewUserService(ctx, otpService, userRepo, log, redis)
+			userService := userService.NewUserService(ctx, otpService, jwtService, userRepo, log, redis)
 			go log.Info("User Service created", zap.String("Execution Level", "UserRoutesV1"))
 
 			signUpController := userController.NewSignUpController(userService, log)
 			go log.Info("SignUp Controller created", zap.String("Execution Level", "UserRoutesV1"))
 
 			signUp.POST("init/", signUpController.SignUpInitHandler)
-			signUp.POST("verify-otp/", signUpController.VerifyOTPHandler)
+			signUp.POST("verify-otp/", signUpController.SignUpVerifyOTPHandler)
 		}
 	}
 }
