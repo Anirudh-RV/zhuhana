@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"uasam/cache"
+	"uasam/commonutils"
 	"uasam/db"
+	"uasam/email"
 	"uasam/logger"
 	"uasam/routes"
 
@@ -20,13 +22,19 @@ func main() {
 	db.InitDB(log)
 	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
 
-	cache.InitRedis(ctx, log)
+	emailService := email.NewEmailService(&ctx, log)
+	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
+
+	jwtService := commonutils.NewJWTService(log)
+	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
+
+	cache.InitRedis(&ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj)
+	routes.RegisterRoutes(&ctx, router, log, db.DB, cache.RedisObj, emailService, jwtService)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

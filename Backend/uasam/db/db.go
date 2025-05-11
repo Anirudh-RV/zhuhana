@@ -8,6 +8,7 @@ import (
 	"uasam/logger"
 
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 )
 
@@ -34,5 +35,9 @@ func InitDB(logger *logger.Logger) {
 	err = DB.Ping()
 	if err != nil {
 		log.Fatalf("Cannot connect to DB: %v", err)
+	}
+
+	if err := goose.Up(DB, "db/migrations"); err != nil {
+		log.Fatal(err)
 	}
 }
