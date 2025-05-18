@@ -25,3 +25,10 @@ func (es *EmailService) SendOTPEmail(emailID string, OTP string) error {
 
 	return nil
 }
+
+func (es *EmailService) SendResetPasswordEmail(emailID string, Token string) error {
+	// TODO: Implement Email OTP sender
+	go es.logger.Info("Password Reset Token for "+emailID+": "+Token, zap.String("Execution Level", "SendResetPasswordEmail"))
+
+	return nil
+}

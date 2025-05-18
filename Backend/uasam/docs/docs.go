@@ -49,13 +49,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request payload or login error",
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
                         }
                     }
                 }
@@ -95,7 +95,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request payload",
                         "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
                         }
                     },
                     "401": {
@@ -108,6 +108,110 @@ const docTemplate = `{
                         "description": "Internal server error",
                         "schema": {
                             "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/reset-password/init/": {
+            "post": {
+                "description": "Starts the password reset process by verifying if the user exists and sending a reset link to the email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Initiate Password Reset",
+                "parameters": [
+                    {
+                        "description": "Reset Password Init Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password reset link sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User does not exist or reset error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/reset-password/reset/": {
+            "post": {
+                "description": "Completes the password reset by setting a new password for a valid user after token authentication",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Complete Password Reset",
+                "parameters": [
+                    {
+                        "description": "Reset Password Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password reset successful",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User does not exist or reset error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordResponse"
                         }
                     }
                 }
@@ -253,6 +357,50 @@ const docTemplate = `{
             }
         },
         "models.LoginVerifyPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResetPasswordInitRequest": {
+            "type": "object",
+            "properties": {
+                "emailId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResetPasswordInitResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResetPasswordRequest": {
+            "type": "object",
+            "properties": {
+                "emailId": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ResetPasswordResponse": {
             "type": "object",
             "properties": {
                 "status": {

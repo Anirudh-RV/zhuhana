@@ -7,6 +7,7 @@ import (
 	"time"
 	"uasam/email"
 	"uasam/logger"
+	"uasam/users/user/repositories"
 
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
@@ -15,30 +16,38 @@ import (
 )
 
 type OTPService struct {
-	ctx                     *context.Context
-	logger                  *logger.Logger
-	OTP_SKEW                int
-	OTP_ISSUER              string
-	OTP_SECRETS_KEY_SUFFIX  string
-	OTP_DURATION_IN_SECONDS int
-	redis                   *redis.Client
-	emailService            *email.EmailService
+	ctx                                     *context.Context
+	logger                                  *logger.Logger
+	OTP_SKEW                                int
+	OTP_ISSUER                              string
+	OTP_SECRETS_KEY_SUFFIX                  string
+	RESET_PASSWORD_KEY_SUFFIX               string
+	OTP_DURATION_IN_SECONDS                 int
+	RESET_PASSWORD_TOKEN_DURATION_IN_SECOND int
+	redis                                   *redis.Client
+	emailService                            *email.EmailService
+	userRepository                          *repositories.UserRepository
 }
 
-func NewOTPService(ctx *context.Context, logger *logger.Logger, redis *redis.Client, emailService *email.EmailService) *OTPService {
+func NewOTPService(ctx *context.Context, logger *logger.Logger, redis *redis.Client, emailService *email.EmailService, userRepository *repositories.UserRepository) *OTPService {
 	OTP_SKEW, _ := strconv.Atoi(os.Getenv("OTP_SKEW"))
 	OTP_SECRETS_KEY_SUFFIX := os.Getenv("OTP_SECRETS_KEY_SUFFIX")
 	OTP_DURATION_IN_SECONDS, _ := strconv.Atoi(os.Getenv("OTP_DURATION_IN_SECONDS"))
+	RESET_PASSWORD_KEY_SUFFIX := os.Getenv("RESET_PASSWORD_KEY_SUFFIX")
+	RESET_PASSWORD_TOKEN_DURATION_IN_SECOND, _ := strconv.Atoi(os.Getenv("RESET_PASSWORD_TOKEN_DURATION_IN_SECOND"))
 
 	return &OTPService{
-		ctx:                     ctx,
-		logger:                  logger,
-		redis:                   redis,
-		emailService:            emailService,
-		OTP_SKEW:                OTP_SKEW,
-		OTP_ISSUER:              os.Getenv("OTP_ISSUER"),
-		OTP_SECRETS_KEY_SUFFIX:  OTP_SECRETS_KEY_SUFFIX,
-		OTP_DURATION_IN_SECONDS: OTP_DURATION_IN_SECONDS,
+		ctx:                                     ctx,
+		logger:                                  logger,
+		redis:                                   redis,
+		emailService:                            emailService,
+		userRepository:                          userRepository,
+		OTP_SKEW:                                OTP_SKEW,
+		OTP_ISSUER:                              os.Getenv("OTP_ISSUER"),
+		OTP_SECRETS_KEY_SUFFIX:                  OTP_SECRETS_KEY_SUFFIX,
+		OTP_DURATION_IN_SECONDS:                 OTP_DURATION_IN_SECONDS,
+		RESET_PASSWORD_KEY_SUFFIX:               RESET_PASSWORD_KEY_SUFFIX,
+		RESET_PASSWORD_TOKEN_DURATION_IN_SECOND: RESET_PASSWORD_TOKEN_DURATION_IN_SECOND,
 	}
 }
 
@@ -52,7 +61,7 @@ func (ots *OTPService) generateAndStoreSecretKey(emailID string) (string, error)
 	}
 	err = ots.redis.Set(*ots.ctx, emailID+ots.OTP_SECRETS_KEY_SUFFIX, secret.Secret(), time.Duration(ots.OTP_DURATION_IN_SECONDS)*time.Second).Err()
 	if err != nil {
-		go ots.logger.Warning("Could not store User Secret in Redis", zap.String("Execution Level", "generateAndStoreSecretKey"), zap.String("Error", err.Error()))
+		go ots.logger.Warning("could not store user secret in redis", zap.String("rxecution level", "generateAndStoreSecretKey"), zap.String("Error", err.Error()))
 		return "", err
 	}
 
