@@ -1,4 +1,36 @@
 definitions:
+  models.LoginVerifyOTPRequest:
+    properties:
+      emailId:
+        type: string
+      otp:
+        type: string
+    type: object
+  models.LoginVerifyOTPResponse:
+    properties:
+      accessToken:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+      user:
+        $ref: '#/definitions/models.UserObject'
+    type: object
+  models.LoginVerifyPasswordRequest:
+    properties:
+      emailId:
+        type: string
+      password:
+        type: string
+    type: object
+  models.LoginVerifyPasswordResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.SignUpInitRequest:
     properties:
       emailId:
@@ -35,9 +67,9 @@ definitions:
       statusDescription:
         type: string
       user:
-        $ref: '#/definitions/models.UserReturnObject'
+        $ref: '#/definitions/models.UserObject'
     type: object
-  models.UserReturnObject:
+  models.UserObject:
     properties:
       createdAt:
         type: string
@@ -57,6 +89,72 @@ definitions:
 info:
   contact: {}
 paths:
+  /v1/user/login/verify-otp/:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the OTP provided by the user and returns an access token
+        upon successful authentication
+      parameters:
+      - description: Login Verify OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginVerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login authenticated successfully, access token issued
+          schema:
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
+        "400":
+          description: Invalid request payload or login error
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
+      summary: Verify OTP during login
+      tags:
+      - User
+  /v1/user/login/verify-password/:
+    post:
+      consumes:
+      - application/json
+      description: Checks if user exists and verifies the submitted password. Sends
+        an OTP if the password verification is successful
+      parameters:
+      - description: Login Verify Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginVerifyPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password verified successfully, proceed to OTP verification
+          schema:
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+        "401":
+          description: Login error due to invalid credentials or user not existing
+          schema:
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
+      summary: Verify user password during login
+      tags:
+      - User
   /v1/user/sign-up/init/:
     post:
       consumes:

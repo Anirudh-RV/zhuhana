@@ -56,3 +56,44 @@ func (ur *UserRepository) IfUserEmailExists(emailID string) (bool, error) {
 	}
 	return true, nil // account exists
 }
+
+func (ur *UserRepository) GetUserPasswordByEmail(emailID string) (string, error) {
+	query := `SELECT password FROM "account" WHERE email_id = $1 LIMIT 1`
+	var password string
+	err := ur.db.QueryRow(query, emailID).Scan(&password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil // account does not exist
+		}
+		return "", err // other DB error
+	}
+	return password, nil // account exists
+}
+
+func (ur *UserRepository) GetUserByEmail(emailID string) (*models.UserObject, error) {
+	query := `
+		SELECT id, first_name, middle_name, last_name, email_id, created_at, updated_at
+		FROM "account"
+		WHERE email_id = $1
+		LIMIT 1
+	`
+
+	var user models.UserObject
+	err := ur.db.QueryRow(query, emailID).Scan(
+		&user.ID,
+		&user.FirstName,
+		&user.MiddleName,
+		&user.LastName,
+		&user.EmailID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}

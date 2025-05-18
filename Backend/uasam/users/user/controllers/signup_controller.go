@@ -116,7 +116,7 @@ func (snc *SignUpController) SignUpVerifyOTPHandler(c *gin.Context) {
 	userResponseObject, generatedUserAccessToken, status, err := snc.userService.SignUpVerifyOTPHandler(&signUpVerifyOTPRequest)
 	if status == -1 {
 		c.JSON(http.StatusUnauthorized, models.SignUpVerifyOTPResponse{
-			Status:            -1,
+			Status:            -2,
 			StatusDescription: "Wrong OTP",
 		})
 		return

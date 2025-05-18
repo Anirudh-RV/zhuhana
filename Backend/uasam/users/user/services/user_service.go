@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 	"uasam/commonutils"
 	"uasam/users/user/models"
@@ -88,7 +89,7 @@ func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitR
 	return nil
 }
 
-func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.SignUpVerifyOTPRequest) (*models.UserReturnObject, string, int, error) {
+func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.SignUpVerifyOTPRequest) (*models.UserObject, string, int, error) {
 	storedSecret, err := us.otpService.getStoredSecretKey(signUpVerifyOTPRequest.EmailID)
 	if err == redis.Nil {
 		go us.logger.Warning("user secret unavailable in redis", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
@@ -127,7 +128,7 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 		return nil, "", 0, err
 	}
 
-	userResponseObject := utils.MapUserToUserReturnObject(userObject)
+	userResponseObject := utils.MapUserToUserObject(userObject)
 
 	generatedUserAccessToken, err := us.jwtService.GenerateJWT(userObject.ID.String(), "user")
 	if err != nil {
@@ -135,5 +136,66 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 		return nil, "", 0, err
 	}
 
-	return &userResponseObject, generatedUserAccessToken, 1, nil
+	return userResponseObject, generatedUserAccessToken, 1, nil
+}
+
+func (us *UserService) LoginVerifyPasswordHandler(loginVerifyPasswordRequest *models.LoginVerifyPasswordRequest) error {
+	passwordHash, err := us.userRepository.GetUserPasswordByEmail(loginVerifyPasswordRequest.EmailID)
+	if err != nil {
+		go us.logger.Warning("Error accessing user password", zap.String("Execution Level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
+		return err
+	}
+
+	passwordMatch, err := argon2id.ComparePasswordAndHash(loginVerifyPasswordRequest.Password, passwordHash)
+	if err != nil {
+		go us.logger.Warning("Error during password hash comparision", zap.String("Execution Level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
+		return err
+	}
+
+	if !passwordMatch {
+		go us.logger.Warning("wrong password", zap.String("Execution Level", "LoginVerifyPasswordHandler"))
+		return errors.New("wrong password")
+	}
+
+	err = us.otpService.SendOTP(loginVerifyPasswordRequest.EmailID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (us *UserService) LoginVerifyOTPHandler(loginVerifyOTPRequest *models.LoginVerifyOTPRequest) (*models.UserObject, string, error) {
+	storedSecret, err := us.otpService.getStoredSecretKey(loginVerifyOTPRequest.EmailID)
+	if err == redis.Nil {
+		go us.logger.Warning("user secret unavailable in redis", zap.String("execution level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", err
+	} else if err != nil {
+		go us.logger.Warning("error in getting user secret in redis", zap.String("execution level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", err
+	}
+
+	status, err := us.otpService.VerifyOTP(storedSecret, loginVerifyOTPRequest.Otp)
+	if err != nil {
+		go us.logger.Warning("error in verifying otp", zap.String("execution level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", err
+	}
+	if !status {
+		go us.logger.Warning("wrong otp provided", zap.String("execution level", "LoginVerifyOTPHandler"))
+		return nil, "", errors.New("wrong otp provided")
+	}
+
+	userObject, err := us.userRepository.GetUserByEmail(loginVerifyOTPRequest.EmailID)
+	if err != nil {
+		go us.logger.Warning("error in fetching user", zap.String("execution level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", err
+	}
+
+	generatedUserAccessToken, err := us.jwtService.GenerateJWT(userObject.ID.String(), "user")
+	if err != nil {
+		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		return nil, "", err
+	}
+
+	return userObject, generatedUserAccessToken, nil
 }
