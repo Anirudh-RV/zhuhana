@@ -19,22 +19,31 @@ import (
 func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService) {
 	user := r.Group("user/")
 	{
+		userRepo := userRepository.NewUserRepository(db)
+		go log.Info("user repository created", zap.String("execution level", "UserRoutesV1"))
+
+		otpService := userService.NewOTPService(ctx, log, redis, emailService)
+		go log.Info("otp service created", zap.String("execution level", "UserRoutesV1"))
+
+		userService := userService.NewUserService(ctx, otpService, jwtService, userRepo, log, redis)
+		go log.Info("user service created", zap.String("execution level", "UserRoutesV1"))
+
 		signUp := user.Group("sign-up/")
 		{
-			userRepo := userRepository.NewUserRepository(db)
-			go log.Info("User Repository created", zap.String("Execution Level", "UserRoutesV1"))
-
-			otpService := userService.NewOTPService(ctx, log, redis, emailService)
-			go log.Info("OTP Service created", zap.String("Execution Level", "UserRoutesV1"))
-
-			userService := userService.NewUserService(ctx, otpService, jwtService, userRepo, log, redis)
-			go log.Info("User Service created", zap.String("Execution Level", "UserRoutesV1"))
-
 			signUpController := userController.NewSignUpController(userService, log)
-			go log.Info("SignUp Controller created", zap.String("Execution Level", "UserRoutesV1"))
+			go log.Info("signup controller created", zap.String("execution level", "UserRoutesV1"))
 
 			signUp.POST("init/", signUpController.SignUpInitHandler)
 			signUp.POST("verify-otp/", signUpController.SignUpVerifyOTPHandler)
+		}
+
+		login := user.Group("login/")
+		{
+			loginController := userController.NewLoginController(userService, log)
+			go log.Info("login controller created", zap.String("execution level", "UserRoutesV1"))
+
+			login.POST("verify-password/", loginController.LoginVerifyPasswordHandler)
+			login.POST("verify-otp/", loginController.LoginVerifyOTPHandler)
 		}
 	}
 }

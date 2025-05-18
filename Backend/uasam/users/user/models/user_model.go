@@ -17,7 +17,7 @@ type User struct {
 	UpdatedAt  time.Time `db:"updated_at"`
 }
 
-type UserReturnObject struct {
+type UserObject struct {
 	ID         uuid.UUID `db:"id"`
 	FirstName  string    `db:"first_name"`
 	MiddleName *string   `db:"middle_name"`

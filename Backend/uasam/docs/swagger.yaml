@@ -35,9 +35,9 @@ definitions:
       statusDescription:
         type: string
       user:
-        $ref: '#/definitions/models.UserReturnObject'
+        $ref: "#/definitions/models.UserObject"
     type: object
-  models.UserReturnObject:
+  models.UserObject:
     properties:
       createdAt:
         type: string
@@ -60,66 +60,67 @@ paths:
   /v1/user/sign-up/init/:
     post:
       consumes:
-      - application/json
-      description: Initiates user sign-up by checking if the user exists and sending
+        - application/json
+      description:
+        Initiates user sign-up by checking if the user exists and sending
         OTP for verification
       parameters:
-      - description: Sign Up Init Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.SignUpInitRequest'
+        - description: Sign Up Init Request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/models.SignUpInitRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OTP verification initiated
           schema:
-            $ref: '#/definitions/models.SignUpInitResponse'
+            $ref: "#/definitions/models.SignUpInitResponse"
         "400":
           description: User already exists or invalid payload
           schema:
-            $ref: '#/definitions/models.SignUpInitResponse'
+            $ref: "#/definitions/models.SignUpInitResponse"
         "500":
           description: Server error
           schema:
-            $ref: '#/definitions/models.SignUpInitResponse'
+            $ref: "#/definitions/models.SignUpInitResponse"
       summary: Initialize Sign Up
       tags:
-      - User
+        - User
   /v1/user/sign-up/verify-otp/:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Verifies the OTP and creates the user account if valid.
       parameters:
-      - description: Verify OTP Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.SignUpVerifyOTPRequest'
+        - description: Verify OTP Request
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: "#/definitions/models.SignUpVerifyOTPRequest"
       produces:
-      - application/json
+        - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
         "400":
           description: Invalid request payload
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
         "401":
           description: Wrong OTP
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
         "500":
           description: Server Error
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
       summary: Verify OTP and Sign Up User
       tags:
-      - User
+        - User
 swagger: "2.0"

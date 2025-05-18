@@ -2,8 +2,8 @@ package utils
 
 import "uasam/users/user/models"
 
-func MapUserToUserReturnObject(user *models.User) models.UserReturnObject {
-	return models.UserReturnObject{
+func MapUserToUserObject(user *models.User) *models.UserObject {
+	return &models.UserObject{
 		ID:         user.ID,
 		FirstName:  user.FirstName,
 		MiddleName: user.MiddleName,

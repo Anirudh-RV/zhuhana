@@ -170,11 +170,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "user": {
-                    "$ref": "#/definitions/models.UserReturnObject"
+                    "$ref": "#/definitions/models.UserObject"
                 }
             }
         },
-        "models.UserReturnObject": {
+        "models.UserObject": {
             "type": "object",
             "properties": {
                 "createdAt": {
