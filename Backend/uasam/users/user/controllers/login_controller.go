@@ -30,14 +30,14 @@ func NewLoginController(userService *userService.UserService, log *logger.Logger
 // @Produce  json
 // @Param request body models.LoginVerifyPasswordRequest true "Login Verify Password Request"
 // @Success 200 {object} models.LoginVerifyPasswordResponse "Password verified successfully, proceed to OTP verification"
-// @Failure 400 {object} models.SignUpVerifyOTPResponse "Invalid request payload"
+// @Failure 400 {object} models.LoginVerifyPasswordResponse "Invalid request payload"
 // @Failure 401 {object} models.LoginVerifyPasswordResponse "Login error due to invalid credentials or user not existing"
 // @Failure 500 {object} models.LoginVerifyPasswordResponse "Internal server error"
 // @Router /v1/user/login/verify-password/ [post]
 func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 	var loginVerifyPasswordRequest models.LoginVerifyPasswordRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&loginVerifyPasswordRequest); err != nil {
-		c.JSON(http.StatusBadRequest, models.SignUpVerifyOTPResponse{
+		c.JSON(http.StatusBadRequest, models.LoginVerifyPasswordResponse{
 			Status:            0,
 			StatusDescription: "Invalid request payload",
 		})
@@ -83,13 +83,13 @@ func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 // @Produce  json
 // @Param request body models.LoginVerifyOTPRequest true "Login Verify OTP Request"
 // @Success 200 {object} models.LoginVerifyOTPResponse "Login authenticated successfully, access token issued"
-// @Failure 400 {object} models.SignUpVerifyOTPResponse "Invalid request payload or login error"
-// @Failure 500 {object} models.LoginVerifyPasswordResponse "Internal server error"
+// @Failure 400 {object} models.LoginVerifyOTPResponse "Invalid request payload or login error"
+// @Failure 500 {object} models.LoginVerifyOTPResponse "Internal server error"
 // @Router /v1/user/login/verify-otp/ [post]
 func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 	var loginVerifyOTPRequest models.LoginVerifyOTPRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&loginVerifyOTPRequest); err != nil {
-		c.JSON(http.StatusBadRequest, models.SignUpVerifyOTPResponse{
+		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
 			Status:            0,
 			StatusDescription: "Invalid request payload",
 		})
@@ -98,14 +98,14 @@ func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 
 	userExists, err := snc.userService.IfUserExists(loginVerifyOTPRequest.EmailID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.LoginVerifyPasswordResponse{
+		c.JSON(http.StatusInternalServerError, models.LoginVerifyOTPResponse{
 			Status:            0,
 			StatusDescription: "Server Error",
 		})
 		return
 	}
 	if !userExists {
-		c.JSON(http.StatusBadRequest, models.LoginVerifyPasswordResponse{
+		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
 			Status:            -1,
 			StatusDescription: "Login Error",
 		})
@@ -114,7 +114,7 @@ func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 
 	userResponseObject, generatedUserAccessToken, err := snc.userService.LoginVerifyOTPHandler(&loginVerifyOTPRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.LoginVerifyPasswordResponse{
+		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
 			Status:            -1,
 			StatusDescription: "Login Error",
 		})

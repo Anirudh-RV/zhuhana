@@ -31,6 +31,34 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.ResetPasswordInitRequest:
+    properties:
+      emailId:
+        type: string
+    type: object
+  models.ResetPasswordInitResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.ResetPasswordRequest:
+    properties:
+      emailId:
+        type: string
+      password:
+        type: string
+      token:
+        type: string
+    type: object
+  models.ResetPasswordResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.SignUpInitRequest:
     properties:
       emailId:
@@ -112,11 +140,11 @@ paths:
         "400":
           description: Invalid request payload or login error
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
       summary: Verify OTP during login
       tags:
       - User
@@ -143,7 +171,7 @@ paths:
         "400":
           description: Invalid request payload
           schema:
-            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
         "401":
           description: Login error due to invalid credentials or user not existing
           schema:
@@ -153,6 +181,76 @@ paths:
           schema:
             $ref: '#/definitions/models.LoginVerifyPasswordResponse'
       summary: Verify user password during login
+      tags:
+      - User
+  /v1/user/reset-password/init/:
+    post:
+      consumes:
+      - application/json
+      description: Starts the password reset process by verifying if the user exists
+        and sending a reset link to the email
+      parameters:
+      - description: Reset Password Init Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordInitRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset link sent successfully
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+        "401":
+          description: User does not exist or reset error
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+      summary: Initiate Password Reset
+      tags:
+      - User
+  /v1/user/reset-password/reset/:
+    post:
+      consumes:
+      - application/json
+      description: Completes the password reset by setting a new password for a valid
+        user after token authentication
+      parameters:
+      - description: Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successful
+          schema:
+            $ref: '#/definitions/models.ResetPasswordResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.ResetPasswordResponse'
+        "401":
+          description: User does not exist or reset error
+          schema:
+            $ref: '#/definitions/models.ResetPasswordResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.ResetPasswordResponse'
+      summary: Complete Password Reset
       tags:
       - User
   /v1/user/sign-up/init/:

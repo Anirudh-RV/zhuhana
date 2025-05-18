@@ -50,11 +50,11 @@ func (ur *UserRepository) IfUserEmailExists(emailID string) (bool, error) {
 	err := ur.db.QueryRow(query, emailID).Scan(&exists)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, nil // account does not exist
+			return false, nil
 		}
-		return false, err // other DB error
+		return false, err
 	}
-	return true, nil // account exists
+	return true, nil
 }
 
 func (ur *UserRepository) GetUserPasswordByEmail(emailID string) (string, error) {
@@ -63,11 +63,11 @@ func (ur *UserRepository) GetUserPasswordByEmail(emailID string) (string, error)
 	err := ur.db.QueryRow(query, emailID).Scan(&password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", nil // account does not exist
+			return "", nil
 		}
-		return "", err // other DB error
+		return "", err
 	}
-	return password, nil // account exists
+	return password, nil
 }
 
 func (ur *UserRepository) GetUserByEmail(emailID string) (*models.UserObject, error) {
@@ -96,4 +96,13 @@ func (ur *UserRepository) GetUserByEmail(emailID string) (*models.UserObject, er
 	}
 
 	return &user, nil
+}
+
+func (ur *UserRepository) UpdateUserPasswordByEmail(emailID string, newPassword string) error {
+	query := `UPDATE "account" SET password = $1, updated_at = NOW() WHERE email_id = $2`
+	_, err := ur.db.Exec(query, newPassword, emailID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

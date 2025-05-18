@@ -22,7 +22,7 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 		userRepo := userRepository.NewUserRepository(db)
 		go log.Info("user repository created", zap.String("execution level", "UserRoutesV1"))
 
-		otpService := userService.NewOTPService(ctx, log, redis, emailService)
+		otpService := userService.NewOTPService(ctx, log, redis, emailService, userRepo)
 		go log.Info("otp service created", zap.String("execution level", "UserRoutesV1"))
 
 		userService := userService.NewUserService(ctx, otpService, jwtService, userRepo, log, redis)
@@ -44,6 +44,15 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 
 			login.POST("verify-password/", loginController.LoginVerifyPasswordHandler)
 			login.POST("verify-otp/", loginController.LoginVerifyOTPHandler)
+		}
+
+		resetPassword := user.Group("reset-password/")
+		{
+			resetPasswordController := userController.NewResetPasswordController(userService, log)
+			go log.Info("reset password controller created", zap.String("execution level", "UserRoutesV1"))
+
+			resetPassword.POST("init/", resetPasswordController.ResetPasswordInitHandler)
+			resetPassword.POST("reset/", resetPasswordController.ResetPasswordHandler)
 		}
 	}
 }
