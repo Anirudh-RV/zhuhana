@@ -1,6 +1,6 @@
-# zhuana-trading
+# Zhuhana
 
-Quantitative Strategies
+Algorithm Trading Platform
 
 # Run
 
