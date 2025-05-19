@@ -15,6 +15,57 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/microservice/login": {
+            "post": {
+                "description": "Validates the incoming request headers from a calling microservice and generates an access token if valid",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Microservice"
+                ],
+                "summary": "Authenticate microservice and generate access token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the calling microservice",
+                        "name": "Caller-Service",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "API key for the calling microservice",
+                        "name": "API-Key",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Access token generated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid required headers",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while generating token",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user/login/verify-otp/": {
             "post": {
                 "description": "Verifies the OTP provided by the user and returns an access token upon successful authentication",
@@ -359,6 +410,20 @@ const docTemplate = `{
         "models.LoginVerifyPasswordResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MicroServiceLoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "integer"
                 },

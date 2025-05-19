@@ -1,6 +1,7 @@
 package commonutils
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -50,4 +51,14 @@ func (jts *JWTService) ParseMicroServicesJWT(tokenStr string) (string, string, e
 	}
 
 	return callerMicroService, calledMicroService, nil
+}
+
+func (jts *JWTService) CheckMicroServiceAPIKey(apiKey string) (string, error) {
+	calleeService, exists := jts.ALL_API_KEYS[apiKey]
+	if !exists {
+		go jts.logger.Warning("invalid api_key", zap.String("execution level", "CheckMicroServiceAPIKey"))
+		return "", errors.New("invalid api_key")
+	}
+
+	return calleeService, nil
 }

@@ -31,6 +31,15 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.MicroServiceLoginResponse:
+    properties:
+      accessToken:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.ResetPasswordInitRequest:
     properties:
       emailId:
@@ -117,6 +126,41 @@ definitions:
 info:
   contact: {}
 paths:
+  /v1/microservice/login:
+    post:
+      consumes:
+      - application/json
+      description: Validates the incoming request headers from a calling microservice
+        and generates an access token if valid
+      parameters:
+      - description: Name of the calling microservice
+        in: header
+        name: Caller-Service
+        required: true
+        type: string
+      - description: API key for the calling microservice
+        in: header
+        name: API-Key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Access token generated successfully
+          schema:
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
+        "400":
+          description: Missing or invalid required headers
+          schema:
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
+        "500":
+          description: Internal server error while generating token
+          schema:
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
+      summary: Authenticate microservice and generate access token
+      tags:
+      - Microservice
   /v1/user/login/verify-otp/:
     post:
       consumes:
