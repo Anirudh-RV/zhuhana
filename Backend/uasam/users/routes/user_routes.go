@@ -11,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	middleware "uasam/middleware"
 	userController "uasam/users/user/controllers"
 	userRepository "uasam/users/user/repositories"
 	userService "uasam/users/user/services"
@@ -33,8 +34,28 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			signUpController := userController.NewSignUpController(userService, log)
 			go log.Info("signup controller created", zap.String("execution level", "UserRoutesV1"))
 
-			signUp.POST("init/", signUpController.SignUpInitHandler)
-			signUp.POST("verify-otp/", signUpController.SignUpVerifyOTPHandler)
+			signUp.POST("init/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "sign-up/init",
+			}), signUpController.SignUpInitHandler)
+			signUp.POST("verify-otp/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "sign-up/verify-otp",
+			}), signUpController.SignUpVerifyOTPHandler)
 		}
 
 		login := user.Group("login/")
@@ -42,8 +63,28 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			loginController := userController.NewLoginController(userService, log)
 			go log.Info("login controller created", zap.String("execution level", "UserRoutesV1"))
 
-			login.POST("verify-password/", loginController.LoginVerifyPasswordHandler)
-			login.POST("verify-otp/", loginController.LoginVerifyOTPHandler)
+			login.POST("verify-password/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "login/verify-password",
+			}), loginController.LoginVerifyPasswordHandler)
+			login.POST("verify-otp/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "login/verify-otp",
+			}), loginController.LoginVerifyOTPHandler)
 		}
 
 		resetPassword := user.Group("reset-password/")
@@ -51,8 +92,28 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			resetPasswordController := userController.NewResetPasswordController(userService, log)
 			go log.Info("reset password controller created", zap.String("execution level", "UserRoutesV1"))
 
-			resetPassword.POST("init/", resetPasswordController.ResetPasswordInitHandler)
-			resetPassword.POST("reset/", resetPasswordController.ResetPasswordHandler)
+			resetPassword.POST("init/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "reset-password/init",
+			}), resetPasswordController.ResetPasswordInitHandler)
+			resetPassword.POST("reset/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "emailId",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "reset-password/reset",
+			}), resetPasswordController.ResetPasswordHandler)
 		}
 	}
 }
