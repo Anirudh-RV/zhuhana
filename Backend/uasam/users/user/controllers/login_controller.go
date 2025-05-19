@@ -84,6 +84,7 @@ func (lgc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 // @Param request body models.LoginVerifyOTPRequest true "Login Verify OTP Request"
 // @Success 200 {object} models.LoginVerifyOTPResponse "Login authenticated successfully, access token issued"
 // @Failure 400 {object} models.LoginVerifyOTPResponse "Invalid request payload or login error"
+// @Failure 401 {object} models.LoginVerifyOTPResponse "User does not exist or login error"
 // @Failure 500 {object} models.LoginVerifyOTPResponse "Internal server error"
 // @Router /v1/user/login/verify-otp/ [post]
 func (lgc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
@@ -105,7 +106,7 @@ func (lgc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 		return
 	}
 	if !userExists {
-		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
+		c.JSON(http.StatusUnauthorized, models.LoginVerifyOTPResponse{
 			Status:            -1,
 			StatusDescription: "Login Error",
 		})
@@ -114,7 +115,7 @@ func (lgc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 
 	userResponseObject, generatedUserAccessToken, err := lgc.userService.LoginVerifyOTPHandler(&loginVerifyOTPRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
+		c.JSON(http.StatusUnauthorized, models.LoginVerifyOTPResponse{
 			Status:            -1,
 			StatusDescription: "Login Error",
 		})

@@ -31,6 +31,17 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.MicroServiceAuthenticateResponse:
+    properties:
+      calleeService:
+        type: string
+      callerService:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.MicroServiceLoginResponse:
     properties:
       accessToken:
@@ -126,6 +137,41 @@ definitions:
 info:
   contact: {}
 paths:
+  /v1/microservice/authenticate/:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates the calling microservice using a JWT token passed
+        in the headers. Returns the caller and callee service names on success.
+      parameters:
+      - description: Name of the calling microservice
+        in: header
+        name: OriginService
+        required: true
+        type: string
+      - description: JWT token for authentication
+        in: header
+        name: AuthToken
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token authorization success
+          schema:
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
+        "400":
+          description: Missing or invalid required headers
+          schema:
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
+        "401":
+          description: Not Authorized
+          schema:
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
+      summary: Authenticate microservice using JWT token
+      tags:
+      - Microservice
   /v1/microservice/login:
     post:
       consumes:
@@ -183,6 +229,10 @@ paths:
             $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "400":
           description: Invalid request payload or login error
+          schema:
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
+        "401":
+          description: User does not exist or login error
           schema:
             $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "500":

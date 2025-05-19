@@ -24,7 +24,7 @@ func (jts *JWTService) ParseUserJWT(tokenStr string) (string, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
-		return jts.USER_JWT_SECRET_KEY, nil
+		return []byte(jts.USER_JWT_SECRET_KEY), nil
 	})
 
 	if err != nil || !token.Valid {

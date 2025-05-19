@@ -25,7 +25,7 @@ func (jts *JWTService) ParseMicroServicesJWT(tokenStr string) (string, string, e
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrSignatureInvalid
 		}
-		return jts.MICROSERVICES_JWT_SECRET_KEY, nil
+		return []byte(jts.MICROSERVICES_JWT_SECRET_KEY), nil
 	})
 
 	if err != nil || !token.Valid {

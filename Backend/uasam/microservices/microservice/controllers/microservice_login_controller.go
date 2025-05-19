@@ -43,7 +43,7 @@ func (mlc *MicroServiceLoginController) MicroServiceLoginHandler(c *gin.Context)
 		return
 	}
 
-	accessToken, err := mlc.microServiceServiceObj.GenerateMicroServiceAccessKey(header.CallerService, header.APIKey)
+	accessToken, err := mlc.microServiceServiceObj.GenerateMicroServiceAccessKey(header.OriginService, header.APIKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.MicroServiceLoginResponse{
 			Status:            0,

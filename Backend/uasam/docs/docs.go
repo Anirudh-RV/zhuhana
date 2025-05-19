@@ -15,6 +15,57 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/microservice/authenticate/": {
+            "post": {
+                "description": "Authenticates the calling microservice using a JWT token passed in the headers. Returns the caller and callee service names on success.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Microservice"
+                ],
+                "summary": "Authenticate microservice using JWT token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the calling microservice",
+                        "name": "OriginService",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "JWT token for authentication",
+                        "name": "AuthToken",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token authorization success",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid required headers",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Not Authorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/microservice/login": {
             "post": {
                 "description": "Validates the incoming request headers from a calling microservice and generates an access token if valid",
@@ -99,6 +150,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request payload or login error",
+                        "schema": {
+                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "User does not exist or login error",
                         "schema": {
                             "$ref": "#/definitions/models.LoginVerifyOTPResponse"
                         }
@@ -410,6 +467,23 @@ const docTemplate = `{
         "models.LoginVerifyPasswordResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MicroServiceAuthenticateResponse": {
+            "type": "object",
+            "properties": {
+                "calleeService": {
+                    "type": "string"
+                },
+                "callerService": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "integer"
                 },
