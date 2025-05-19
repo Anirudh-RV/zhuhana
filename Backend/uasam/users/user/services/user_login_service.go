@@ -12,18 +12,18 @@ import (
 func (us *UserService) LoginVerifyPasswordHandler(loginVerifyPasswordRequest *models.LoginVerifyPasswordRequest) error {
 	passwordHash, err := us.userRepository.GetUserPasswordByEmail(loginVerifyPasswordRequest.EmailID)
 	if err != nil {
-		go us.logger.Warning("Error accessing user password", zap.String("Execution Level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("Error accessing user password", zap.String("execution level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
 		return err
 	}
 
 	passwordMatch, err := argon2id.ComparePasswordAndHash(loginVerifyPasswordRequest.Password, passwordHash)
 	if err != nil {
-		go us.logger.Warning("Error during password hash comparision", zap.String("Execution Level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("Error during password hash comparision", zap.String("execution level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
 		return err
 	}
 
 	if !passwordMatch {
-		go us.logger.Warning("wrong password", zap.String("Execution Level", "LoginVerifyPasswordHandler"))
+		go us.logger.Warning("wrong password", zap.String("execution level", "LoginVerifyPasswordHandler"))
 		return errors.New("wrong password")
 	}
 
@@ -63,7 +63,7 @@ func (us *UserService) LoginVerifyOTPHandler(loginVerifyOTPRequest *models.Login
 
 	generatedUserAccessToken, err := us.jwtService.GenerateUserJWT(userObject.ID.String(), "user")
 	if err != nil {
-		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("errors generating user access token", zap.String("execution level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", err
 	}
 

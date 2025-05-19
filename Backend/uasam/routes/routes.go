@@ -18,11 +18,11 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService) {
+func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := r.Group("/v1/")
 	{
-		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService, jwtService)
-		microservice_routes.MicroServiceRoutesV1(v1, log, db, redis, jwtService)
+		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService, jwtService, authMiddleware)
+		microservice_routes.MicroServiceRoutesV1(v1, log, db, redis, jwtService, authMiddleware)
 	}
 }

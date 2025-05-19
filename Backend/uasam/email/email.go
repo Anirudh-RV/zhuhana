@@ -21,14 +21,14 @@ func NewEmailService(ctx *context.Context, logger *logger.Logger) *EmailService 
 
 func (es *EmailService) SendOTPEmail(emailID string, OTP string) error {
 	// TODO: Implement Email OTP sender
-	go es.logger.Info("OTP for "+emailID+": "+OTP, zap.String("Execution Level", "SendOTPEmail"))
+	go es.logger.Info("OTP for "+emailID+": "+OTP, zap.String("execution level", "SendOTPEmail"))
 
 	return nil
 }
 
 func (es *EmailService) SendResetPasswordEmail(emailID string, Token string) error {
 	// TODO: Implement Email OTP sender
-	go es.logger.Info("Password Reset Token for "+emailID+": "+Token, zap.String("Execution Level", "SendResetPasswordEmail"))
+	go es.logger.Info("Password Reset Token for "+emailID+": "+Token, zap.String("execution level", "SendResetPasswordEmail"))
 
 	return nil
 }

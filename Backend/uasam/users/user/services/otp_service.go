@@ -71,7 +71,7 @@ func (ots *OTPService) generateAndStoreSecretKey(emailID string) (string, error)
 func (ots *OTPService) getStoredSecretKey(emailID string) (string, error) {
 	secret, err := ots.redis.Get(*ots.ctx, emailID+ots.OTP_SECRETS_KEY_SUFFIX).Result()
 	if err != nil {
-		go ots.logger.Warning("Could not get User Secret from Redis", zap.String("Execution Level", "getStoredSecretKey"), zap.String("Error", err.Error()))
+		go ots.logger.Warning("Could not get User Secret from Redis", zap.String("execution level", "getStoredSecretKey"), zap.String("Error", err.Error()))
 		return "", err
 	}
 

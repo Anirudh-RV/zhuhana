@@ -60,20 +60,20 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 
 	userJSON, err := us.redis.Get(*us.ctx, signUpVerifyOTPRequest.EmailID).Result()
 	if err != nil {
-		go us.logger.Warning("could not get user object from redis", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("could not get user object from redis", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err
 	}
 
 	var signUpInitRequestObject models.SignUpInitRequest
 	err = json.Unmarshal([]byte(userJSON), &signUpInitRequestObject)
 	if err != nil {
-		go us.logger.Warning("json decoding error for user object", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("json decoding error for user object", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err
 	}
 
 	userObject, err := us.userRepository.CreateUser(signUpInitRequestObject.FirstName, signUpInitRequestObject.MiddleName, signUpInitRequestObject.LastName, signUpInitRequestObject.EmailID, signUpInitRequestObject.Password)
 	if err != nil {
-		go us.logger.Warning("errors creating user object", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("errors creating user object", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err
 	}
 
@@ -81,7 +81,7 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 
 	generatedUserAccessToken, err := us.jwtService.GenerateUserJWT(userObject.ID.String(), "user")
 	if err != nil {
-		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
+		go us.logger.Warning("errors generating user access token", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err
 	}
 

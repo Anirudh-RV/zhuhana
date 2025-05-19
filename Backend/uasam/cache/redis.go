@@ -24,7 +24,7 @@ func InitRedis(ctx *context.Context, logger *logger.Logger) {
 		Addr:     redisAddr,
 		Password: redisPassword,
 	})
-	go logger.Info("redis instance creation successful", zap.String("Execution Level", "Root"))
+	go logger.Info("redis instance creation successful", zap.String("execution level", "Root"))
 
 	errSet := RedisObj.Set(*ctx, "key", "I got the value", 0).Err()
 	if errSet != nil {
@@ -36,5 +36,5 @@ func InitRedis(ctx *context.Context, logger *logger.Logger) {
 		panic(errGet)
 	}
 
-	go logger.Info("redis SET/GET method tested. value: "+value, zap.String("Execution Level", "Root"))
+	go logger.Info("redis SET/GET method tested. value: "+value, zap.String("execution level", "Root"))
 }
