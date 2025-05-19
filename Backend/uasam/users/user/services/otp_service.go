@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+	"uasam/commonutils"
 	"uasam/email"
 	"uasam/logger"
 	"uasam/users/user/repositories"
@@ -97,7 +98,7 @@ func (ots *OTPService) VerifyOTP(secret, userInput string) (bool, error) {
 	return totp.ValidateCustom(userInput, secret, time.Now(), opts)
 }
 
-func (ots *OTPService) SendOTP(emailID string) error {
+func (ots *OTPService) SendOTP(emailID string, device, ipAddress string) error {
 	secret, err := ots.generateAndStoreSecretKey(emailID)
 	if err != nil {
 		return err
@@ -108,7 +109,16 @@ func (ots *OTPService) SendOTP(emailID string) error {
 		return err
 	}
 
-	err = ots.emailService.SendOTPEmail(emailID, otp)
+	ipGeoLocationInformation, err := commonutils.GetLocationForIpAddress(ipAddress)
+	locationString := "N/A"
+	if err == nil {
+		locationString = ipGeoLocationInformation.CityName + ", " + ipGeoLocationInformation.RegionName + ", " + ipGeoLocationInformation.CountryName
+	}
+
+	now := time.Now().UTC()
+	formattedDate := now.Format("Monday, January 2, 2006 at 3:04:05 PM MST")
+
+	err = ots.emailService.SendOTPEmail(emailID, otp, device, formattedDate, locationString, ipAddress)
 	if err != nil {
 		return err
 	}

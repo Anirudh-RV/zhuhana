@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (us *UserService) LoginVerifyPasswordHandler(loginVerifyPasswordRequest *models.LoginVerifyPasswordRequest) error {
+func (us *UserService) LoginVerifyPasswordHandler(loginVerifyPasswordRequest *models.LoginVerifyPasswordRequest, device, ipAddress string) error {
 	passwordHash, err := us.userRepository.GetUserPasswordByEmail(loginVerifyPasswordRequest.EmailID)
 	if err != nil {
 		go us.logger.Warning("Error accessing user password", zap.String("execution level", "LoginVerifyPasswordHandler"), zap.String("Error", err.Error()))
@@ -27,7 +27,7 @@ func (us *UserService) LoginVerifyPasswordHandler(loginVerifyPasswordRequest *mo
 		return errors.New("wrong password")
 	}
 
-	err = us.otpService.SendOTP(loginVerifyPasswordRequest.EmailID)
+	err = us.otpService.SendOTP(loginVerifyPasswordRequest.EmailID, device, ipAddress)
 	if err != nil {
 		return err
 	}
