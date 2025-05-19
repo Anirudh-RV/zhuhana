@@ -60,7 +60,7 @@ func (lgc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err = lgc.userService.LoginVerifyPasswordHandler(&loginVerifyPasswordRequest)
+	err = lgc.userService.LoginVerifyPasswordHandler(&loginVerifyPasswordRequest, c.Request.UserAgent(), c.ClientIP())
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.LoginVerifyPasswordResponse{
 			Status:            0,

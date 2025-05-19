@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitRequest) error {
-	err := us.otpService.SendOTP(signUpRequestObject.EmailID)
+func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitRequest, device, ipAddress string) error {
+	err := us.otpService.SendOTP(signUpRequestObject.EmailID, device, ipAddress)
 	if err != nil {
 		return err
 	}

@@ -60,7 +60,7 @@ func (snc *SignUpController) SignUpInitHandler(c *gin.Context) {
 		return
 	}
 
-	err = snc.userService.SignUpInitHandler(&signUpInitRequest)
+	err = snc.userService.SignUpInitHandler(&signUpInitRequest, c.Request.UserAgent(), c.ClientIP())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.SignUpInitResponse{
 			Status:            0,

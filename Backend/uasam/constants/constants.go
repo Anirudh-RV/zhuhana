@@ -4,3 +4,5 @@ import "os"
 
 var UASAM_ENDPOINT = os.Getenv("UASAM_URL")
 var API_AUTHENTICATION_ENDPOINT = UASAM_ENDPOINT + "/v1/microservice/authenticate/"
+
+var IP_LOCATION_API_ENDPOINT = os.Getenv("IP_LOCATION_API_ENDPOINT")
