@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, jwtService *commonutils.JWTService) {
+func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc) {
 	microservicesRoute := r.Group("microservice/")
 	{
 		microServiceServiceObj := microServiceService.NewMicroServiceService(log, jwtService)

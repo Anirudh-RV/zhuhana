@@ -16,7 +16,7 @@ import (
 	userService "uasam/users/user/services"
 )
 
-func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService) {
+func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc) {
 	user := r.Group("user/")
 	{
 		userRepo := userRepository.NewUserRepository(db)

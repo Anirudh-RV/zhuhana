@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"outbound/cache"
+	"outbound/constants"
 	"outbound/logger"
+	"outbound/middleware"
 	"outbound/routes"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +22,10 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
 
-	routes.RegisterRoutes(router, log, cache.RedisObj)
+	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)
+	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
+
+	routes.RegisterRoutes(router, log, cache.RedisObj, authMiddleware)
 
 	router.Run(":8080")
 }

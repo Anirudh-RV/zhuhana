@@ -5,7 +5,10 @@ import (
 	"governor/cache"
 	"governor/db"
 	"governor/logger"
+	"governor/middleware"
 	"governor/routes"
+
+	constants "governor/constants"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -26,7 +29,10 @@ func main() {
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj)
+	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)
+	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
+
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

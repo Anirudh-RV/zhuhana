@@ -24,7 +24,7 @@ func InitDB(logger *logger.Logger) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
-	go logger.Info("DSN created for connection", zap.String("Execution Level", "Root"))
+	go logger.Info("DSN created for connection", zap.String("execution level", "Root"))
 
 	var err error
 	DB, err = sql.Open("postgres", dsn)
