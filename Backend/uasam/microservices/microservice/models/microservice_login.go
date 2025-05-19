@@ -2,7 +2,7 @@ package models
 
 type MicroServiceLoginRequestHeaders struct {
 	APIKey        string `header:"API_KEY" binding:"required"`
-	CallerService string `header:"CALLER_SERVICE" binding:"required"`
+	OriginService string `header:"ORIGIN_SERVICE" binding:"required"`
 }
 
 type MicroServiceLoginResponse struct {
