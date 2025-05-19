@@ -79,7 +79,7 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 
 	userResponseObject := utils.MapUserToUserObject(userObject)
 
-	generatedUserAccessToken, err := us.jwtService.GenerateJWT(userObject.ID.String(), "user")
+	generatedUserAccessToken, err := us.jwtService.GenerateUserJWT(userObject.ID.String(), "user")
 	if err != nil {
 		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err

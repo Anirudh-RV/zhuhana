@@ -61,7 +61,7 @@ func (us *UserService) LoginVerifyOTPHandler(loginVerifyOTPRequest *models.Login
 		return nil, "", err
 	}
 
-	generatedUserAccessToken, err := us.jwtService.GenerateJWT(userObject.ID.String(), "user")
+	generatedUserAccessToken, err := us.jwtService.GenerateUserJWT(userObject.ID.String(), "user")
 	if err != nil {
 		go us.logger.Warning("errors generating user access token", zap.String("Execution Level", "LoginVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", err

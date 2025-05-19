@@ -37,7 +37,7 @@ func (l *Logger) Info(msg string, fields ...zap.Field) {
 	l.zapLogger.Info(msg, fields...)
 }
 
-// Warning logs an informational message with timestamp
+// Warning logs an warning message with timestamp
 func (l *Logger) Warning(msg string, fields ...zap.Field) {
 	fields = append(fields, zap.Time("logged_at", time.Now()))
 	l.zapLogger.Warn(msg, fields...)

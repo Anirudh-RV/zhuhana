@@ -34,7 +34,7 @@ func NewResetPasswordController(userService *userService.UserService, log *logge
 // @Failure 401 {object} models.ResetPasswordInitResponse "User does not exist or reset error"
 // @Failure 500 {object} models.ResetPasswordInitResponse "Server error"
 // @Router /v1/user/reset-password/init/ [post]
-func (snc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
+func (rpc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
 	var resetPasswordInitRequest models.ResetPasswordInitRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&resetPasswordInitRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.ResetPasswordInitResponse{
@@ -44,7 +44,7 @@ func (snc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
 		return
 	}
 
-	userExists, err := snc.userService.IfUserExists(resetPasswordInitRequest.EmailID)
+	userExists, err := rpc.userService.IfUserExists(resetPasswordInitRequest.EmailID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ResetPasswordInitResponse{
 			Status:            0,
@@ -60,7 +60,7 @@ func (snc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
 		return
 	}
 
-	err = snc.userService.ResetPasswordInitHandler(&resetPasswordInitRequest)
+	err = rpc.userService.ResetPasswordInitHandler(&resetPasswordInitRequest)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.ResetPasswordInitResponse{
 			Status:            0,
@@ -87,7 +87,7 @@ func (snc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
 // @Failure 401 {object} models.ResetPasswordResponse "User does not exist or reset error"
 // @Failure 500 {object} models.ResetPasswordResponse "Server error"
 // @Router /v1/user/reset-password/reset/ [post]
-func (snc *ResetPasswordController) ResetPasswordHandler(c *gin.Context) {
+func (rpc *ResetPasswordController) ResetPasswordHandler(c *gin.Context) {
 	var resetPasswordRequest models.ResetPasswordRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&resetPasswordRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.ResetPasswordResponse{
@@ -97,7 +97,7 @@ func (snc *ResetPasswordController) ResetPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	userExists, err := snc.userService.IfUserExists(resetPasswordRequest.EmailID)
+	userExists, err := rpc.userService.IfUserExists(resetPasswordRequest.EmailID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.ResetPasswordResponse{
 			Status:            0,
@@ -113,7 +113,7 @@ func (snc *ResetPasswordController) ResetPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err = snc.userService.ResetPasswordHandler(&resetPasswordRequest)
+	err = rpc.userService.ResetPasswordHandler(&resetPasswordRequest)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.ResetPasswordResponse{

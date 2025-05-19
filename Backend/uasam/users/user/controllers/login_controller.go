@@ -34,7 +34,7 @@ func NewLoginController(userService *userService.UserService, log *logger.Logger
 // @Failure 401 {object} models.LoginVerifyPasswordResponse "Login error due to invalid credentials or user not existing"
 // @Failure 500 {object} models.LoginVerifyPasswordResponse "Internal server error"
 // @Router /v1/user/login/verify-password/ [post]
-func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
+func (lgc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 	var loginVerifyPasswordRequest models.LoginVerifyPasswordRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&loginVerifyPasswordRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.LoginVerifyPasswordResponse{
@@ -44,7 +44,7 @@ func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	userExists, err := snc.userService.IfUserExists(loginVerifyPasswordRequest.EmailID)
+	userExists, err := lgc.userService.IfUserExists(loginVerifyPasswordRequest.EmailID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.LoginVerifyPasswordResponse{
 			Status:            0,
@@ -60,7 +60,7 @@ func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	err = snc.userService.LoginVerifyPasswordHandler(&loginVerifyPasswordRequest)
+	err = lgc.userService.LoginVerifyPasswordHandler(&loginVerifyPasswordRequest)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.LoginVerifyPasswordResponse{
 			Status:            0,
@@ -86,7 +86,7 @@ func (snc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 // @Failure 400 {object} models.LoginVerifyOTPResponse "Invalid request payload or login error"
 // @Failure 500 {object} models.LoginVerifyOTPResponse "Internal server error"
 // @Router /v1/user/login/verify-otp/ [post]
-func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
+func (lgc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 	var loginVerifyOTPRequest models.LoginVerifyOTPRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&loginVerifyOTPRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
@@ -96,7 +96,7 @@ func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 		return
 	}
 
-	userExists, err := snc.userService.IfUserExists(loginVerifyOTPRequest.EmailID)
+	userExists, err := lgc.userService.IfUserExists(loginVerifyOTPRequest.EmailID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.LoginVerifyOTPResponse{
 			Status:            0,
@@ -112,7 +112,7 @@ func (snc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 		return
 	}
 
-	userResponseObject, generatedUserAccessToken, err := snc.userService.LoginVerifyOTPHandler(&loginVerifyOTPRequest)
+	userResponseObject, generatedUserAccessToken, err := lgc.userService.LoginVerifyOTPHandler(&loginVerifyOTPRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.LoginVerifyOTPResponse{
 			Status:            -1,
