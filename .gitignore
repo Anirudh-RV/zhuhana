@@ -1,6 +1,9 @@
 # Local DB
 data/
 
+*/*/env/local-env.env
+
+
 */*tmp/
 */*/*tmp/
 
