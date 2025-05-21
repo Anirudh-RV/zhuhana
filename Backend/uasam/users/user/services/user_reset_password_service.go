@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func (us *UserService) ResetPasswordInitHandler(resetPasswordInitRequest *models.ResetPasswordInitRequest) error {
-	err := us.otpService.SendResetPasswordEmail(resetPasswordInitRequest.EmailID)
+func (us *UserService) ResetPasswordInitHandler(resetPasswordInitRequest *models.ResetPasswordInitRequest, device, ipAddress string) error {
+	err := us.otpService.SendResetPasswordEmail(resetPasswordInitRequest.EmailID, device, ipAddress)
 	return err
 }
 

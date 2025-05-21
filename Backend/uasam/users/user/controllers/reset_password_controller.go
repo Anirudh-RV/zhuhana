@@ -60,7 +60,7 @@ func (rpc *ResetPasswordController) ResetPasswordInitHandler(c *gin.Context) {
 		return
 	}
 
-	err = rpc.userService.ResetPasswordInitHandler(&resetPasswordInitRequest)
+	err = rpc.userService.ResetPasswordInitHandler(&resetPasswordInitRequest, c.Request.UserAgent(), c.ClientIP())
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.ResetPasswordInitResponse{
 			Status:            0,

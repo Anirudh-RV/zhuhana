@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"time"
+	"uasam/commonutils"
 
 	"github.com/alexedwards/argon2id"
 	"go.uber.org/zap"
@@ -38,7 +39,7 @@ func (ots *OTPService) storeResetPasswordHash(emailID, token string) error {
 	return nil
 }
 
-func (ots *OTPService) SendResetPasswordEmail(emailID string) error {
+func (ots *OTPService) SendResetPasswordEmail(emailID, device, ipAddress string) error {
 	token, err := ots.generatePasswordResetToken()
 	if err != nil {
 		return err
@@ -54,7 +55,16 @@ func (ots *OTPService) SendResetPasswordEmail(emailID string) error {
 		return err
 	}
 
-	err = ots.emailService.SendResetPasswordEmail(emailID, token)
+	ipGeoLocationInformation, err := commonutils.GetLocationForIpAddress(ipAddress)
+	locationString := "N/A"
+	if err == nil {
+		locationString = ipGeoLocationInformation.CityName + ", " + ipGeoLocationInformation.RegionName + ", " + ipGeoLocationInformation.CountryName
+	}
+
+	now := time.Now().UTC()
+	formattedDate := now.Format("Monday, January 2, 2006 at 3:04:05 PM MST")
+
+	err = ots.emailService.SendResetPasswordEmail(emailID, token, device, formattedDate, locationString, ipAddress)
 	if err != nil {
 		return err
 	}
@@ -68,6 +78,7 @@ func (ots *OTPService) ResetPassword(emailID, token, newPasswordHash string) err
 		go ots.logger.Warning("could not get password reset token in redis", zap.String("execution level", "ResetPassword"), zap.String("Error", err.Error()))
 		return err
 	}
+	defer ots.redis.Del(*ots.ctx, emailID+ots.RESET_PASSWORD_KEY_SUFFIX)
 
 	tokenMatch, err := argon2id.ComparePasswordAndHash(token, retreivedHashedToken)
 	if err != nil {
