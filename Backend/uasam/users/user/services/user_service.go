@@ -9,6 +9,7 @@ import (
 	"uasam/logger"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 type UserService struct {
@@ -51,6 +52,7 @@ func (us *UserService) CreateUser(firstname string, middleName string, lastName 
 func (us *UserService) IfUserExists(emailID string) (bool, error) {
 	status, err := us.userRepository.IfUserEmailExists(emailID)
 	if err != nil {
+		go us.logger.Warning("error checking if user exists", zap.String("execution level", "IfUserExists"), zap.String("Error", err.Error()))
 		return false, err
 	}
 	return status, nil
