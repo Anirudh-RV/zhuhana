@@ -19,8 +19,8 @@ type SignUpVerifyOTPRequest struct {
 }
 
 type SignUpVerifyOTPResponse struct {
-	Status            int        `json:"status"`
-	StatusDescription string     `json:"statusDescription"`
-	User              UserObject `json:"user,omitempty"`
-	AccessToken       string     `json:"accessToken,omitempty"`
+	Status            int         `json:"status"`
+	StatusDescription string      `json:"statusDescription"`
+	User              *UserObject `json:"user,omitempty"`
+	AccessToken       string      `json:"accessToken,omitempty"`
 }

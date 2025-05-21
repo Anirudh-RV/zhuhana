@@ -132,7 +132,7 @@ func (snc *SignUpController) SignUpVerifyOTPHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, &models.SignUpVerifyOTPResponse{
 		Status:            1,
 		StatusDescription: "user created",
-		User:              *userResponseObject,
+		User:              userResponseObject,
 		AccessToken:       generatedUserAccessToken,
 	})
 }

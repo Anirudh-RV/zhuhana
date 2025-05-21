@@ -125,7 +125,7 @@ func (lgc *LoginController) LoginVerifyOTPHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, &models.LoginVerifyOTPResponse{
 		Status:            1,
 		StatusDescription: "Login Authenticated",
-		User:              *userResponseObject,
+		User:              userResponseObject,
 		AccessToken:       generatedUserAccessToken,
 	})
 }
