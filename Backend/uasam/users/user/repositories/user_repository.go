@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"database/sql"
-	"fmt"
 
 	"uasam/middleware"
 	"uasam/users/user/models"
@@ -40,11 +39,6 @@ func (ur *UserRepository) CreateUser(firstname string, middleName *string, lastN
 		return nil, err
 	}
 
-	fmt.Print("ENC First Name: " + encFirstName)
-	fmt.Print("ENC Middle Name: " + *encMiddleName)
-	fmt.Print("ENC Last Name: " + encLastName)
-	fmt.Print("ENC EMAIL ID: " + encEmailID)
-
 	// Insert into DB
 	createQuery := `
 		INSERT INTO "account" (first_name, middle_name, last_name, email_id, password)
@@ -71,7 +65,6 @@ func (ur *UserRepository) CreateUser(firstname string, middleName *string, lastN
 
 func (ur *UserRepository) IfUserEmailExists(emailID string) (bool, error) {
 	encEmail, err := middleware.EncryptDeterministic(emailID)
-	fmt.Print("encEmail: " + encEmail)
 	if err != nil {
 		return false, err
 	}
