@@ -22,7 +22,7 @@ func NewMicroServiceUserLoginController(microServiceServiceObj *microServiceServ
 	}
 }
 
-func (muc *MicroServiceUserLoginController) MicroServiceUserLoginHandler(c *gin.Context) {
+func (mulc *MicroServiceUserLoginController) MicroServiceUserLoginHandler(c *gin.Context) {
 	var userLoginRequest models.MicroServiceUserLoginRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&userLoginRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.MicroServiceUserLoginResponse{
@@ -32,7 +32,7 @@ func (muc *MicroServiceUserLoginController) MicroServiceUserLoginHandler(c *gin.
 		return
 	}
 
-	accessToken, err := muc.microServiceServiceObj.GenerateMicroServiceUserAccessKey(userLoginRequest.UserID)
+	accessToken, err := mulc.microServiceServiceObj.GenerateMicroServiceUserAccessKey(userLoginRequest.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.MicroServiceUserLoginResponse{
 			Status:            0,

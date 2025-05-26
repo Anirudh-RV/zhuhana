@@ -33,11 +33,14 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 			microServiceUserLoginController := microServiceController.NewMicroServiceUserLoginController(microServiceServiceObj, log)
 			go log.Info("microservice user login controller created", zap.String("execution level", "MicroServiceRoutesV1"))
 
+			microServiceUserAuthenticateController := microServiceController.NewMicroServiceUserAuthenticateController(microServiceServiceObj, log)
+			go log.Info("microservice user login controller created", zap.String("execution level", "MicroServiceRoutesV1"))
+
 			user.POST("login/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "body",
 				Param:       "userID",
 				EnableParam: true,
-				Limit:       100,
+				Limit:       3,
 				Window:      300,
 				EnableIP:    true,
 				IPLimit:     15,
@@ -45,6 +48,17 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 				Endpoint:    "microservice/user/login/",
 			}), authMiddleware, microServiceUserLoginController.MicroServiceUserLoginHandler)
 
+			user.POST("authenticate/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_TOKEN",
+				EnableParam: true,
+				Limit:       300,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "microservice/user/authenticate/",
+			}), authMiddleware, microServiceUserAuthenticateController.MicroServiceUserAuthenticateHandler)
 		}
 	}
 }
