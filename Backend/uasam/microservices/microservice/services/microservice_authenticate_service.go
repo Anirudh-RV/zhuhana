@@ -13,7 +13,7 @@ func (mss *MicroServiceService) AuthenticateMicroService(originService string, A
 		return "", "", err
 	}
 
-	if calledMicroService != originService {
+	if callerMicroService != originService {
 		go mss.logger.Warning("not authorized for this service", zap.String("execution level", "AuthenticateMicroService"))
 		return "", "", errors.New("not authorized for this service")
 	}

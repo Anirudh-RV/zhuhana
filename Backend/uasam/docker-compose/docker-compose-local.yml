@@ -11,6 +11,7 @@ services:
     volumes:
       - ..:/app
     restart: unless-stopped
+    hostname: uasam
     depends_on:
       - uasam-postgres
       - uasam-redis
@@ -35,3 +36,7 @@ services:
 
 volumes:
   uasam_pgdata:
+
+networks:
+  internal:
+    driver: bridge
