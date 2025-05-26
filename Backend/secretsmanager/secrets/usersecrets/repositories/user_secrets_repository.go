@@ -38,12 +38,15 @@ func (ur *UserSecretRepository) CreateUserSecret(userID, key, value string) erro
 	}
 
 	// Insert into DB
-	createQuery := `
+	upsertQuery := `
 		INSERT INTO "user_secret" (user_id, key, value)
 		VALUES ($1, $2, $3)
+		ON CONFLICT (user_id, key) DO UPDATE SET
+			value = EXCLUDED.value,
+			updated_at = CURRENT_TIMESTAMP; -- Optional: track updates
 	`
 
-	_, err = ur.db.Exec(createQuery, userUUID, encKey, encValue)
+	_, err = ur.db.Exec(upsertQuery, userUUID, encKey, encValue)
 	if err != nil {
 		return err
 	}

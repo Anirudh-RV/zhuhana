@@ -35,15 +35,12 @@ func (usc *UserSecretsSetController) UserSecretsSetHandler(c *gin.Context) {
 	}
 
 	if err := json.NewDecoder(c.Request.Body).Decode(&userSecretSetRequest); err != nil {
-		fmt.Println("ERROR: ", err.Error())
 		c.JSON(http.StatusBadRequest, models.UserSecretsSetResponse{
 			Status:            -1,
 			StatusDescription: "Invalid request payload",
 		})
 		return
 	}
-
-	fmt.Println("USER ID FROM AUTH: ", fmt.Sprint(userID))
 
 	err := usc.userSecretsServiceObj.SetUserSecret(fmt.Sprint(userID), userSecretSetRequest.Key, userSecretSetRequest.Value)
 	if err != nil {

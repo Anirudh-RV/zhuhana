@@ -42,9 +42,7 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 				EnableParam: true,
 				Limit:       3,
 				Window:      300,
-				EnableIP:    true,
-				IPLimit:     15,
-				IPWindow:    300,
+				EnableIP:    false,
 				Endpoint:    "microservice/user/login/",
 			}), authMiddleware, microServiceUserLoginController.MicroServiceUserLoginHandler)
 
@@ -54,9 +52,7 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 				EnableParam: true,
 				Limit:       300,
 				Window:      300,
-				EnableIP:    true,
-				IPLimit:     15,
-				IPWindow:    300,
+				EnableIP:    false,
 				Endpoint:    "microservice/user/authenticate/",
 			}), authMiddleware, microServiceUserAuthenticateController.MicroServiceUserAuthenticateHandler)
 		}

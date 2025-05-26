@@ -45,6 +45,6 @@ func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, red
 		Endpoint:    "GET/user-secrets/",
 	}), authMiddleware,
 		userAuthMiddleware,
-		userSecretsSetController.UserSecretsSetHandler)
+		userSecretsSetController.UserSecretsGetHandler)
 
 }

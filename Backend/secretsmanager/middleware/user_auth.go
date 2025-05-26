@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -71,7 +70,6 @@ func UserAuthMiddleware(userAuthServiceURL string) gin.HandlerFunc {
 			return
 		}
 
-		fmt.Println("USER ID FROM AUTH IN AUTH: ", userAuthResp.UserID)
 		c.Set("USER_ID", userAuthResp.UserID)
 		c.Next()
 	}

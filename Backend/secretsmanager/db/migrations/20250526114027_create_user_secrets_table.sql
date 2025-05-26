@@ -11,7 +11,8 @@ CREATE TABLE user_secret (
     key TEXT,
     value TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT user_secret_user_id_key_unique UNIQUE (user_id, key)
 );
 -- +goose StatementEnd
 
