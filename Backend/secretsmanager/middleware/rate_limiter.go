@@ -32,7 +32,6 @@ type RateLimiterResponse struct {
 	StatusDescription string `json:"statusDescription"`
 }
 
-// MAKE THIS FOR EACH ENDPOINT
 func RateLimiter(redisClient *redis.Client, log *logger.Logger, config RateLimiterConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx := context.Background()

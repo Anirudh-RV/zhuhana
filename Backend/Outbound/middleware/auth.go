@@ -17,8 +17,8 @@ r.Group("some-api-group/", middleware.AuthMiddleware("http://localhost:8002/v1/m
 type AuthResponse struct {
 	Status            int    `json:"status"`
 	StatusDescription string `json:"statusDescription"`
-	CallerService     string `json:"callerService"`
-	CalleeService     string `json:"calleeService"`
+	CallerService     string `json:"callerService,omitempty"`
+	CalleeService     string `json:"calleeService,omitempty"`
 }
 
 // AuthMiddleware is the Gin middleware function
