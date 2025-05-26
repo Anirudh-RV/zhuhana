@@ -21,6 +21,17 @@ func NewMicroServiceUserAuthenticateController(microServiceServiceObj *microServ
 	}
 }
 
+// MicroServiceUserAuthenticateHandler godoc
+// @Summary Authorize a microservice user
+// @Description Validates the access token of a microservice user and returns the user ID
+// @Tags Microservice Authentication
+// @Accept json
+// @Produce json
+// @Param authHeaders header models.MicroServiceUserAuthenticateRequestHeaders true "Access Token of the microservice user"
+// @Success 200 {object} models.MicroServiceUserAuthenticateResponse
+// @Failure 400 {object} models.MicroServiceUserAuthenticateResponse "Missing or invalid required headers"
+// @Failure 401 {object} models.MicroServiceUserAuthenticateResponse "Not Authorized"
+// @Router /v1/microservice/user/authenticate/ [get]
 func (muac *MicroServiceUserAuthenticateController) MicroServiceUserAuthenticateHandler(c *gin.Context) {
 	var header models.MicroServiceUserAuthenticateRequestHeaders
 	if err := c.ShouldBindHeader(&header); err != nil {

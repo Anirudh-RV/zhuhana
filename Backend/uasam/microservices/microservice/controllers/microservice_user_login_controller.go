@@ -22,6 +22,17 @@ func NewMicroServiceUserLoginController(microServiceServiceObj *microServiceServ
 	}
 }
 
+// MicroServiceUserLoginHandler godoc
+// @Summary Authenticate a microservice user
+// @Description Generates an access token for a valid microservice user
+// @Tags Microservice Authentication
+// @Accept json
+// @Produce json
+// @Param user body models.MicroServiceUserLoginRequest true "Microservice User Login Request"
+// @Success 200 {object} models.MicroServiceUserLoginResponse
+// @Failure 400 {object} models.MicroServiceUserLoginResponse "Invalid request payload"
+// @Failure 500 {object} models.MicroServiceUserLoginResponse "Server error"
+// @Router /v1/microservice/user/login/ [post]
 func (mulc *MicroServiceUserLoginController) MicroServiceUserLoginHandler(c *gin.Context) {
 	var userLoginRequest models.MicroServiceUserLoginRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&userLoginRequest); err != nil {

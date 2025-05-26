@@ -51,6 +51,31 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.MicroServiceUserAuthenticateResponse:
+    properties:
+      UserID:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.MicroServiceUserLoginRequest:
+    properties:
+      userID:
+        type: string
+    required:
+    - userID
+    type: object
+  models.MicroServiceUserLoginResponse:
+    properties:
+      accessToken:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.ResetPasswordInitRequest:
     properties:
       emailId:
@@ -207,6 +232,65 @@ paths:
       summary: Authenticate microservice and generate access token
       tags:
       - Microservice
+  /v1/microservice/user/authenticate/:
+    get:
+      consumes:
+      - application/json
+      description: Validates the access token of a microservice user and returns the
+        user ID
+      parameters:
+      - in: header
+        name: USER_TOKEN
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
+        "400":
+          description: Missing or invalid required headers
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
+        "401":
+          description: Not Authorized
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
+      summary: Authorize a microservice user
+      tags:
+      - Microservice Authentication
+  /v1/microservice/user/login/:
+    post:
+      consumes:
+      - application/json
+      description: Generates an access token for a valid microservice user
+      parameters:
+      - description: Microservice User Login Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.MicroServiceUserLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
+      summary: Authenticate a microservice user
+      tags:
+      - Microservice Authentication
   /v1/user/login/verify-otp/:
     post:
       consumes:
