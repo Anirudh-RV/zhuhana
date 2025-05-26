@@ -38,12 +38,12 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				Source:      "body",
 				Param:       "emailId",
 				EnableParam: true,
-				Limit:       100,
+				Limit:       3,
 				Window:      300,
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "sign-up/init",
+				Endpoint:    "user/sign-up/init",
 			}), signUpController.SignUpInitHandler)
 			signUp.POST("verify-otp/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "body",
@@ -54,7 +54,7 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "sign-up/verify-otp",
+				Endpoint:    "user/sign-up/verify-otp",
 			}), signUpController.SignUpVerifyOTPHandler)
 		}
 
@@ -67,23 +67,23 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				Source:      "body",
 				Param:       "emailId",
 				EnableParam: true,
-				Limit:       100,
+				Limit:       3,
 				Window:      300,
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "login/verify-password",
+				Endpoint:    "user/login/verify-password",
 			}), loginController.LoginVerifyPasswordHandler)
 			login.POST("verify-otp/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "body",
 				Param:       "emailId",
 				EnableParam: true,
-				Limit:       100,
+				Limit:       3,
 				Window:      300,
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "login/verify-otp",
+				Endpoint:    "user/login/verify-otp",
 			}), loginController.LoginVerifyOTPHandler)
 		}
 
@@ -101,7 +101,7 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "reset-password/init",
+				Endpoint:    "user/reset-password/init",
 			}), resetPasswordController.ResetPasswordInitHandler)
 			resetPassword.POST("reset/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "body",
@@ -112,7 +112,7 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				EnableIP:    true,
 				IPLimit:     15,
 				IPWindow:    300,
-				Endpoint:    "reset-password/reset",
+				Endpoint:    "user/reset-password/reset",
 			}), resetPasswordController.ResetPasswordHandler)
 		}
 	}
