@@ -23,26 +23,26 @@ func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, red
 	userSecretsSetController := controllers.NewUserSecretsSetController(userSecretsServiceObj, log)
 	go log.Info("user secrets set controller created", zap.String("execution level", "UserSecretsRoutesV1"))
 
-	r.POST("user-secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+	r.POST("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 		Source:      "header",
 		Param:       "USER_TOKEN",
 		EnableParam: true,
 		Limit:       300,
 		Window:      300,
 		EnableIP:    false,
-		Endpoint:    "POST/user-secrets/",
+		Endpoint:    "POST/user/secrets/",
 	}), authMiddleware,
 		userAuthMiddleware,
 		userSecretsSetController.UserSecretsSetHandler)
 
-	r.GET("user-secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+	r.GET("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 		Source:      "header",
 		Param:       "USER_TOKEN",
 		EnableParam: true,
 		Limit:       300,
 		Window:      300,
 		EnableIP:    false,
-		Endpoint:    "GET/user-secrets/",
+		Endpoint:    "GET/user/secrets/",
 	}), authMiddleware,
 		userAuthMiddleware,
 		userSecretsSetController.UserSecretsGetHandler)

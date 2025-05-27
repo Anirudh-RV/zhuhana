@@ -23,6 +23,18 @@ func NewUserSecretsSetController(userSecretsServiceObj *services.UserSecretsServ
 	}
 }
 
+// UserSecretsSetHandler godoc
+// @Summary      Set a user's secret
+// @Description  Stores or updates a secret key-value pair for an authenticated user.
+// @Tags         UserSecrets
+// @Accept       json
+// @Produce      json
+// @Param        userSecret body models.UserSecretsSetRequest true "Secret key-value to set"
+// @Success      201 {object} models.UserSecretsSetResponse "User secret set successfully"
+// @Failure      400 {object} models.UserSecretsSetResponse "Invalid request or missing user ID"
+// @Failure      500 {object} models.UserSecretsSetResponse "Internal server error"
+// @Security     ApiKeyAuth
+// @Router       /v1/user/secrets/ [post]
 func (usc *UserSecretsSetController) UserSecretsSetHandler(c *gin.Context) {
 	var userSecretSetRequest models.UserSecretsSetRequest
 	userID, _ := c.Get("USER_ID")
