@@ -36,12 +36,6 @@ func main() {
 	dockerService := dockercontroller.NewDockerService(log)
 	go log.Info("docker service started", zap.String("Execution Level", "Root"))
 
-	// TEMP
-	dockerService.BuildImage("django-template/", "go-run-container")
-	dockerService.ImagePush("go-run-container")
-
-	// TEMP
-
 	router.Use(middleware.RequestLogger(log))
 	go log.Info("registered logger for the router", zap.String("execution level", "Root"))
 
