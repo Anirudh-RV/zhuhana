@@ -16,5 +16,11 @@ FROM cosmtrek/air:latest
 WORKDIR /app
 COPY . .
 
+# Install Docker CLI (Debian-based image)
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 EXPOSE 8080
 CMD ["air"]
