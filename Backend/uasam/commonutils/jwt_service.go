@@ -16,6 +16,7 @@ type JWTService struct {
 	ORCHESTRATOR_API_KEY              string
 	OUTBOUND_API_KEY                  string
 	UASAM_API_KEY                     string
+	FORGE_API_KEY                     string
 	SECRETS_MANAGER_API_KEY           string
 	ALL_API_KEYS                      map[string]string
 }
@@ -30,12 +31,14 @@ func NewJWTService(logger *logger.Logger) *JWTService {
 	OUTBOUND_API_KEY := os.Getenv("OUTBOUND_API_KEY")
 	UASAM_API_KEY := os.Getenv("UASAM_API_KEY")
 	SECRETS_MANAGER_API_KEY := os.Getenv("SECRETS_MANAGER_API_KEY")
+	FORGE_API_KEY := os.Getenv("FORGE_API_KEY")
 	ALL_API_KEYS := map[string]string{
 		GOVERNOR_API_KEY:        "governor",
 		ORCHESTRATOR_API_KEY:    "orchestrator",
 		OUTBOUND_API_KEY:        "outbound",
 		UASAM_API_KEY:           "uasam",
 		SECRETS_MANAGER_API_KEY: "secrets-manager",
+		FORGE_API_KEY:           "forge",
 	}
 
 	return &JWTService{
@@ -47,6 +50,7 @@ func NewJWTService(logger *logger.Logger) *JWTService {
 		ORCHESTRATOR_API_KEY:              ORCHESTRATOR_API_KEY,
 		OUTBOUND_API_KEY:                  OUTBOUND_API_KEY,
 		UASAM_API_KEY:                     UASAM_API_KEY,
+		FORGE_API_KEY:                     FORGE_API_KEY,
 		SECRETS_MANAGER_API_KEY:           SECRETS_MANAGER_API_KEY,
 		ALL_API_KEYS:                      ALL_API_KEYS,
 	}
