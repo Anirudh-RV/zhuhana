@@ -1,0 +1,38 @@
+services:
+  forge:
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile-local
+    container_name: forge-container
+    ports:
+      - "8008:8080"
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - ..:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    depends_on:
+      - forge-postgres
+      - forge-redis
+
+  forge-postgres:
+    image: postgres:17
+    container_name: forge-postgres-container
+    env_file:
+      - ../env/local-env.env
+    volumes:
+      - forge_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    restart: unless-stopped
+
+  forge-redis:
+    image: redis:7
+    container_name: forge-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6349:6379"
+
+volumes:
+  forge_pgdata:

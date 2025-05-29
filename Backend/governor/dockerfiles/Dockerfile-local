@@ -1,17 +1,21 @@
-# Stage 1: Build the Go binary
-FROM golang:1.23 AS builder
+# Stage 1: Build the Go binary (Optional if using Air in container)
+FROM golang:1.24 AS builder
 
 WORKDIR /app
-
-RUN go install github.com/air-verse/air@latest
-
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-# Stage 2: Run the binary in a minimal image
-FROM cosmtrek/air:latest
+# Stage 2: Air + runtime with Go >= 1.24
+FROM golang:1.24
+
+# Install Air and Docker CLI
+RUN go install github.com/air-verse/air@latest && \
+    apt-get update && \
+    apt-get install -y docker.io && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY . .

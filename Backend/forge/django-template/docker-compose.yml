@@ -1,0 +1,13 @@
+services:
+  script-runner:
+    build:
+      context: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    ports:
+      - "8008:8000"
+    env_file:
+      - env.env
+    command: >
+      sh -c "python manage.py migrate && gunicorn script_runner.wsgi:application --bind 0.0.0.0:8000"
