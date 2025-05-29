@@ -4,9 +4,14 @@
         "contact": {}
     },
     "paths": {
-        "/api/marketdata/v1/stocks/polygon/all-tickers": {
+        "/v1/user/secrets/": {
             "get": {
-                "description": "Fetches all tickers with an optional limit parameter",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Fetches a specific secret key-value pair for an authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -14,31 +19,84 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Tickers"
+                    "UserSecrets"
                 ],
-                "summary": "Get all tickers",
+                "summary": "Get a user's secret",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Number of tickers to retrieve (default: 10)",
-                        "name": "limit",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Secret key to fetch",
+                        "name": "key",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "List of tickers",
+                    "201": {
+                        "description": "User secret fetched successfully",
                         "schema": {
-                            "$ref": "#/definitions/stocks.AllTickersAPIResponse"
+                            "$ref": "#/definitions/models.UserSecretsGetResponse"
                         }
                     },
                     "400": {
-                        "description": "Error message",
+                        "description": "Invalid request or missing user ID",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.UserSecretsGetResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserSecretsGetResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Stores or updates a secret key-value pair for an authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserSecrets"
+                ],
+                "summary": "Set a user's secret",
+                "parameters": [
+                    {
+                        "description": "Secret key-value to set",
+                        "name": "userSecret",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UserSecretsSetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "User secret set successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserSecretsSetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request or missing user ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserSecretsSetResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.UserSecretsSetResponse"
                         }
                     }
                 }
@@ -46,66 +104,65 @@
         }
     },
     "definitions": {
-        "stocks.AllTickerStockInformation": {
+        "models.UserSecret": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "cik": {
+                "createdAt": {
                     "type": "string"
                 },
-                "composite_figi": {
+                "id": {
                     "type": "string"
                 },
-                "currency_name": {
+                "key": {
                     "type": "string"
                 },
-                "last_updated_utc": {
+                "updatedAt": {
                     "type": "string"
                 },
-                "locale": {
+                "userID": {
                     "type": "string"
                 },
-                "market": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primary_exchange": {
-                    "type": "string"
-                },
-                "share_class_figi": {
-                    "type": "string"
-                },
-                "ticker": {
-                    "type": "string"
-                },
-                "type": {
+                "value": {
                     "type": "string"
                 }
             }
         },
-        "stocks.AllTickersAPIResponse": {
+        "models.UserSecretsGetResponse": {
             "type": "object",
             "properties": {
-                "count": {
+                "status": {
                     "type": "integer"
                 },
-                "next_url": {
+                "statusDescription": {
                     "type": "string"
                 },
-                "request_id": {
+                "userSecret": {
+                    "$ref": "#/definitions/models.UserSecret"
+                }
+            }
+        },
+        "models.UserSecretsSetRequest": {
+            "type": "object",
+            "required": [
+                "key",
+                "value"
+            ],
+            "properties": {
+                "key": {
                     "type": "string"
                 },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/stocks.AllTickerStockInformation"
-                    }
-                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserSecretsSetResponse": {
+            "type": "object",
+            "properties": {
                 "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
                     "type": "string"
                 }
             }

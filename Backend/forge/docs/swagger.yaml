@@ -1,73 +1,52 @@
 definitions:
-  stocks.AllTickerStockInformation:
+  models.PythonBuilderRequest:
     properties:
-      active:
-        type: boolean
-      cik:
+      scriptID:
         type: string
-      composite_figi:
+      scriptURL:
         type: string
-      currency_name:
-        type: string
-      last_updated_utc:
-        type: string
-      locale:
-        type: string
-      market:
-        type: string
-      name:
-        type: string
-      primary_exchange:
-        type: string
-      share_class_figi:
-        type: string
-      ticker:
-        type: string
-      type:
+      userID:
         type: string
     type: object
-  stocks.AllTickersAPIResponse:
+  models.PythonBuilderResponse:
     properties:
-      count:
-        type: integer
-      next_url:
-        type: string
-      request_id:
-        type: string
-      results:
-        items:
-          $ref: '#/definitions/stocks.AllTickerStockInformation'
-        type: array
       status:
+        type: integer
+      statusDescription:
         type: string
     type: object
 info:
   contact: {}
 paths:
-  /api/marketdata/v1/stocks/polygon/all-tickers:
-    get:
+  /v1/algorithm/python/build/:
+    post:
       consumes:
       - application/json
-      description: Fetches all tickers with an optional limit parameter
+      description: Accepts a user ID, script ID, and script URL to build and push
+        the Python algorithm as a Docker image.
       parameters:
-      - description: 'Number of tickers to retrieve (default: 10)'
-        in: query
-        name: limit
-        type: integer
+      - description: Python Builder Request
+        in: body
+        name: PythonBuilderRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.PythonBuilderRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: List of tickers
+        "201":
+          description: User Algorithm Built and Pushed successfully
           schema:
-            $ref: '#/definitions/stocks.AllTickersAPIResponse'
+            $ref: '#/definitions/models.PythonBuilderResponse'
         "400":
-          description: Error message
+          description: Invalid request payload
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get all tickers
+            $ref: '#/definitions/models.PythonBuilderResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.PythonBuilderResponse'
+      summary: Build and Push Python Algorithm
       tags:
-      - Tickers
+      - PythonBuilder
 swagger: "2.0"

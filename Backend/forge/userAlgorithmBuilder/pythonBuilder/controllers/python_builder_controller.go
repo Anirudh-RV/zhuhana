@@ -22,6 +22,17 @@ func NewPythonBuilderController(log *logger.Logger, pythonBuilderService *servic
 	}
 }
 
+// PythonBuilderHandler handles building and pushing a user-submitted Python algorithm.
+// @Summary Build and Push Python Algorithm
+// @Description Accepts a user ID, script ID, and script URL to build and push the Python algorithm as a Docker image.
+// @Tags PythonBuilder
+// @Accept json
+// @Produce json
+// @Param PythonBuilderRequest body models.PythonBuilderRequest true "Python Builder Request"
+// @Success 201 {object} models.PythonBuilderResponse "User Algorithm Built and Pushed successfully"
+// @Failure 400 {object} models.PythonBuilderResponse "Invalid request payload"
+// @Failure 500 {object} models.PythonBuilderResponse "Internal Server Error"
+// @Router /v1/algorithm/python/build/ [post]
 func (pbc *PythonBuilderController) PythonBuilderHandler(c *gin.Context) {
 	var pythonBuilderRequest models.PythonBuilderRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&pythonBuilderRequest); err != nil {

@@ -15,9 +15,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/marketdata/v1/stocks/polygon/all-tickers": {
-            "get": {
-                "description": "Fetches all tickers with an optional limit parameter",
+        "/v1/algorithm/python/build/": {
+            "post": {
+                "description": "Accepts a user ID, script ID, and script URL to build and push the Python algorithm as a Docker image.",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,31 +25,37 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Tickers"
+                    "PythonBuilder"
                 ],
-                "summary": "Get all tickers",
+                "summary": "Build and Push Python Algorithm",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Number of tickers to retrieve (default: 10)",
-                        "name": "limit",
-                        "in": "query"
+                        "description": "Python Builder Request",
+                        "name": "PythonBuilderRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PythonBuilderRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "List of tickers",
+                    "201": {
+                        "description": "User Algorithm Built and Pushed successfully",
                         "schema": {
-                            "$ref": "#/definitions/stocks.AllTickersAPIResponse"
+                            "$ref": "#/definitions/models.PythonBuilderResponse"
                         }
                     },
                     "400": {
-                        "description": "Error message",
+                        "description": "Invalid request payload",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.PythonBuilderResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.PythonBuilderResponse"
                         }
                     }
                 }
@@ -57,66 +63,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "stocks.AllTickerStockInformation": {
+        "models.PythonBuilderRequest": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
-                },
-                "cik": {
+                "scriptID": {
                     "type": "string"
                 },
-                "composite_figi": {
+                "scriptURL": {
                     "type": "string"
                 },
-                "currency_name": {
-                    "type": "string"
-                },
-                "last_updated_utc": {
-                    "type": "string"
-                },
-                "locale": {
-                    "type": "string"
-                },
-                "market": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primary_exchange": {
-                    "type": "string"
-                },
-                "share_class_figi": {
-                    "type": "string"
-                },
-                "ticker": {
-                    "type": "string"
-                },
-                "type": {
+                "userID": {
                     "type": "string"
                 }
             }
         },
-        "stocks.AllTickersAPIResponse": {
+        "models.PythonBuilderResponse": {
             "type": "object",
             "properties": {
-                "count": {
+                "status": {
                     "type": "integer"
                 },
-                "next_url": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/stocks.AllTickerStockInformation"
-                    }
-                },
-                "status": {
+                "statusDescription": {
                     "type": "string"
                 }
             }
