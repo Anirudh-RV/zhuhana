@@ -3,6 +3,7 @@ package services
 import (
 	governorLogger "governor/logger"
 	orderManagerLogger "governor/strategyGateway/orderManager/logger"
+	"governor/strategyGateway/orderManager/models"
 )
 
 type OrderManagerService struct {
@@ -15,4 +16,9 @@ func NewOrderManagerService(logger *governorLogger.Logger, orderLogger *orderMan
 		logger:      logger,
 		orderLogger: orderLogger,
 	}
+}
+
+func (service *OrderManagerService) SubmitOrder(req models.OrderRequest) (*models.OrderResponse, error) {
+	// TODO
+	return nil, nil
 }

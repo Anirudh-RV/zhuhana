@@ -17,7 +17,6 @@ const (
 	TypeLimit             OrderType = "LIMIT"
 	TypeStop              OrderType = "STOP"
 	TypeStopLimit         OrderType = "STOP_LIMIT"
-	TypeTrailingStop      OrderType = "TRAILING_STOP"
 	TypeFillOrKill        OrderType = "FILL_OR_KILL"
 	TypeImmediateOrCancel OrderType = "IMMEDIATE_OR_CANCEL"
 	TypeAllOrNone         OrderType = "ALL_OR_NONE"
