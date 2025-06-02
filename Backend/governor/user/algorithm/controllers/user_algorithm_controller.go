@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type UserAlgorithmController struct {
@@ -36,6 +37,7 @@ func (uac *UserAlgorithmController) CreateUserAlgorithmHandler(c *gin.Context) {
 
 	script, _, err := c.Request.FormFile("script")
 	if err != nil {
+		go uac.log.Error("error in getting file from form", zap.String("execution level", "CreateUserAlgorithmHandler"), zap.String("Error", err.Error()))
 		c.JSON(http.StatusBadRequest, models.CreateUserAlgorithmResponse{
 			Status:            -1,
 			StatusDescription: "File upload failed",
@@ -45,7 +47,7 @@ func (uac *UserAlgorithmController) CreateUserAlgorithmHandler(c *gin.Context) {
 	defer script.Close()
 
 	userID, _ := c.Get("USER_ID")
-	userAlgorithm, err := uac.UserAlgorithmService.UserAlgorithmHandler(fmt.Sprint(userID), createUserAlgorithmRequest.ScriptName, createUserAlgorithmRequest.CronSchedule, script)
+	userAlgorithm, err := uac.UserAlgorithmService.CreateUserAlgorithmHandler(fmt.Sprint(userID), createUserAlgorithmRequest.ScriptName, script)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.CreateUserAlgorithmResponse{
 			Status:            0,

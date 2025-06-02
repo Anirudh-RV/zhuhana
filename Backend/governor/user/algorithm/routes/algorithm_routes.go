@@ -13,13 +13,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
+func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator) {
 	algorithmRoutes := r.Group("user/algorithm/python/")
 	{
-		userAlgorithmRepository := repositories.NewUserRepository(db)
+		userAlgorithmRepository := repositories.NewUserAlgorithmRepository(db)
 		go log.Info("user algorithm repository created", zap.String("execution level", "UserAlgorithmRoutesV1"))
 
-		userAlgorithmService := services.NewUserAlgorithmService(log, userAlgorithmRepository)
+		userAlgorithmService := services.NewUserAlgorithmService(log, userAlgorithmRepository, microserviceAuthenticator)
 		go log.Info("upload script service created", zap.String("execution level", "UserAlgorithmRoutesV1"))
 
 		userAlgorithmController := controllers.NewUserAlgorithmController(log, userAlgorithmService)

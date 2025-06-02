@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"governor/logger"
+	"governor/middleware"
 
 	_ "governor/docs"
 
@@ -15,8 +16,8 @@ import (
 	UserUserAlgorithmRoutesV1 "governor/user/algorithm/routes"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
-	v1 := r.Group("/api/outbound/v1/")
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator) {
+	v1 := r.Group("/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		v1.GET("/ping", func(c *gin.Context) {
@@ -27,7 +28,7 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 
 		// Register other routes here
 		StradegyGatewayRoutesV1.RegisterStrategyGatewayRoutesV1(v1, log, db, redis, authMiddleware)
-		UserUserAlgorithmRoutesV1.UserAlgorithmRoutesV1(v1, log, db, redis, authMiddleware, userAuthMiddleware)
+		UserUserAlgorithmRoutesV1.UserAlgorithmRoutesV1(v1, log, db, redis, authMiddleware, userAuthMiddleware, microserviceAuthenticator)
 
 	}
 }

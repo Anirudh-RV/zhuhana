@@ -35,7 +35,7 @@ type UserAuthenticateResponse struct {
 // AuthMiddleware is the Gin middleware function
 func UserAuthMiddleware(authServiceURL string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userToken := c.GetHeader("USER_AUTHENTICATION_ENDPOIT")
+		userToken := c.GetHeader("USER_TOKEN")
 
 		if userToken == "" {
 			c.JSON(http.StatusUnauthorized, UserAuthenticateResponse{Status: -1, StatusDescription: "Missing USER_TOKEN"})

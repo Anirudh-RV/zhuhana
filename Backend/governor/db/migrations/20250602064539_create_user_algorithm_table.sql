@@ -7,10 +7,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Create the user_algorithm table
 CREATE TABLE user_algorithm (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL UNIQUE,
+    user_id UUID NOT NULL,
     script_name TEXT NOT NULL,
-    script_url TEXT NOT NULL,
-    cron_schedule TEXT NOT NULL,
+    script_url TEXT,
+    cron_schedule TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
