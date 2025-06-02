@@ -29,7 +29,7 @@ func NewMicroServiceAuthenticateController(microServiceServiceObj *microServiceS
 // @Produce  json
 // @Param OriginService header string true "Name of the calling microservice"
 // @Param AuthToken header string true "JWT token for authentication"
-// @Success 200 {object} models.MicroServiceAuthenticateResponse "Token authorization success"
+// @Success 200 {object} models.MicroServiceAuthenticateResponse "Token authentication success"
 // @Failure 400 {object} models.MicroServiceAuthenticateResponse "Missing or invalid required headers"
 // @Failure 401 {object} models.MicroServiceAuthenticateResponse "Not Authorized"
 // @Router /v1/microservice/authenticate/ [post]
@@ -54,7 +54,7 @@ func (mac *MicroServiceAuthenticateController) MicroServiceAuthenticateHandler(c
 
 	c.JSON(http.StatusOK, models.MicroServiceAuthenticateResponse{
 		Status:            1,
-		StatusDescription: "Token authorization success",
+		StatusDescription: "Token authentication success",
 		CallerService:     callerService,
 		CalleeService:     calleeService,
 	})

@@ -10,7 +10,7 @@ import (
 )
 
 func (ds *DockerService) BuildImage(dockerfileDir, dockerImageName string) error {
-	fullImageName := fmt.Sprintf("%s/%s", DOCKER_USERNAME, dockerImageName)
+	fullImageName := fmt.Sprintf("%s/%s", DOCKER_REPOSITORY, dockerImageName)
 
 	ds.logger.Info("Starting build image",
 		zap.String("dockerfileDir", dockerfileDir),
@@ -54,7 +54,7 @@ func (ds *DockerService) getImageID(imageName string) (string, error) {
 }
 
 func (ds *DockerService) RemoveImage(dockerImageName string) error {
-	fullImageName := fmt.Sprintf("%s/%s", DOCKER_USERNAME, dockerImageName)
+	fullImageName := fmt.Sprintf("%s/%s", DOCKER_REPOSITORY, dockerImageName)
 	imageID, err := ds.getImageID(fullImageName)
 	if err != nil {
 		ds.logger.Error("docker image removal failed",

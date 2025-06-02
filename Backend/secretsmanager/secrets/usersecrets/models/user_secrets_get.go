@@ -1,7 +1,7 @@
 package models
 
 type UserSecretsGetRequestHeaders struct {
-	UserToken string `header:"USER_TOKEN" binding:"required"`
+	UserScriptToken string `header:"USER_SCRIPT_TOKEN" binding:"required"`
 }
 
 type UserSecretsGetRequest struct {

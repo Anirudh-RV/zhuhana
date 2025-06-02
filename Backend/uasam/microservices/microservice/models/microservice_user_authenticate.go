@@ -1,7 +1,7 @@
 package models
 
 type MicroServiceUserAuthenticateRequestHeaders struct {
-	UserToken string `header:"USER_TOKEN" binding:"required"`
+	UserScriptToken string `header:"USER_SERVICE_TOKEN" binding:"required"`
 }
 
 type MicroServiceUserAuthenticateResponse struct {

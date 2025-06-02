@@ -1,10 +1,8 @@
 package controllers
 
 import (
-	"github.com/gin-gonic/gin"
 	"governor/logger"
 	"governor/strategyGateway/orderManager/services"
-	"net/http"
 )
 
 type OrderManagerController struct {

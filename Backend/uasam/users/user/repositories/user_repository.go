@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 
 	"uasam/middleware"
 	"uasam/users/user/models"
@@ -146,4 +147,49 @@ func (ur *UserRepository) UpdateUserPasswordByEmail(emailID string, newPassword 
 	query := `UPDATE "account" SET password = $1, updated_at = NOW() WHERE email_id = $2`
 	_, err = ur.db.Exec(query, newPassword, encEmailID)
 	return err
+}
+
+func (ur *UserRepository) GetUserByUserID(userID string) (*models.UserObject, error) {
+	query := `
+		SELECT id, first_name, middle_name, last_name, email_id, created_at, updated_at
+		FROM "account"
+		WHERE id = $1
+		LIMIT 1
+	`
+
+	var encFirst, encLast string
+	// var encEmailOut []byte
+	var encMiddle *string
+	var user models.UserObject
+
+	err := ur.db.QueryRow(query, userID).Scan(
+		&user.ID,
+		&encFirst,
+		&encMiddle,
+		&encLast,
+		&user.EmailID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Decrypt PII fields
+	user.FirstName, _ = middleware.Decrypt(encFirst)
+	user.LastName, _ = middleware.Decrypt(encLast)
+	user.EmailID, err = middleware.DecryptDeterministic(user.EmailID)
+	if err != nil {
+		fmt.Printf("Decryption error: %v\n", err)
+	}
+	// fmt.Printf("\n\nencEmailOut:\n\n %s", string(encEmailOut))
+	if encMiddle != nil {
+		d, _ := middleware.Decrypt(*encMiddle)
+		user.MiddleName = &d
+	}
+
+	return &user, nil
 }

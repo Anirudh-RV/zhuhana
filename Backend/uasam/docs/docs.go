@@ -46,7 +46,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Token authorization success",
+                        "description": "Token authentication success",
                         "schema": {
                             "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
                         }
@@ -133,7 +133,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "name": "USER_TOKEN",
+                        "name": "USER_SERVICE_TOKEN",
                         "in": "header",
                         "required": true
                     }
