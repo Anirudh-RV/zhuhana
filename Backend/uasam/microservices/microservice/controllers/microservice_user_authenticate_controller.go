@@ -42,7 +42,7 @@ func (muac *MicroServiceUserAuthenticateController) MicroServiceUserAuthenticate
 		return
 	}
 
-	userID, err := muac.microServiceServiceObj.AuthenticateUserMicroService(header.UserToken)
+	userID, err := muac.microServiceServiceObj.AuthenticateMicroServiceUserService(header.UserScriptToken)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.MicroServiceUserAuthenticateResponse{
 			Status:            -1,
@@ -53,7 +53,7 @@ func (muac *MicroServiceUserAuthenticateController) MicroServiceUserAuthenticate
 
 	c.JSON(http.StatusOK, models.MicroServiceUserAuthenticateResponse{
 		Status:            1,
-		StatusDescription: "Token authorization success",
+		StatusDescription: "Token authentication success",
 		UserID:            userID,
 	})
 }

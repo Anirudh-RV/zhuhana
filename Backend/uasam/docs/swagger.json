@@ -1,756 +1,694 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "contact": {}
-    },
-    "paths": {
-        "/v1/microservice/authenticate/": {
-            "post": {
-                "description": "Authenticates the calling microservice using a JWT token passed in the headers. Returns the caller and callee service names on success.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Microservice"
-                ],
-                "summary": "Authenticate microservice using JWT token",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the calling microservice",
-                        "name": "OriginService",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "JWT token for authentication",
-                        "name": "AuthToken",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Token authorization success",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing or invalid required headers",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Not Authorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
-                        }
-                    }
-                }
+  "swagger": "2.0",
+  "info": {
+    "contact": {}
+  },
+  "paths": {
+    "/v1/microservice/authenticate/": {
+      "post": {
+        "description": "Authenticates the calling microservice using a JWT token passed in the headers. Returns the caller and callee service names on success.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Microservice"],
+        "summary": "Authenticate microservice using JWT token",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Name of the calling microservice",
+            "name": "OriginService",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "JWT token for authentication",
+            "name": "AuthToken",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token authentication success",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
             }
-        },
-        "/v1/microservice/login": {
-            "post": {
-                "description": "Validates the incoming request headers from a calling microservice and generates an access token if valid",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Microservice"
-                ],
-                "summary": "Authenticate microservice and generate access token",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the calling microservice",
-                        "name": "Caller-Service",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "API key for the calling microservice",
-                        "name": "API-Key",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Access token generated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing or invalid required headers",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error while generating token",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceLoginResponse"
-                        }
-                    }
-                }
+          },
+          "400": {
+            "description": "Missing or invalid required headers",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
             }
-        },
-        "/v1/microservice/user/authenticate/": {
-            "get": {
-                "description": "Validates the access token of a microservice user and returns the user ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Microservice Authentication"
-                ],
-                "summary": "Authorize a microservice user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "name": "USER_TOKEN",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Missing or invalid required headers",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Not Authorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
-                        }
-                    }
-                }
+          },
+          "401": {
+            "description": "Not Authorized",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceAuthenticateResponse"
             }
-        },
-        "/v1/microservice/user/login/": {
-            "post": {
-                "description": "Generates an access token for a valid microservice user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Microservice Authentication"
-                ],
-                "summary": "Authenticate a microservice user",
-                "parameters": [
-                    {
-                        "description": "Microservice User Login Request",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserLoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/login/verify-otp/": {
-            "post": {
-                "description": "Verifies the OTP provided by the user and returns an access token upon successful authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Verify OTP during login",
-                "parameters": [
-                    {
-                        "description": "Login Verify OTP Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyOTPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Login authenticated successfully, access token issued",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload or login error",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "User does not exist or login error",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyOTPResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/login/verify-password/": {
-            "post": {
-                "description": "Checks if user exists and verifies the submitted password. Sends an OTP if the password verification is successful",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Verify user password during login",
-                "parameters": [
-                    {
-                        "description": "Login Verify Password Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password verified successfully, proceed to OTP verification",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Login error due to invalid credentials or user not existing",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/reset-password/init/": {
-            "post": {
-                "description": "Starts the password reset process by verifying if the user exists and sending a reset link to the email",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Initiate Password Reset",
-                "parameters": [
-                    {
-                        "description": "Reset Password Init Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordInitRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password reset link sent successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "User does not exist or reset error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/reset-password/reset/": {
-            "post": {
-                "description": "Completes the password reset by setting a new password for a valid user after token authentication",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Complete Password Reset",
-                "parameters": [
-                    {
-                        "description": "Reset Password Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Password reset successful",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "User does not exist or reset error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ResetPasswordResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/sign-up/init/": {
-            "post": {
-                "description": "Initiates user sign-up by checking if the user exists and sending OTP for verification",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Initialize Sign Up",
-                "parameters": [
-                    {
-                        "description": "Sign Up Init Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpInitRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OTP verification initiated",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpInitResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "User already exists or invalid payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpInitResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpInitResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/user/sign-up/verify-otp/": {
-            "post": {
-                "description": "Verifies the OTP and creates the user account if valid.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "User"
-                ],
-                "summary": "Verify OTP and Sign Up User",
-                "parameters": [
-                    {
-                        "description": "Verify OTP Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request payload",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Wrong OTP",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "models.LoginVerifyOTPRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                },
-                "otp": {
-                    "type": "string"
-                }
+    "/v1/microservice/login": {
+      "post": {
+        "description": "Validates the incoming request headers from a calling microservice and generates an access token if valid",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Microservice"],
+        "summary": "Authenticate microservice and generate access token",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Name of the calling microservice",
+            "name": "Caller-Service",
+            "in": "header",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "API key for the calling microservice",
+            "name": "API-Key",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Access token generated successfully",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceLoginResponse"
             }
-        },
-        "models.LoginVerifyOTPResponse": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserObject"
-                }
+          },
+          "400": {
+            "description": "Missing or invalid required headers",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceLoginResponse"
             }
-        },
-        "models.LoginVerifyPasswordRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
+          },
+          "500": {
+            "description": "Internal server error while generating token",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceLoginResponse"
             }
-        },
-        "models.LoginVerifyPasswordResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MicroServiceAuthenticateResponse": {
-            "type": "object",
-            "properties": {
-                "calleeService": {
-                    "type": "string"
-                },
-                "callerService": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MicroServiceLoginResponse": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MicroServiceUserAuthenticateResponse": {
-            "type": "object",
-            "properties": {
-                "UserID": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MicroServiceUserLoginRequest": {
-            "type": "object",
-            "required": [
-                "userID"
-            ],
-            "properties": {
-                "userID": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.MicroServiceUserLoginResponse": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ResetPasswordInitRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ResetPasswordInitResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ResetPasswordRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.ResetPasswordResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpInitRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                },
-                "firstName": {
-                    "type": "string"
-                },
-                "lastName": {
-                    "type": "string"
-                },
-                "middleName": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpInitResponse": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpVerifyOTPRequest": {
-            "type": "object",
-            "properties": {
-                "emailId": {
-                    "type": "string"
-                },
-                "otp": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.SignUpVerifyOTPResponse": {
-            "type": "object",
-            "properties": {
-                "accessToken": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "statusDescription": {
-                    "type": "string"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserObject"
-                }
-            }
-        },
-        "models.UserObject": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "emailID": {
-                    "type": "string"
-                },
-                "firstName": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "lastName": {
-                    "type": "string"
-                },
-                "middleName": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                }
-            }
+          }
         }
+      }
+    },
+    "/v1/microservice/user/authenticate/": {
+      "get": {
+        "description": "Validates the access token of a microservice user and returns the user ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Microservice Authentication"],
+        "summary": "Authorize a microservice user",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "USER_SERVICE_TOKEN",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            }
+          },
+          "400": {
+            "description": "Missing or invalid required headers",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            }
+          },
+          "401": {
+            "description": "Not Authorized",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/microservice/user/login/": {
+      "post": {
+        "description": "Generates an access token for a valid microservice user",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["Microservice Authentication"],
+        "summary": "Authenticate a microservice user",
+        "parameters": [
+          {
+            "description": "Microservice User Login Request",
+            "name": "user",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserLoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/models.MicroServiceUserLoginResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/login/verify-otp/": {
+      "post": {
+        "description": "Verifies the OTP provided by the user and returns an access token upon successful authentication",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Verify OTP during login",
+        "parameters": [
+          {
+            "description": "Login Verify OTP Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyOTPRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login authenticated successfully, access token issued",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyOTPResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload or login error",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyOTPResponse"
+            }
+          },
+          "401": {
+            "description": "User does not exist or login error",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyOTPResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyOTPResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/login/verify-password/": {
+      "post": {
+        "description": "Checks if user exists and verifies the submitted password. Sends an OTP if the password verification is successful",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Verify user password during login",
+        "parameters": [
+          {
+            "description": "Login Verify Password Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password verified successfully, proceed to OTP verification",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+            }
+          },
+          "401": {
+            "description": "Login error due to invalid credentials or user not existing",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/models.LoginVerifyPasswordResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/reset-password/init/": {
+      "post": {
+        "description": "Starts the password reset process by verifying if the user exists and sending a reset link to the email",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Initiate Password Reset",
+        "parameters": [
+          {
+            "description": "Reset Password Init Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordInitRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset link sent successfully",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordInitResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordInitResponse"
+            }
+          },
+          "401": {
+            "description": "User does not exist or reset error",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordInitResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordInitResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/reset-password/reset/": {
+      "post": {
+        "description": "Completes the password reset by setting a new password for a valid user after token authentication",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Complete Password Reset",
+        "parameters": [
+          {
+            "description": "Reset Password Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordResponse"
+            }
+          },
+          "401": {
+            "description": "User does not exist or reset error",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/models.ResetPasswordResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/sign-up/init/": {
+      "post": {
+        "description": "Initiates user sign-up by checking if the user exists and sending OTP for verification",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Initialize Sign Up",
+        "parameters": [
+          {
+            "description": "Sign Up Init Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.SignUpInitRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP verification initiated",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpInitResponse"
+            }
+          },
+          "400": {
+            "description": "User already exists or invalid payload",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpInitResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpInitResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/sign-up/verify-otp/": {
+      "post": {
+        "description": "Verifies the OTP and creates the user account if valid.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["User"],
+        "summary": "Verify OTP and Sign Up User",
+        "parameters": [
+          {
+            "description": "Verify OTP Request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.SignUpVerifyOTPRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request payload",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+            }
+          },
+          "401": {
+            "description": "Wrong OTP",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "schema": {
+              "$ref": "#/definitions/models.SignUpVerifyOTPResponse"
+            }
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "models.LoginVerifyOTPRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        },
+        "otp": {
+          "type": "string"
+        }
+      }
+    },
+    "models.LoginVerifyOTPResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/models.UserObject"
+        }
+      }
+    },
+    "models.LoginVerifyPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "models.LoginVerifyPasswordResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MicroServiceAuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "calleeService": {
+          "type": "string"
+        },
+        "callerService": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MicroServiceLoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MicroServiceUserAuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "UserID": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MicroServiceUserLoginRequest": {
+      "type": "object",
+      "required": ["userID"],
+      "properties": {
+        "userID": {
+          "type": "string"
+        }
+      }
+    },
+    "models.MicroServiceUserLoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ResetPasswordInitRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ResetPasswordInitResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ResetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "models.ResetPasswordResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SignUpInitRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SignUpInitResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SignUpVerifyOTPRequest": {
+      "type": "object",
+      "properties": {
+        "emailId": {
+          "type": "string"
+        },
+        "otp": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SignUpVerifyOTPResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "statusDescription": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/models.UserObject"
+        }
+      }
+    },
+    "models.UserObject": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "type": "string"
+        },
+        "emailID": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    }
+  }
 }

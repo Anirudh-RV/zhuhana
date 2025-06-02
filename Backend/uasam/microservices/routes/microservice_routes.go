@@ -48,7 +48,7 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 
 			user.POST("authenticate/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "header",
-				Param:       "USER_TOKEN",
+				Param:       "USER_SERVICE_TOKEN",
 				EnableParam: true,
 				Limit:       300,
 				Window:      300,

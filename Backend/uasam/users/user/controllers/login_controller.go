@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"uasam/logger"
 	"uasam/users/user/models"
@@ -54,7 +53,6 @@ func (lgc *LoginController) LoginVerifyPasswordHandler(c *gin.Context) {
 		return
 	}
 	if !userExists {
-		fmt.Print("USER DOES NOT EXIST")
 		c.JSON(http.StatusUnauthorized, models.LoginVerifyPasswordResponse{
 			Status:            -1,
 			StatusDescription: "Login Error",
