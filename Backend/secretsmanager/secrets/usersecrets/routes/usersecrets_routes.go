@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
+func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userScriptAuthMiddleware gin.HandlerFunc) {
 	userSecretsRepoObj := repositories.NewUserSecretRepository(db)
 	go log.Info("user secrets service created", zap.String("execution level", "UserSecretsRoutesV1"))
 
@@ -25,26 +25,26 @@ func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, red
 
 	r.POST("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 		Source:      "header",
-		Param:       "USER_TOKEN",
+		Param:       "USER_SCRIPT_TOKEN",
 		EnableParam: true,
 		Limit:       300,
 		Window:      300,
 		EnableIP:    false,
 		Endpoint:    "POST/user/secrets/",
 	}), authMiddleware,
-		userAuthMiddleware,
+		userScriptAuthMiddleware,
 		userSecretsSetController.UserSecretsSetHandler)
 
 	r.GET("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 		Source:      "header",
-		Param:       "USER_TOKEN",
+		Param:       "USER_SCRIPT_TOKEN",
 		EnableParam: true,
 		Limit:       300,
 		Window:      300,
 		EnableIP:    false,
 		Endpoint:    "GET/user/secrets/",
 	}), authMiddleware,
-		userAuthMiddleware,
+		userScriptAuthMiddleware,
 		userSecretsSetController.UserSecretsGetHandler)
 
 }

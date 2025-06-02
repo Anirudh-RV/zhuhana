@@ -10,7 +10,7 @@ import (
 
 /*
 Usage:
-r.Group("some-api-group/", middleware.UserAuthMiddleware("http://localhost:8002/v1/microservice/authenticate/"))
+r.Group("some-api-group/", middleware.UserScriptAuthMiddleware("http://localhost:8002/v1/microservice/authenticate/"))
 */
 
 // AuthResponse is the expected structure of the authentication service response
@@ -20,14 +20,14 @@ type UserAuthResponse struct {
 	UserID            string `json:"UserID,omitempty"`
 }
 
-// UserAuthMiddleware is the Gin middleware function
-func UserAuthMiddleware(userAuthServiceURL string) gin.HandlerFunc {
+// UserScriptAuthMiddleware is the Gin middleware function
+func UserScriptAuthMiddleware(userAuthServiceURL string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authToken := c.GetHeader("AUTH_TOKEN")
 		originService := c.GetHeader("ORIGIN_SERVICE")
-		userToken := c.GetHeader("USER_TOKEN")
+		userScriptToken := c.GetHeader("USER_SCRIPT_TOKEN")
 
-		if userToken == "" {
+		if userScriptToken == "" {
 			c.JSON(http.StatusUnauthorized, UserAuthResponse{Status: -1, StatusDescription: "Missing AUTH_TOKEN or ORIGIN_SERVICE"})
 			c.Abort()
 			return
@@ -38,7 +38,7 @@ func UserAuthMiddleware(userAuthServiceURL string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		req.Header.Set("USER_TOKEN", userToken)
+		req.Header.Set("USER_SCRIPT_TOKEN", userScriptToken)
 		req.Header.Set("AUTH_TOKEN", authToken)
 		req.Header.Set("ORIGIN_SERVICE", originService)
 

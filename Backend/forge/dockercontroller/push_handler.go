@@ -8,8 +8,7 @@ import (
 )
 
 func (ds *DockerService) ImagePush(dockerImageName string) error {
-	// Compose full image name (including username if needed)
-	fullImageName := fmt.Sprintf("%s/%s", DOCKER_USERNAME, dockerImageName)
+	fullImageName := fmt.Sprintf("%s/%s", DOCKER_REPOSITORY, dockerImageName)
 	ds.logger.Info("Pushing Docker image...",
 		zap.String("image", fullImageName),
 		zap.String("execution level", "ImagePush"))

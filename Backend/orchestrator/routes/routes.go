@@ -18,6 +18,11 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 	v1 := r.Group("/api/outbound/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("/ping", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"status": "ok",
+			})
+		})
 		outbound_handler_routes.OutboundHandlerRoutesV1(v1, log, db, redis)
 	}
 }

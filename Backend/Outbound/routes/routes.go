@@ -17,6 +17,11 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, redis *redis.Client, auth
 	v1 := r.Group("/api/marketdata/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		v1.GET("/ping", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"status": "ok",
+			})
+		})
 		stock_routes.StocksRoutesV1(v1, log, redis)
 	}
 }
