@@ -4,7 +4,9 @@ import (
 	"governor/logger"
 	"log"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var Logger *logger.Logger
@@ -20,4 +22,9 @@ func GetKafkaBrokersFromEnv() []string {
 
 func GetKafkaTopicFromEnv() string {
 	return os.Getenv("KAFKA_TOPIC")
+}
+
+func GetKafkaTimeoutFromEnv() time.Duration {
+	KAFKA_TIMEOUT, _ := strconv.Atoi(os.Getenv("KAFKA_TIMEOUT"))
+	return time.Duration(KAFKA_TIMEOUT) * time.Second
 }

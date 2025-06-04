@@ -15,6 +15,7 @@ services:
     depends_on:
       - governor-postgres
       - governor-redis
+      - governor-kafka
 
   governor-postgres:
     image: postgres:17

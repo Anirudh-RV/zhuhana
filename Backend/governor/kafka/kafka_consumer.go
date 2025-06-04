@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"governor/logger"
 	"log"
 	"os"
 
@@ -13,11 +12,10 @@ import (
 
 var cancelConsumer context.CancelFunc
 
-func InitConsumer(logger *logger.Logger) {
+func InitConsumer() {
 	brokers := GetKafkaBrokersFromEnv()
 	groupID := os.Getenv("KAFKA_GROUP_ID")
 	topic := GetKafkaTopicFromEnv()
-	Logger = logger
 
 	// Start Kafka consumer in background goroutine
 	StartConsumer(brokers, groupID, topic, func(job JobPayload) error {
@@ -45,7 +43,6 @@ func StopConsumer() {
 	}
 }
 
-// The actual consumer logic that continuously polls Kafka
 func consumeCronJobs(
 	ctx context.Context,
 	brokers []string,
@@ -93,7 +90,12 @@ func consumeCronJobs(
 				}
 			})
 
-			// Mark all messages as processed
+			// Commit offsets after processing
+			if err := client.CommitMarkedOffsets(ctx); err != nil {
+				log.Printf("[KafkaConsumer] CommitMarkedOffsets error: %v", err)
+			}
+
+			// Allow rebalances (optional)
 			client.AllowRebalance()
 		}
 	}
