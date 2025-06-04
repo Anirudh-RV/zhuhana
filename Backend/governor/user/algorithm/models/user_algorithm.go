@@ -15,3 +15,12 @@ type UserAlgorithm struct {
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 }
+
+type UserAlgorithmInfo struct {
+	ScriptID     uuid.UUID `json:"scriptID"`
+	ScriptName   string    `json:"scriptName"`
+	ScriptURL    *string   `json:"script_url,omitempty"`
+	CronSchedule *string   `json:"cronSchedule,omitempty"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}

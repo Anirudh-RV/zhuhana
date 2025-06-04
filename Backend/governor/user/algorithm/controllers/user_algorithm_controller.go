@@ -13,18 +13,33 @@ import (
 
 type UserAlgorithmController struct {
 	log                  *logger.Logger
-	UserAlgorithmService *services.UserAlgorithmService
+	userAlgorithmService *services.UserAlgorithmService
 }
 
 func NewUserAlgorithmController(log *logger.Logger, UserAlgorithmService *services.UserAlgorithmService) *UserAlgorithmController {
 	return &UserAlgorithmController{
 		log:                  log,
-		UserAlgorithmService: UserAlgorithmService,
+		userAlgorithmService: UserAlgorithmService,
 	}
 }
 
+// CreateUserAlgorithmHandler uploads a new algorithm script for the authenticated user.
+//
+// @Summary      Create a user algorithm
+// @Description  Uploads a script file and creates a new user algorithm associated with the authenticated user.
+// @Tags         UserAlgorithm
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        script_name formData string true "Script Name"
+// @Param        script      formData file   true "Python script file"
+// @Success      201 {object} models.CreateUserAlgorithmResponse "Algorithm created successfully"
+// @Failure      400 {object} models.CreateUserAlgorithmResponse "Invalid input or file upload failed"
+// @Failure      500 {object} models.CreateUserAlgorithmResponse "Internal server error"
+// @Security     USER_TOKEN
+// @Router       /v1/user/algorithm/python/upload/ [post]
 func (uac *UserAlgorithmController) CreateUserAlgorithmHandler(c *gin.Context) {
 	var createUserAlgorithmRequest models.CreateUserAlgorithmRequest
+	userID, _ := c.Get("USER_ID")
 
 	// Bind form fields (from multipart/form-data)
 	if err := c.ShouldBind(&createUserAlgorithmRequest); err != nil {
@@ -46,8 +61,7 @@ func (uac *UserAlgorithmController) CreateUserAlgorithmHandler(c *gin.Context) {
 	}
 	defer script.Close()
 
-	userID, _ := c.Get("USER_ID")
-	userAlgorithm, err := uac.UserAlgorithmService.CreateUserAlgorithmHandler(fmt.Sprint(userID), createUserAlgorithmRequest.ScriptName, script)
+	userAlgorithm, err := uac.userAlgorithmService.CreateUserAlgorithmHandler(fmt.Sprint(userID), createUserAlgorithmRequest.ScriptName, script)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.CreateUserAlgorithmResponse{
 			Status:            0,
