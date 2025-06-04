@@ -4,6 +4,7 @@ import (
 	"context"
 	"governor/cache"
 	"governor/db"
+	"governor/kafka"
 	"governor/logger"
 	"governor/middleware"
 	"governor/routes"
@@ -18,13 +19,19 @@ func main() {
 	var ctx = context.Background()
 
 	log := logger.NewLogger()
-	go log.Info("Logger started", zap.String("Execution Level", "Root"))
+	go log.Info("logger started", zap.String("Execution Level", "Root"))
 
 	db.InitDB(log)
-	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
+	go log.Info("db connection successful", zap.String("Execution Level", "Root"))
 
 	cache.InitRedis(ctx, log)
-	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
+	go log.Info("redis connection successful", zap.String("Execution Level", "Root"))
+
+	kafka.InitPublisher()
+	go log.Info("kafka publisher initialization successful ", zap.String("Execution Level", "Root"))
+
+	kafka.InitConsumer(log)
+	go log.Info("kafka consumer initialization successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))

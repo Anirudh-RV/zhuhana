@@ -64,7 +64,7 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 		}), userAuthMiddleware,
 			userAlgorithmController.GetUserAlgorithms)
 
-		pythonAlgorithms := r.Group("python/")
+		pythonAlgorithms := algorithmRoutes.Group("python/")
 		{
 			pythonAlgorithms.POST("upload/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 				Source:      "header",

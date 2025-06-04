@@ -11,6 +11,7 @@ CREATE TABLE user_algorithm (
     script_name TEXT NOT NULL,
     script_url TEXT,
     cron_schedule TEXT,
+    order_domain INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
