@@ -240,13 +240,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.OrderDomain": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Backtest",
+                "PaperTrading",
+                "LiveTrading"
+            ]
+        },
         "models.UpdateUserAlgorithmCronScheduleRequest": {
             "type": "object",
             "properties": {
                 "algorithmID": {
                     "type": "string"
                 },
-                "cronSchedule": {
+                "endCronSchedule": {
+                    "type": "string"
+                },
+                "startCronSchedule": {
                     "type": "string"
                 }
             }
@@ -268,16 +284,22 @@ const docTemplate = `{
                 "createdAt": {
                     "type": "string"
                 },
-                "cronSchedule": {
+                "endCronSchedule": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
+                "orderDomain": {
+                    "$ref": "#/definitions/models.OrderDomain"
+                },
                 "scriptName": {
                     "type": "string"
                 },
                 "scriptURL": {
+                    "type": "string"
+                },
+                "startCronSchedule": {
                     "type": "string"
                 },
                 "updatedAt": {
@@ -294,16 +316,22 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "cronSchedule": {
+                "endCronSchedule": {
                     "type": "string"
                 },
-                "scriptID": {
+                "id": {
                     "type": "string"
+                },
+                "order_domain": {
+                    "$ref": "#/definitions/models.OrderDomain"
                 },
                 "scriptName": {
                     "type": "string"
                 },
-                "script_url": {
+                "scriptUrl": {
+                    "type": "string"
+                },
+                "startCronSchedule": {
                     "type": "string"
                 },
                 "updated_at": {

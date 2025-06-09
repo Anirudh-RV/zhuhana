@@ -28,11 +28,23 @@ definitions:
       user_algorithm:
         $ref: '#/definitions/models.UserAlgorithmInfo'
     type: object
+  models.OrderDomain:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Backtest
+    - PaperTrading
+    - LiveTrading
   models.UpdateUserAlgorithmCronScheduleRequest:
     properties:
       algorithmID:
         type: string
-      cronSchedule:
+      endCronSchedule:
+        type: string
+      startCronSchedule:
         type: string
     type: object
   models.UpdateUserAlgorithmCronScheduleResponse:
@@ -46,13 +58,17 @@ definitions:
     properties:
       createdAt:
         type: string
-      cronSchedule:
+      endCronSchedule:
         type: string
       id:
         type: string
+      orderDomain:
+        $ref: '#/definitions/models.OrderDomain'
       scriptName:
         type: string
       scriptURL:
+        type: string
+      startCronSchedule:
         type: string
       updatedAt:
         type: string
@@ -63,13 +79,17 @@ definitions:
     properties:
       created_at:
         type: string
-      cronSchedule:
+      endCronSchedule:
         type: string
-      script_url:
+      id:
         type: string
-      scriptID:
-        type: string
+      order_domain:
+        $ref: '#/definitions/models.OrderDomain'
       scriptName:
+        type: string
+      scriptUrl:
+        type: string
+      startCronSchedule:
         type: string
       updated_at:
         type: string

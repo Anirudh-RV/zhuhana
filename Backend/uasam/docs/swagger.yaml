@@ -15,7 +15,7 @@ definitions:
       statusDescription:
         type: string
       user:
-        $ref: "#/definitions/models.UserObject"
+        $ref: '#/definitions/models.UserObject'
     type: object
   models.LoginVerifyPasswordRequest:
     properties:
@@ -65,7 +65,7 @@ definitions:
       userID:
         type: string
     required:
-      - userID
+    - userID
     type: object
   models.MicroServiceUserLoginResponse:
     properties:
@@ -140,7 +140,7 @@ definitions:
       statusDescription:
         type: string
       user:
-        $ref: "#/definitions/models.UserObject"
+        $ref: '#/definitions/models.UserObject'
     type: object
   models.UserObject:
     properties:
@@ -165,343 +165,335 @@ paths:
   /v1/microservice/authenticate/:
     post:
       consumes:
-        - application/json
-      description:
-        Authenticates the calling microservice using a JWT token passed
+      - application/json
+      description: Authenticates the calling microservice using a JWT token passed
         in the headers. Returns the caller and callee service names on success.
       parameters:
-        - description: Name of the calling microservice
-          in: header
-          name: OriginService
-          required: true
-          type: string
-        - description: JWT token for authentication
-          in: header
-          name: AuthToken
-          required: true
-          type: string
+      - description: Name of the calling microservice
+        in: header
+        name: OriginService
+        required: true
+        type: string
+      - description: JWT token for authentication
+        in: header
+        name: AuthToken
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Token authentication success
           schema:
-            $ref: "#/definitions/models.MicroServiceAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
         "400":
           description: Missing or invalid required headers
           schema:
-            $ref: "#/definitions/models.MicroServiceAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
         "401":
           description: Not Authorized
           schema:
-            $ref: "#/definitions/models.MicroServiceAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceAuthenticateResponse'
       summary: Authenticate microservice using JWT token
       tags:
-        - Microservice
+      - Microservice
   /v1/microservice/login:
     post:
       consumes:
-        - application/json
-      description:
-        Validates the incoming request headers from a calling microservice
+      - application/json
+      description: Validates the incoming request headers from a calling microservice
         and generates an access token if valid
       parameters:
-        - description: Name of the calling microservice
-          in: header
-          name: Caller-Service
-          required: true
-          type: string
-        - description: API key for the calling microservice
-          in: header
-          name: API-Key
-          required: true
-          type: string
+      - description: Name of the calling microservice
+        in: header
+        name: Caller-Service
+        required: true
+        type: string
+      - description: API key for the calling microservice
+        in: header
+        name: API-Key
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Access token generated successfully
           schema:
-            $ref: "#/definitions/models.MicroServiceLoginResponse"
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
         "400":
           description: Missing or invalid required headers
           schema:
-            $ref: "#/definitions/models.MicroServiceLoginResponse"
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
         "500":
           description: Internal server error while generating token
           schema:
-            $ref: "#/definitions/models.MicroServiceLoginResponse"
+            $ref: '#/definitions/models.MicroServiceLoginResponse'
       summary: Authenticate microservice and generate access token
       tags:
-        - Microservice
+      - Microservice
   /v1/microservice/user/authenticate/:
     get:
       consumes:
-        - application/json
-      description:
-        Validates the access token of a microservice user and returns the
+      - application/json
+      description: Validates the access token of a microservice user and returns the
         user ID
       parameters:
-        - in: header
-          name: USER_SERVICE_TOKEN
-          required: true
-          type: string
+      - in: header
+        name: USER_SERVICE_TOKEN
+        required: true
+        type: string
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
         "400":
           description: Missing or invalid required headers
           schema:
-            $ref: "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
         "401":
           description: Not Authorized
           schema:
-            $ref: "#/definitions/models.MicroServiceUserAuthenticateResponse"
+            $ref: '#/definitions/models.MicroServiceUserAuthenticateResponse'
       summary: Authorize a microservice user
       tags:
-        - Microservice Authentication
+      - Microservice Authentication
   /v1/microservice/user/login/:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Generates an access token for a valid microservice user
       parameters:
-        - description: Microservice User Login Request
-          in: body
-          name: user
-          required: true
-          schema:
-            $ref: "#/definitions/models.MicroServiceUserLoginRequest"
+      - description: Microservice User Login Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.MicroServiceUserLoginRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: "#/definitions/models.MicroServiceUserLoginResponse"
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
         "400":
           description: Invalid request payload
           schema:
-            $ref: "#/definitions/models.MicroServiceUserLoginResponse"
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/models.MicroServiceUserLoginResponse"
+            $ref: '#/definitions/models.MicroServiceUserLoginResponse'
       summary: Authenticate a microservice user
       tags:
-        - Microservice Authentication
+      - Microservice Authentication
   /v1/user/login/verify-otp/:
     post:
       consumes:
-        - application/json
-      description:
-        Verifies the OTP provided by the user and returns an access token
+      - application/json
+      description: Verifies the OTP provided by the user and returns an access token
         upon successful authentication
       parameters:
-        - description: Login Verify OTP Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.LoginVerifyOTPRequest"
+      - description: Login Verify OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginVerifyOTPRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Login authenticated successfully, access token issued
           schema:
-            $ref: "#/definitions/models.LoginVerifyOTPResponse"
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "400":
           description: Invalid request payload or login error
           schema:
-            $ref: "#/definitions/models.LoginVerifyOTPResponse"
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "401":
           description: User does not exist or login error
           schema:
-            $ref: "#/definitions/models.LoginVerifyOTPResponse"
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: "#/definitions/models.LoginVerifyOTPResponse"
+            $ref: '#/definitions/models.LoginVerifyOTPResponse'
       summary: Verify OTP during login
       tags:
-        - User
+      - User
   /v1/user/login/verify-password/:
     post:
       consumes:
-        - application/json
-      description:
-        Checks if user exists and verifies the submitted password. Sends
+      - application/json
+      description: Checks if user exists and verifies the submitted password. Sends
         an OTP if the password verification is successful
       parameters:
-        - description: Login Verify Password Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.LoginVerifyPasswordRequest"
+      - description: Login Verify Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginVerifyPasswordRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Password verified successfully, proceed to OTP verification
           schema:
-            $ref: "#/definitions/models.LoginVerifyPasswordResponse"
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
         "400":
           description: Invalid request payload
           schema:
-            $ref: "#/definitions/models.LoginVerifyPasswordResponse"
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
         "401":
           description: Login error due to invalid credentials or user not existing
           schema:
-            $ref: "#/definitions/models.LoginVerifyPasswordResponse"
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: "#/definitions/models.LoginVerifyPasswordResponse"
+            $ref: '#/definitions/models.LoginVerifyPasswordResponse'
       summary: Verify user password during login
       tags:
-        - User
+      - User
   /v1/user/reset-password/init/:
     post:
       consumes:
-        - application/json
-      description:
-        Starts the password reset process by verifying if the user exists
+      - application/json
+      description: Starts the password reset process by verifying if the user exists
         and sending a reset link to the email
       parameters:
-        - description: Reset Password Init Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.ResetPasswordInitRequest"
+      - description: Reset Password Init Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordInitRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Password reset link sent successfully
           schema:
-            $ref: "#/definitions/models.ResetPasswordInitResponse"
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
         "400":
           description: Invalid request payload
           schema:
-            $ref: "#/definitions/models.ResetPasswordInitResponse"
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
         "401":
           description: User does not exist or reset error
           schema:
-            $ref: "#/definitions/models.ResetPasswordInitResponse"
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/models.ResetPasswordInitResponse"
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
       summary: Initiate Password Reset
       tags:
-        - User
+      - User
   /v1/user/reset-password/reset/:
     post:
       consumes:
-        - application/json
-      description:
-        Completes the password reset by setting a new password for a valid
+      - application/json
+      description: Completes the password reset by setting a new password for a valid
         user after token authentication
       parameters:
-        - description: Reset Password Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.ResetPasswordRequest"
+      - description: Reset Password Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ResetPasswordRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: Password reset successful
           schema:
-            $ref: "#/definitions/models.ResetPasswordResponse"
+            $ref: '#/definitions/models.ResetPasswordResponse'
         "400":
           description: Invalid request payload
           schema:
-            $ref: "#/definitions/models.ResetPasswordResponse"
+            $ref: '#/definitions/models.ResetPasswordResponse'
         "401":
           description: User does not exist or reset error
           schema:
-            $ref: "#/definitions/models.ResetPasswordResponse"
+            $ref: '#/definitions/models.ResetPasswordResponse'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/models.ResetPasswordResponse"
+            $ref: '#/definitions/models.ResetPasswordResponse'
       summary: Complete Password Reset
       tags:
-        - User
+      - User
   /v1/user/sign-up/init/:
     post:
       consumes:
-        - application/json
-      description:
-        Initiates user sign-up by checking if the user exists and sending
+      - application/json
+      description: Initiates user sign-up by checking if the user exists and sending
         OTP for verification
       parameters:
-        - description: Sign Up Init Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.SignUpInitRequest"
+      - description: Sign Up Init Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpInitRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "200":
           description: OTP verification initiated
           schema:
-            $ref: "#/definitions/models.SignUpInitResponse"
+            $ref: '#/definitions/models.SignUpInitResponse'
         "400":
           description: User already exists or invalid payload
           schema:
-            $ref: "#/definitions/models.SignUpInitResponse"
+            $ref: '#/definitions/models.SignUpInitResponse'
         "500":
           description: Server error
           schema:
-            $ref: "#/definitions/models.SignUpInitResponse"
+            $ref: '#/definitions/models.SignUpInitResponse'
       summary: Initialize Sign Up
       tags:
-        - User
+      - User
   /v1/user/sign-up/verify-otp/:
     post:
       consumes:
-        - application/json
+      - application/json
       description: Verifies the OTP and creates the user account if valid.
       parameters:
-        - description: Verify OTP Request
-          in: body
-          name: request
-          required: true
-          schema:
-            $ref: "#/definitions/models.SignUpVerifyOTPRequest"
+      - description: Verify OTP Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpVerifyOTPRequest'
       produces:
-        - application/json
+      - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
         "400":
           description: Invalid request payload
           schema:
-            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
         "401":
           description: Wrong OTP
           schema:
-            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
         "500":
           description: Server Error
           schema:
-            $ref: "#/definitions/models.SignUpVerifyOTPResponse"
+            $ref: '#/definitions/models.SignUpVerifyOTPResponse'
       summary: Verify OTP and Sign Up User
       tags:
-        - User
+      - User
 swagger: "2.0"
