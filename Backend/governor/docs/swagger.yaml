@@ -1,73 +1,216 @@
 definitions:
-  stocks.AllTickerStockInformation:
+  models.CreateUserAlgorithmResponse:
     properties:
-      active:
-        type: boolean
-      cik:
+      status:
+        type: integer
+      statusDescription:
         type: string
-      composite_figi:
+      user_algorithm:
+        $ref: '#/definitions/models.UserAlgorithm'
+    type: object
+  models.GetAllUserAlgorithmsResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
         type: string
-      currency_name:
+      user_algorithms:
+        items:
+          $ref: '#/definitions/models.UserAlgorithmInfo'
+        type: array
+    type: object
+  models.GetUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
         type: string
-      last_updated_utc:
+      user_algorithm:
+        $ref: '#/definitions/models.UserAlgorithmInfo'
+    type: object
+  models.OrderDomain:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Backtest
+    - PaperTrading
+    - LiveTrading
+  models.UpdateUserAlgorithmCronScheduleRequest:
+    properties:
+      algorithmID:
         type: string
-      locale:
+      endCronSchedule:
         type: string
-      market:
-        type: string
-      name:
-        type: string
-      primary_exchange:
-        type: string
-      share_class_figi:
-        type: string
-      ticker:
-        type: string
-      type:
+      startCronSchedule:
         type: string
     type: object
-  stocks.AllTickersAPIResponse:
+  models.UpdateUserAlgorithmCronScheduleResponse:
     properties:
-      count:
-        type: integer
-      next_url:
-        type: string
-      request_id:
-        type: string
-      results:
-        items:
-          $ref: '#/definitions/stocks.AllTickerStockInformation'
-        type: array
       status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.UserAlgorithm:
+    properties:
+      createdAt:
+        type: string
+      endCronSchedule:
+        type: string
+      id:
+        type: string
+      orderDomain:
+        $ref: '#/definitions/models.OrderDomain'
+      scriptName:
+        type: string
+      scriptURL:
+        type: string
+      startCronSchedule:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.UserAlgorithmInfo:
+    properties:
+      created_at:
+        type: string
+      endCronSchedule:
+        type: string
+      id:
+        type: string
+      order_domain:
+        $ref: '#/definitions/models.OrderDomain'
+      scriptName:
+        type: string
+      scriptUrl:
+        type: string
+      startCronSchedule:
+        type: string
+      updated_at:
         type: string
     type: object
 info:
   contact: {}
 paths:
-  /api/marketdata/v1/stocks/polygon/all-tickers:
+  /v1/user/algorithm/:
     get:
-      consumes:
-      - application/json
-      description: Fetches all tickers with an optional limit parameter
-      parameters:
-      - description: 'Number of tickers to retrieve (default: 10)'
-        in: query
-        name: limit
-        type: integer
+      description: Retrieves the list of all algorithms associated with the authenticated
+        user.
       produces:
       - application/json
       responses:
         "200":
-          description: List of tickers
+          description: User algorithms retrieved successfully
           schema:
-            $ref: '#/definitions/stocks.AllTickersAPIResponse'
-        "400":
-          description: Error message
+            $ref: '#/definitions/models.GetAllUserAlgorithmsResponse'
+        "500":
+          description: Internal server error
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get all tickers
+            $ref: '#/definitions/models.GetAllUserAlgorithmsResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Get all user algorithms
       tags:
-      - Tickers
+      - UserAlgorithm
+  /v1/user/algorithm/{id}:
+    get:
+      description: Retrieves a specific user algorithm for the authenticated user
+        using the algorithm ID.
+      parameters:
+      - description: Algorithm ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Algorithm fetched successfully
+          schema:
+            $ref: '#/definitions/models.GetUserAlgorithmResponse'
+        "500":
+          description: Failed to fetch user algorithm
+          schema:
+            $ref: '#/definitions/models.GetUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Get user algorithm by ID
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/python/upload/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a script file and creates a new user algorithm associated
+        with the authenticated user.
+      parameters:
+      - description: Script Name
+        in: formData
+        name: script_name
+        required: true
+        type: string
+      - description: Python script file
+        in: formData
+        name: script
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Algorithm created successfully
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+        "400":
+          description: Invalid input or file upload failed
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Create a user algorithm
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/schedule/:
+    put:
+      consumes:
+      - application/json
+      description: Updates the cron schedule for an existing user algorithm belonging
+        to the authenticated user.
+      parameters:
+      - description: Cron schedule update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cron schedule updated successfully
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Update user algorithm cron schedule
+      tags:
+      - UserAlgorithm
 swagger: "2.0"

@@ -15,6 +15,7 @@ services:
     depends_on:
       - governor-postgres
       - governor-redis
+      - governor-kafka
 
   governor-postgres:
     image: postgres:17
@@ -34,5 +35,41 @@ services:
     ports:
       - "6349:6379"
 
+  governor-zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: governor-zookeeper-container
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_datalog:/var/lib/zookeeper/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  governor-kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: governor-kafka-container
+    depends_on:
+      governor-zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: governor-zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://governor-kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+
 volumes:
   governor_pgdata:
+  zookeeper_data:
+  zookeeper_datalog:

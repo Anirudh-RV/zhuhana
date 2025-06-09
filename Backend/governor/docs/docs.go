@@ -15,9 +15,101 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/marketdata/v1/stocks/polygon/all-tickers": {
+        "/v1/user/algorithm/": {
             "get": {
-                "description": "Fetches all tickers with an optional limit parameter",
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Retrieves the list of all algorithms associated with the authenticated user.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Get all user algorithms",
+                "responses": {
+                    "200": {
+                        "description": "User algorithms retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetAllUserAlgorithmsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetAllUserAlgorithmsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/algorithm/python/upload/": {
+            "post": {
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Uploads a script file and creates a new user algorithm associated with the authenticated user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Create a user algorithm",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Script Name",
+                        "name": "script_name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Python script file",
+                        "name": "script",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Algorithm created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserAlgorithmResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input or file upload failed",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserAlgorithmResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateUserAlgorithmResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/algorithm/schedule/": {
+            "put": {
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Updates the cron schedule for an existing user algorithm belonging to the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -25,31 +117,77 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Tickers"
+                    "UserAlgorithm"
                 ],
-                "summary": "Get all tickers",
+                "summary": "Update user algorithm cron schedule",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Number of tickers to retrieve (default: 10)",
-                        "name": "limit",
-                        "in": "query"
+                        "description": "Cron schedule update payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserAlgorithmCronScheduleRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of tickers",
+                        "description": "Cron schedule updated successfully",
                         "schema": {
-                            "$ref": "#/definitions/stocks.AllTickersAPIResponse"
+                            "$ref": "#/definitions/models.UpdateUserAlgorithmCronScheduleResponse"
                         }
                     },
                     "400": {
-                        "description": "Error message",
+                        "description": "Invalid request payload",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.UpdateUserAlgorithmCronScheduleResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserAlgorithmCronScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/algorithm/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Retrieves a specific user algorithm for the authenticated user using the algorithm ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Get user algorithm by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Algorithm ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Algorithm fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch user algorithm",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
                         }
                     }
                 }
@@ -57,66 +195,146 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "stocks.AllTickerStockInformation": {
+        "models.CreateUserAlgorithmResponse": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
+                "status": {
+                    "type": "integer"
                 },
-                "cik": {
+                "statusDescription": {
                     "type": "string"
                 },
-                "composite_figi": {
+                "user_algorithm": {
+                    "$ref": "#/definitions/models.UserAlgorithm"
+                }
+            }
+        },
+        "models.GetAllUserAlgorithmsResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
                     "type": "string"
                 },
-                "currency_name": {
+                "user_algorithms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.UserAlgorithmInfo"
+                    }
+                }
+            }
+        },
+        "models.GetUserAlgorithmResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
                     "type": "string"
                 },
-                "last_updated_utc": {
+                "user_algorithm": {
+                    "$ref": "#/definitions/models.UserAlgorithmInfo"
+                }
+            }
+        },
+        "models.OrderDomain": {
+            "type": "integer",
+            "enum": [
+                0,
+                1,
+                2
+            ],
+            "x-enum-varnames": [
+                "Backtest",
+                "PaperTrading",
+                "LiveTrading"
+            ]
+        },
+        "models.UpdateUserAlgorithmCronScheduleRequest": {
+            "type": "object",
+            "properties": {
+                "algorithmID": {
                     "type": "string"
                 },
-                "locale": {
+                "endCronSchedule": {
                     "type": "string"
                 },
-                "market": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "primary_exchange": {
-                    "type": "string"
-                },
-                "share_class_figi": {
-                    "type": "string"
-                },
-                "ticker": {
-                    "type": "string"
-                },
-                "type": {
+                "startCronSchedule": {
                     "type": "string"
                 }
             }
         },
-        "stocks.AllTickersAPIResponse": {
+        "models.UpdateUserAlgorithmCronScheduleResponse": {
             "type": "object",
             "properties": {
-                "count": {
+                "status": {
                     "type": "integer"
                 },
-                "next_url": {
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserAlgorithm": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
                     "type": "string"
                 },
-                "request_id": {
+                "endCronSchedule": {
                     "type": "string"
                 },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/stocks.AllTickerStockInformation"
-                    }
+                "id": {
+                    "type": "string"
                 },
-                "status": {
+                "orderDomain": {
+                    "$ref": "#/definitions/models.OrderDomain"
+                },
+                "scriptName": {
+                    "type": "string"
+                },
+                "scriptURL": {
+                    "type": "string"
+                },
+                "startCronSchedule": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UserAlgorithmInfo": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "endCronSchedule": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "order_domain": {
+                    "$ref": "#/definitions/models.OrderDomain"
+                },
+                "scriptName": {
+                    "type": "string"
+                },
+                "scriptUrl": {
+                    "type": "string"
+                },
+                "startCronSchedule": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
