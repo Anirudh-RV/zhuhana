@@ -28,3 +28,7 @@ func GetKafkaTimeoutFromEnv() time.Duration {
 	KAFKA_TIMEOUT, _ := strconv.Atoi(os.Getenv("KAFKA_TIMEOUT"))
 	return time.Duration(KAFKA_TIMEOUT) * time.Second
 }
+
+func InitLogger(logger *logger.Logger) {
+	Logger = logger
+}

@@ -27,11 +27,8 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("redis connection successful", zap.String("Execution Level", "Root"))
 
-	kafka.InitConsumer()
-	go log.Info("kafka consumer initialization successful", zap.String("Execution Level", "Root"))
-
-	kafka.InitPublisher(log)
-	go log.Info("kafka publisher initialization successful ", zap.String("Execution Level", "Root"))
+	kafka.Init(log)
+	go log.Info("kafka initialization successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))

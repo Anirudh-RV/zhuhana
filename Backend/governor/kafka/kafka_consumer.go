@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"governor/logger"
 	"log"
 	"os"
 
 	"github.com/twmb/franz-go/pkg/kgo"
+	"go.uber.org/zap"
 )
 
 var cancelConsumer context.CancelFunc
@@ -19,7 +21,7 @@ func InitConsumer() {
 
 	// Start Kafka consumer in background goroutine
 	StartConsumer(brokers, groupID, topic, func(job JobPayload) error {
-		log.Printf("Received job %s", job.JobID)
+		KafkaConsumer(job)
 		return nil
 	})
 }
@@ -30,7 +32,7 @@ func StartConsumer(brokers []string, groupID, topic string, handler func(JobPayl
 	cancelConsumer = cancel
 
 	go func() {
-		if err := consumeCronJobs(ctx, brokers, groupID, topic, handler); err != nil {
+		if err := consumeJobs(ctx, brokers, groupID, topic, handler, Logger); err != nil {
 			log.Printf("Kafka consumer exited with error: %v", err)
 		}
 	}()
@@ -43,12 +45,13 @@ func StopConsumer() {
 	}
 }
 
-func consumeCronJobs(
+func consumeJobs(
 	ctx context.Context,
 	brokers []string,
 	groupID string,
 	topic string,
 	handler func(JobPayload) error,
+	logger *logger.Logger,
 ) error {
 	client, err := kgo.NewClient(
 		kgo.SeedBrokers(brokers...),
@@ -57,45 +60,66 @@ func consumeCronJobs(
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create kafka consumer client: %w", err)
+		logger.Error("failed to create Kafka consumer client",
+			zap.Error(err),
+			zap.String("ExecutionLevel", "KafkaInit"),
+		)
+		return fmt.Errorf("create kafka consumer: %w", err)
 	}
 	defer client.Close()
 
-	log.Println("[KafkaConsumer] Consumer started...")
+	logger.Info("Kafka consumer started",
+		zap.String("ExecutionLevel", "KafkaConsumer"),
+	)
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Println("[KafkaConsumer] Context cancelled, shutting down consumer.")
+			logger.Info("Kafka consumer context cancelled, shutting down",
+				zap.String("ExecutionLevel", "KafkaConsumerShutdown"),
+			)
 			return nil
+
 		default:
 			fetches := client.PollFetches(ctx)
 			if fetches.IsClientClosed() {
-				return nil // clean shutdown
+				return nil
 			}
 
 			fetches.EachPartition(func(p kgo.FetchTopicPartition) {
 				for _, record := range p.Records {
 					var job JobPayload
 					if err := json.Unmarshal(record.Value, &job); err != nil {
-						log.Printf("[KafkaConsumer] Failed to unmarshal: %v", err)
+						logger.Warning("failed to unmarshal Kafka job payload",
+							zap.ByteString("rawValue", record.Value),
+							zap.Error(err),
+							zap.String("ExecutionLevel", "KafkaUnmarshal"),
+						)
 						continue
 					}
-					log.Printf("[KafkaConsumer] Received job: %+v", job)
 
-					// Call your handler
+					logger.Info("Kafka job received",
+						zap.Any("job", job),
+						zap.String("ExecutionLevel", "KafkaJobReceived"),
+					)
+
 					if err := handler(job); err != nil {
-						log.Printf("[KafkaConsumer] Job handler error: %v", err)
+						logger.Error("error in job handler",
+							zap.Any("job", job),
+							zap.Error(err),
+							zap.String("ExecutionLevel", "KafkaJobHandler"),
+						)
 					}
 				}
 			})
 
-			// Commit offsets after processing
 			if err := client.CommitMarkedOffsets(ctx); err != nil {
-				log.Printf("[KafkaConsumer] CommitMarkedOffsets error: %v", err)
+				logger.Warning("failed to commit Kafka offsets",
+					zap.Error(err),
+					zap.String("ExecutionLevel", "KafkaOffsetCommit"),
+				)
 			}
 
-			// Allow rebalances (optional)
 			client.AllowRebalance()
 		}
 	}
