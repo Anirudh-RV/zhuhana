@@ -8,6 +8,7 @@ import (
 	"governor/logger"
 	"governor/middleware"
 	"governor/routes"
+	"governor/scheduler"
 
 	constants "governor/constants"
 
@@ -29,6 +30,9 @@ func main() {
 
 	kafka.Init(log)
 	go log.Info("kafka initialization successful", zap.String("Execution Level", "Root"))
+
+	scheduler.Init(cache.RedisLockObj, log, db.DB)
+	go log.Info("scheduler initialization successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))

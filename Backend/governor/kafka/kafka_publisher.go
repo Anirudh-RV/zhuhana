@@ -34,7 +34,7 @@ func InitPublisher() {
 
 // Publishes a job to a Kafka topic
 func PublishJob(jobID string, payload interface{}) error {
-	go Logger.Info(fmt.Sprintf("Publishing CRON job: %s", jobID), zap.String("execution level", "GetAllUserAlgorithms"))
+	go Logger.Info(fmt.Sprintf("publishing cron job: %s", jobID), zap.String("execution level", "GetAllUserAlgorithms"))
 	job := JobPayload{
 		JobID:   jobID,
 		Target:  os.Getenv("ORIGIN_SERVICE"),

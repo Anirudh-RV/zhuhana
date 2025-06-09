@@ -34,7 +34,7 @@ func (uac *UserAlgorithmController) UpdateUserAlgorithmCronSchedule(c *gin.Conte
 		return
 	}
 
-	err := uac.userAlgorithmService.UpdateAlgorithmSchedule(fmt.Sprint(userID), updateUserAlgorithmCronScheduleRequest.AlgorithmID, updateUserAlgorithmCronScheduleRequest.CronSchedule)
+	err := uac.userAlgorithmService.UpdateAlgorithmSchedule(fmt.Sprint(userID), updateUserAlgorithmCronScheduleRequest.AlgorithmID, updateUserAlgorithmCronScheduleRequest.StartCronSchedule, updateUserAlgorithmCronScheduleRequest.EndCronSchedule)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.UpdateUserAlgorithmCronScheduleResponse{
 			Status:            0,

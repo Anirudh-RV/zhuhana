@@ -1,8 +1,9 @@
 package models
 
 type UpdateUserAlgorithmCronScheduleRequest struct {
-	AlgorithmID  string `json:"algorithmID"`
-	CronSchedule string `json:"cronSchedule"`
+	AlgorithmID       string `json:"algorithmID"`
+	StartCronSchedule string `json:"startCronSchedule"`
+	EndCronSchedule   string `json:"endCronSchedule"`
 }
 
 type UpdateUserAlgorithmCronScheduleResponse struct {

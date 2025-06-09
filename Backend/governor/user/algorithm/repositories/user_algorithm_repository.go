@@ -37,15 +37,15 @@ func (uar *UserAlgorithmRepository) CreateUserAlgorithm(userID, scriptName strin
 	return &userAlgorithm, nil
 }
 
-func (uar *UserAlgorithmRepository) UpdateScriptURL(scriptID, scriptURL string) error {
+func (uar *UserAlgorithmRepository) UpdateScriptURL(userAlgorithmID, scriptURL string) error {
 	query := `UPDATE "user_algorithm" SET script_url = $1, updated_at = NOW() WHERE id = $2`
-	_, err := uar.db.Exec(query, scriptURL, scriptID)
+	_, err := uar.db.Exec(query, scriptURL, userAlgorithmID)
 	return err
 }
 
-func (uar *UserAlgorithmRepository) UpdateCronSchedule(userID, scriptID, cronSchedule string) error {
-	query := `UPDATE "user_algorithm" SET cron_schedule = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`
-	res, err := uar.db.Exec(query, cronSchedule, scriptID, userID)
+func (uar *UserAlgorithmRepository) UpdateCronSchedule(userID, userAlgorithmID, startCronSchedule, endCronSchedule string) error {
+	query := `UPDATE "user_algorithm" SET start_cron_schedule = $1, end_cron_schedule = $2, updated_at = NOW() WHERE id = $3 AND user_id = $4`
+	res, err := uar.db.Exec(query, startCronSchedule, endCronSchedule, userAlgorithmID, userID)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (uar *UserAlgorithmRepository) UpdateCronSchedule(userID, scriptID, cronSch
 
 func (uar *UserAlgorithmRepository) GetAllUserAlgorithmByUserID(userID string) ([]models.UserAlgorithmInfo, error) {
 	query := `
-		SELECT id, script_name, cron_schedule, script_url, created_at, updated_at
+		SELECT id, script_name, start_cron_schedule, end_cron_schedule, script_url, created_at, updated_at
 		FROM "user_algorithm"
 		WHERE user_id = $1
 	`
@@ -77,14 +77,16 @@ func (uar *UserAlgorithmRepository) GetAllUserAlgorithmByUserID(userID string) (
 
 	var scripts []models.UserAlgorithmInfo
 	for rows.Next() {
-		var cron sql.NullString
+		var startCron sql.NullString
+		var endCron sql.NullString
 		var url sql.NullString
 		var script models.UserAlgorithmInfo
 
 		if err := rows.Scan(
-			&script.ScriptID,
+			&script.ID,
 			&script.ScriptName,
-			&cron,
+			&startCron,
+			&endCron,
 			&url,
 			&script.CreatedAt,
 			&script.UpdatedAt,
@@ -92,10 +94,16 @@ func (uar *UserAlgorithmRepository) GetAllUserAlgorithmByUserID(userID string) (
 			return nil, err
 		}
 
-		if cron.Valid {
-			script.CronSchedule = &cron.String
+		if startCron.Valid {
+			script.StartCronSchedule = &startCron.String
 		} else {
-			script.CronSchedule = nil
+			script.StartCronSchedule = nil
+		}
+
+		if endCron.Valid {
+			script.EndCronSchedule = &endCron.String
+		} else {
+			script.EndCronSchedule = nil
 		}
 
 		if url.Valid {
@@ -116,19 +124,21 @@ func (uar *UserAlgorithmRepository) GetAllUserAlgorithmByUserID(userID string) (
 
 func (uar *UserAlgorithmRepository) GetUserAlgorithmByUserID(userID, algorithmID string) (*models.UserAlgorithmInfo, error) {
 	query := `
-		SELECT id, script_name, cron_schedule, script_url, created_at, updated_at
+		SELECT id, script_name, start_cron_schedule, end_cron_schedule, script_url, created_at, updated_at
 		FROM "user_algorithm"
 		WHERE user_id = $1 AND id = $2
 	`
 
 	var userAlgorithm models.UserAlgorithmInfo
-	var cron sql.NullString
+	var startCron sql.NullString
+	var endCron sql.NullString
 	var url sql.NullString
 
 	err := uar.db.QueryRow(query, userID, algorithmID).Scan(
-		&userAlgorithm.ScriptID,
+		&userAlgorithm.ID,
 		&userAlgorithm.ScriptName,
-		&cron,
+		&startCron,
+		&endCron,
 		&url,
 		&userAlgorithm.CreatedAt,
 		&userAlgorithm.UpdatedAt,
@@ -140,12 +150,17 @@ func (uar *UserAlgorithmRepository) GetUserAlgorithmByUserID(userID, algorithmID
 		return nil, err
 	}
 
-	if cron.Valid {
-		userAlgorithm.CronSchedule = &cron.String
+	if startCron.Valid {
+		userAlgorithm.StartCronSchedule = &startCron.String
 	} else {
-		userAlgorithm.CronSchedule = nil
+		userAlgorithm.StartCronSchedule = nil
 	}
 
+	if endCron.Valid {
+		userAlgorithm.EndCronSchedule = &endCron.String
+	} else {
+		userAlgorithm.EndCronSchedule = nil
+	}
 	if url.Valid {
 		userAlgorithm.ScriptURL = &url.String
 	} else {

@@ -28,29 +28,27 @@ func (o OrderDomain) String() string {
 	}
 }
 
-func (o OrderDomain) Int() string {
-	return o.Int()
-}
-
 type UserAlgorithm struct {
-	ID           uuid.UUID   `db:"id"`
-	UserID       uuid.UUID   `db:"user_id"`
-	ScriptName   string      `db:"script_name"`
-	ScriptURL    string      `db:"script_url"`
-	CronSchedule string      `db:"cron_schedule"`
-	OrderDomain  OrderDomain `db:"order_domain"`
-	CreatedAt    time.Time   `db:"created_at"`
-	UpdatedAt    time.Time   `db:"updated_at"`
+	ID                uuid.UUID   `db:"id"`
+	UserID            uuid.UUID   `db:"user_id"`
+	ScriptName        string      `db:"script_name"`
+	ScriptURL         string      `db:"script_url"`
+	StartCronSchedule string      `db:"start_cron_schedule"`
+	EndCronSchedule   string      `db:"end_cron_schedule"`
+	OrderDomain       OrderDomain `db:"order_domain"`
+	CreatedAt         time.Time   `db:"created_at"`
+	UpdatedAt         time.Time   `db:"updated_at"`
 }
 
 type UserAlgorithmInfo struct {
-	ScriptID     uuid.UUID   `json:"scriptID"`
-	ScriptName   string      `json:"scriptName"`
-	ScriptURL    *string     `json:"script_url,omitempty"`
-	CronSchedule *string     `json:"cronSchedule,omitempty"`
-	OrderDomain  OrderDomain `json:"order_domain"`
-	CreatedAt    time.Time   `json:"created_at"`
-	UpdatedAt    time.Time   `json:"updated_at"`
+	ID                uuid.UUID   `json:"id"`
+	ScriptName        string      `json:"scriptName"`
+	ScriptURL         *string     `json:"scriptUrl,omitempty"`
+	StartCronSchedule *string     `json:"startCronSchedule,omitempty"`
+	EndCronSchedule   *string     `json:"endCronSchedule,omitempty"`
+	OrderDomain       OrderDomain `json:"order_domain"`
+	CreatedAt         time.Time   `json:"created_at"`
+	UpdatedAt         time.Time   `json:"updated_at"`
 }
 
 func (o OrderDomain) MarshalJSON() ([]byte, error) {

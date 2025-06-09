@@ -43,7 +43,7 @@ func (uas *UserAlgorithmService) GetAllUserAlgorithms(userID string) ([]models.U
 
 	for _, userAlgorithm := range userAlgorithms {
 		if userAlgorithm.ScriptURL != nil {
-			presignedURL, err := commonutils.GetPresignedURL(userID, fmt.Sprint(userAlgorithm.ScriptID))
+			presignedURL, err := commonutils.GetPresignedURL(userID, fmt.Sprint(userAlgorithm.ID))
 			if err != nil {
 				go uas.logger.Error("error getting presigned url for script", zap.String("execution level", "GetAllUserAlgorithms"), zap.String("Error", err.Error()))
 				return nil, err
@@ -63,7 +63,7 @@ func (uas *UserAlgorithmService) GetUserAlgorithm(userID, algorithmID string) (*
 	}
 
 	if userAlgorithm.ScriptURL != nil {
-		presignedURL, err := commonutils.GetPresignedURL(userID, fmt.Sprint(userAlgorithm.ScriptID))
+		presignedURL, err := commonutils.GetPresignedURL(userID, fmt.Sprint(userAlgorithm.ID))
 		if err != nil {
 			go uas.logger.Error("error getting presigned url for script", zap.String("execution level", "GetUserAlgorithm"), zap.String("Error", err.Error()))
 			return nil, err
