@@ -32,9 +32,9 @@ type UserAlgorithm struct {
 	ID                uuid.UUID   `db:"id"`
 	UserID            uuid.UUID   `db:"user_id"`
 	ScriptName        string      `db:"script_name"`
-	ScriptURL         string      `db:"script_url"`
-	StartCronSchedule string      `db:"start_cron_schedule"`
-	EndCronSchedule   string      `db:"end_cron_schedule"`
+	ScriptURL         *string     `db:"script_url"`
+	StartCronSchedule *string     `db:"start_cron_schedule"`
+	EndCronSchedule   *string     `db:"end_cron_schedule"`
 	OrderDomain       OrderDomain `db:"order_domain"`
 	CreatedAt         time.Time   `db:"created_at"`
 	UpdatedAt         time.Time   `db:"updated_at"`

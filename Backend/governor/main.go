@@ -5,6 +5,7 @@ import (
 	"governor/cache"
 	"governor/db"
 	"governor/kafka"
+	"governor/kubernetescontroller"
 	"governor/logger"
 	"governor/middleware"
 	"governor/routes"
@@ -28,10 +29,15 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("redis connection successful", zap.String("Execution Level", "Root"))
 
-	kafka.Init(log)
+	kubernetesService := kubernetescontroller.NewKubernetesService(log, db.DB)
+	go log.Info("scheduler initialization successful", zap.String("Execution Level", "Root"))
+
+	kafkaService := kafka.NewKafkaService(log, kubernetesService)
+	kafkaService.Init(log)
 	go log.Info("kafka initialization successful", zap.String("Execution Level", "Root"))
 
-	scheduler.Init(cache.RedisLockObj, log, db.DB)
+	schedulerService := scheduler.NewSchedulerService(cache.RedisLockObj, log, db.DB, kafkaService)
+	schedulerService.LoadCronJob()
 	go log.Info("scheduler initialization successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()
@@ -53,7 +59,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

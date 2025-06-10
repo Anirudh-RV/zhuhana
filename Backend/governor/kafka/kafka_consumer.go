@@ -14,43 +14,43 @@ import (
 
 var cancelConsumer context.CancelFunc
 
-func InitConsumer() {
-	brokers := GetKafkaBrokersFromEnv()
+func (kfs *KafkaService) InitConsumer() {
+	brokers := kfs.GetKafkaBrokersFromEnv()
 	groupID := os.Getenv("KAFKA_GROUP_ID")
-	topic := GetKafkaTopicFromEnv()
+	topic := kfs.GetKafkaTopicFromEnv()
 
 	// Start Kafka consumer in background goroutine
-	StartConsumer(brokers, groupID, topic, func(job JobPayload) error {
-		KafkaConsumer(job)
+	kfs.StartConsumer(brokers, groupID, topic, func(event EventPayload) error {
+		kfs.KafkaConsumer(event)
 		return nil
 	})
 }
 
 // Starts the Kafka consumer in a background goroutine
-func StartConsumer(brokers []string, groupID, topic string, handler func(JobPayload) error) {
+func (kfs *KafkaService) StartConsumer(brokers []string, groupID, topic string, handler func(EventPayload) error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancelConsumer = cancel
 
 	go func() {
-		if err := consumeJobs(ctx, brokers, groupID, topic, handler, Logger); err != nil {
+		if err := kfs.consumeJobs(ctx, brokers, groupID, topic, handler, kfs.logger); err != nil {
 			log.Printf("Kafka consumer exited with error: %v", err)
 		}
 	}()
 }
 
 // Stops the Kafka consumer by cancelling its context
-func StopConsumer() {
+func (kfs *KafkaService) StopConsumer() {
 	if cancelConsumer != nil {
 		cancelConsumer()
 	}
 }
 
-func consumeJobs(
+func (kfs *KafkaService) consumeJobs(
 	ctx context.Context,
 	brokers []string,
 	groupID string,
 	topic string,
-	handler func(JobPayload) error,
+	handler func(EventPayload) error,
 	logger *logger.Logger,
 ) error {
 	client, err := kgo.NewClient(
@@ -88,8 +88,8 @@ func consumeJobs(
 
 			fetches.EachPartition(func(p kgo.FetchTopicPartition) {
 				for _, record := range p.Records {
-					var job JobPayload
-					if err := json.Unmarshal(record.Value, &job); err != nil {
+					var event EventPayload
+					if err := json.Unmarshal(record.Value, &event); err != nil {
 						logger.Warning("failed to unmarshal Kafka job payload",
 							zap.ByteString("rawValue", record.Value),
 							zap.Error(err),
@@ -99,13 +99,13 @@ func consumeJobs(
 					}
 
 					logger.Info("Kafka job received",
-						zap.Any("job", job),
+						zap.Any("job", event),
 						zap.String("ExecutionLevel", "KafkaJobReceived"),
 					)
 
-					if err := handler(job); err != nil {
+					if err := handler(event); err != nil {
 						logger.Error("error in job handler",
-							zap.Any("job", job),
+							zap.Any("job", event),
 							zap.Error(err),
 							zap.String("ExecutionLevel", "KafkaJobHandler"),
 						)

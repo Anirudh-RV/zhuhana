@@ -3,15 +3,14 @@ package scheduler
 import (
 	"context"
 	"fmt"
-	"governor/kafka"
 	"time"
 )
 
-func KafkaJobWrapper(job CronJob) func() {
+func (scs *SchedulerService) KafkaJobWrapper(job CronJob) func() {
 	return func() {
 		ctx := context.Background()
 		lockKey := fmt.Sprintf("cron-lock:%s", job.ID)
-		lock, err := TryLock(ctx, lockKey, time.Minute)
+		lock, err := scs.TryLock(ctx, lockKey, time.Minute)
 		if err != nil {
 			fmt.Println("another node is handling this job:", job.UserAlgorithmID)
 			return
@@ -19,7 +18,7 @@ func KafkaJobWrapper(job CronJob) func() {
 		defer lock.Release(ctx)
 
 		// 🔁 Replace this with your Kafka logic
-		fmt.Printf("Publishing to Kafka topic: %s from job: %s\n", job.KafkaTopic, job.UserAlgorithmID)
-		kafka.PublishJob(job.UserAlgorithmID.String(), job)
+		fmt.Printf("Publishing to Kafka topic: %s from job: %+v\n", job.KafkaTopic, job)
+		scs.kafkaService.PublishJob(job.UserAlgorithmID.String(), CRON_JOB_EVENT_TYPE, job)
 	}
 }

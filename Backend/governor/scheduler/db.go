@@ -6,14 +6,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetAllActiveJobs() ([]CronJob, error) {
+func (scs *SchedulerService) GetAllActiveJobs() ([]CronJob, error) {
 	query := `
 		SELECT id, user_algorithm_id, schedule, job_type, kafka_topic, is_active, created_at, updated_at
 		FROM cron_job
 		WHERE is_active = true
 	`
 
-	rows, err := DB.Query(query)
+	rows, err := scs.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -44,14 +44,14 @@ func GetAllActiveJobs() ([]CronJob, error) {
 	return jobs, nil
 }
 
-func GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) ([]int64, error) {
+func (scs *SchedulerService) GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) ([]int64, error) {
 	query := `
 		SELECT cron_entry_id
 		FROM cron_job
 		WHERE is_active = true AND user_algorithm_id = $1 AND job_type = $2
 	`
 
-	rows, err := DB.Query(query, userAlgorithmID, jobType)
+	rows, err := scs.db.Query(query, userAlgorithmID, jobType)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType st
 	return cronEntries, nil
 }
 
-func InsertJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) (uuid.UUID, error) {
+func (scs *SchedulerService) InsertJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) (uuid.UUID, error) {
 	query := `
 		INSERT INTO cron_job (user_algorithm_id, schedule, job_type, kafka_topic)
 		VALUES ($1, $2, $3, $4)
@@ -83,64 +83,64 @@ func InsertJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) 
 	`
 
 	var id uuid.UUID
-	err := DB.QueryRow(query, userAlgorithmID, schedule, jobType, kafkaTopic).Scan(&id)
+	err := scs.db.QueryRow(query, userAlgorithmID, schedule, jobType, kafkaTopic).Scan(&id)
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("insert failed: %w", err)
 	}
 	return id, nil
 }
 
-func DeactivateUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
+func (scs *SchedulerService) DeactivateUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
 	query := `
 		UPDATE cron_job
 		SET is_active = false
 		WHERE user_algorithm_id = $1 AND job_type = $2
 	`
 
-	_, err := DB.Exec(query, userAlgorithmID, jobType)
+	_, err := scs.db.Exec(query, userAlgorithmID, jobType)
 	return err
 }
 
-func DeactivateJob(id uuid.UUID) error {
+func (scs *SchedulerService) DeactivateJob(id uuid.UUID) error {
 	query := `
 		UPDATE cron_job
 		SET is_active = false
 		WHERE id = $1
 	`
 
-	_, err := DB.Exec(query, id)
+	_, err := scs.db.Exec(query, id)
 	return err
 }
 
-func UpdateCronEntryID(jobID uuid.UUID, entryID int64) error {
+func (scs *SchedulerService) UpdateCronEntryID(jobID uuid.UUID, entryID int64) error {
 	query := `
 		UPDATE cron_job
 		SET cron_entry_id = $1
 		WHERE id = $2
 	`
-	_, err := DB.Exec(query, entryID, jobID)
+	_, err := scs.db.Exec(query, entryID, jobID)
 	return err
 }
 
-func DeactivateUserAlgorithm(userAlgorithmID uuid.UUID) error {
+func (scs *SchedulerService) DeactivateUserAlgorithm(userAlgorithmID uuid.UUID) error {
 	query := `
 		UPDATE cron_job
 		SET is_active = false
 		WHERE user_algorithm_id = $1
 	`
 
-	_, err := DB.Exec(query, userAlgorithmID)
+	_, err := scs.db.Exec(query, userAlgorithmID)
 	return err
 }
 
-func GetAllJobsForUserAlgorithm(userAlgorithmID uuid.UUID) ([]int64, error) {
+func (scs *SchedulerService) GetAllJobsForUserAlgorithm(userAlgorithmID uuid.UUID) ([]int64, error) {
 	query := `
 		SELECT cron_entry_id
 		FROM cron_job
 		WHERE is_active = true AND user_algorithm_id = $1
 	`
 
-	rows, err := DB.Query(query, userAlgorithmID)
+	rows, err := scs.db.Query(query, userAlgorithmID)
 	if err != nil {
 		return nil, err
 	}

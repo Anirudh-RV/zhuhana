@@ -8,16 +8,16 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-func LoadCronJob() {
-	jobs, err := GetAllActiveJobs()
+func (scs *SchedulerService) LoadCronJob() {
+	jobs, err := scs.GetAllActiveJobs()
 	if err != nil {
 		log.Fatalln("Failed to load jobs:", err)
 	}
 
 	// Step 3: Setup Cron Scheduler
 	for _, job := range jobs {
-		entryID, err := CronScheduler.AddFunc(job.Schedule, KafkaJobWrapper(job))
-		if err := UpdateCronEntryID(job.ID, int64(entryID)); err != nil {
+		entryID, err := scs.cronScheduler.AddFunc(job.Schedule, scs.KafkaJobWrapper(job))
+		if err := scs.UpdateCronEntryID(job.ID, int64(entryID)); err != nil {
 			log.Printf("Failed to schedule job %s: %v", job.UserAlgorithmID, err)
 		}
 		if err != nil {
@@ -28,17 +28,17 @@ func LoadCronJob() {
 	}
 }
 
-func ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) error {
+func (scs *SchedulerService) ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) error {
 	// 1. Insert into DB
-	if err := CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
+	if err := scs.CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
 		return fmt.Errorf("failed to deactivate other user algorithms: %w", err)
 	}
 
-	if err := DeactivateUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
+	if err := scs.DeactivateUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
 		return fmt.Errorf("failed to deactivate other user algorithms: %w", err)
 	}
 
-	jobID, err := InsertJob(userAlgorithmID, schedule, jobType, kafkaTopic)
+	jobID, err := scs.InsertJob(userAlgorithmID, schedule, jobType, kafkaTopic)
 	if err != nil {
 		return fmt.Errorf("failed to insert cron job: %w", err)
 	}
@@ -53,13 +53,13 @@ func ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic st
 	}
 
 	// 2. Add to scheduler with Redis lock
-	cronEntryID, err := CronScheduler.AddFunc(job.Schedule, KafkaJobWrapper(job))
+	cronEntryID, err := scs.cronScheduler.AddFunc(job.Schedule, scs.KafkaJobWrapper(job))
 	if err != nil {
 		return fmt.Errorf("failed to add job to scheduler: %w", err)
 	}
 	job.CronEntryID = int64(cronEntryID)
 
-	if err := UpdateCronEntryID(jobID, int64(cronEntryID)); err != nil {
+	if err := scs.UpdateCronEntryID(jobID, int64(cronEntryID)); err != nil {
 		return fmt.Errorf("failed to update cron entry ID: %w", err)
 	}
 
@@ -68,32 +68,32 @@ func ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic st
 	return nil
 }
 
-func CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
-	cronEntries, err := GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID, jobType)
+func (scs *SchedulerService) CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
+	cronEntries, err := scs.GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID, jobType)
 	if err != nil {
 		return err
 	}
 	for _, cronEntryID := range cronEntries {
-		CancelCronJobWithID(cronEntryID)
+		scs.CancelCronJobWithID(cronEntryID)
 	}
 
 	return nil
 }
 
-func CancelCronJobWithID(entryID int64) {
-	CronScheduler.Remove(cron.EntryID(entryID))
+func (scs *SchedulerService) CancelCronJobWithID(entryID int64) {
+	scs.cronScheduler.Remove(cron.EntryID(entryID))
 	log.Printf("❌ Cron job with EntryID %d has been cancelled", entryID)
 }
 
-func CancelCronJobForUserAlgorithm(userAlgorithmID uuid.UUID) error {
-	cronEntries, err := GetAllJobsForUserAlgorithm(userAlgorithmID)
+func (scs *SchedulerService) CancelCronJobForUserAlgorithm(userAlgorithmID uuid.UUID) error {
+	cronEntries, err := scs.GetAllJobsForUserAlgorithm(userAlgorithmID)
 	if err != nil {
 		return err
 	}
 	for _, cronEntryID := range cronEntries {
-		CancelCronJobWithID(cronEntryID)
+		scs.CancelCronJobWithID(cronEntryID)
 	}
 
-	DeactivateUserAlgorithm(userAlgorithmID)
+	scs.DeactivateUserAlgorithm(userAlgorithmID)
 	return nil
 }

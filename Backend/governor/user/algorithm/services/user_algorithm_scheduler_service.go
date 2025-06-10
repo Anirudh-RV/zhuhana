@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"governor/kafka"
 	"governor/scheduler"
 
 	"github.com/google/uuid"
@@ -33,8 +32,8 @@ func (uas *UserAlgorithmService) UpdateAlgorithmSchedule(userID, userAlgorithmID
 	}
 
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
-	scheduler.ScheduleCronJob(userAlgorithmUUID, startCronSchedule, scheduler.START_USER_ALGORITHM_JOB, kafka.GetKafkaTopicFromEnv())
-	scheduler.ScheduleCronJob(userAlgorithmUUID, endCronSchedule, scheduler.END_USER_ALGORITHM_JOB, kafka.GetKafkaTopicFromEnv())
+	uas.schedulerService.ScheduleCronJob(userAlgorithmUUID, startCronSchedule, scheduler.START_USER_ALGORITHM_JOB, uas.kafkaService.GetKafkaTopicFromEnv())
+	uas.schedulerService.ScheduleCronJob(userAlgorithmUUID, endCronSchedule, scheduler.END_USER_ALGORITHM_JOB, uas.kafkaService.GetKafkaTopicFromEnv())
 
 	return nil
 }
@@ -49,6 +48,6 @@ func (uas *UserAlgorithmService) CancelAlgorithmSchedule(userID, userAlgorithmID
 		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "CancelAlgorithmSchedule"))
 	}
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
-	scheduler.CancelCronJobForUserAlgorithm(userAlgorithmUUID)
+	uas.schedulerService.CancelCronJobForUserAlgorithm(userAlgorithmUUID)
 	return nil
 }

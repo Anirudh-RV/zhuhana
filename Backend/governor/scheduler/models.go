@@ -8,6 +8,7 @@ import (
 
 var START_USER_ALGORITHM_JOB = "start-user-algorithm-job"
 var END_USER_ALGORITHM_JOB = "end-user-algorithm-job"
+var CRON_JOB_EVENT_TYPE = "cron-job"
 
 type CronJob struct {
 	ID              uuid.UUID `db:"id"`

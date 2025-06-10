@@ -8,8 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func CreateKafkaTopic(topic string, partitions int32, replicationFactor int16) error {
-	ctx, cancel := context.WithTimeout(context.Background(), GetKafkaTimeoutFromEnv())
+func (kfs *KafkaService) CreateKafkaTopic(topic string, partitions int32, replicationFactor int16) error {
+	ctx, cancel := context.WithTimeout(context.Background(), kfs.GetKafkaTimeoutFromEnv())
 	defer cancel()
 
 	adminClient := kadm.NewClient(kafkaClient)
@@ -26,7 +26,7 @@ func CreateKafkaTopic(topic string, partitions int32, replicationFactor int16) e
 	for _, res := range responses {
 		if res.Err != nil {
 			if res.Err.Error() == "TOPIC_ALREADY_EXISTS: Topic with this name already exists." {
-				go Logger.Info("topic already exists", zap.String("execution level", "CreateKafkaTopic"))
+				go kfs.logger.Info("topic already exists", zap.String("execution level", "CreateKafkaTopic"))
 				return nil // Already exists; not an error
 			}
 			return fmt.Errorf("failed to create topic %s: %w | Error: %s", res.Topic, res.Err, res.Err.Error())
