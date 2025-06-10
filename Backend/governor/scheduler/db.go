@@ -44,6 +44,37 @@ func GetAllActiveJobs() ([]CronJob, error) {
 	return jobs, nil
 }
 
+func GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) ([]int64, error) {
+	query := `
+		SELECT cron_entry_id
+		FROM cron_job
+		WHERE is_active = true AND user_algorithm_id = $1 AND job_type = $2
+	`
+
+	rows, err := DB.Query(query, userAlgorithmID, jobType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cronEntries []int64
+	for rows.Next() {
+		var cronEntryID int64
+		if err := rows.Scan(
+			&cronEntryID,
+		); err != nil {
+			return nil, err
+		}
+		cronEntries = append(cronEntries, cronEntryID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cronEntries, nil
+}
+
 func InsertJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) (uuid.UUID, error) {
 	query := `
 		INSERT INTO cron_job (user_algorithm_id, schedule, job_type, kafka_topic)
@@ -57,6 +88,17 @@ func InsertJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) 
 		return uuid.Nil, fmt.Errorf("insert failed: %w", err)
 	}
 	return id, nil
+}
+
+func DeactivateUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
+	query := `
+		UPDATE cron_job
+		SET is_active = false
+		WHERE user_algorithm_id = $1 AND job_type = $2
+	`
+
+	_, err := DB.Exec(query, userAlgorithmID, jobType)
+	return err
 }
 
 func DeactivateJob(id uuid.UUID) error {

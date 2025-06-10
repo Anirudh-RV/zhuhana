@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+	"github.com/robfig/cron/v3"
 )
 
 func LoadCronJob() {
@@ -29,6 +30,14 @@ func LoadCronJob() {
 
 func ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic string) error {
 	// 1. Insert into DB
+	if err := CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
+		return fmt.Errorf("failed to deactivate other user algorithms: %w", err)
+	}
+
+	if err := DeactivateUserAlgorithmWithJobType(userAlgorithmID, jobType); err != nil {
+		return fmt.Errorf("failed to deactivate other user algorithms: %w", err)
+	}
+
 	jobID, err := InsertJob(userAlgorithmID, schedule, jobType, kafkaTopic)
 	if err != nil {
 		return fmt.Errorf("failed to insert cron job: %w", err)
@@ -57,4 +66,21 @@ func ScheduleCronJob(userAlgorithmID uuid.UUID, schedule, jobType, kafkaTopic st
 	// 3. Publish the Kafka Job
 	log.Printf("✅ Scheduled and inserted job '%s' (%s)", userAlgorithmID, jobID)
 	return nil
+}
+
+func CancelCronJobForUserAlgorithmWithJobType(userAlgorithmID uuid.UUID, jobType string) error {
+	cronEntries, err := GetAllJobsForUserAlgorithmWithJobType(userAlgorithmID, jobType)
+	if err != nil {
+		return err
+	}
+	for _, cronEntryID := range cronEntries {
+		CancelCronJobWithID(cronEntryID)
+	}
+
+	return nil
+}
+
+func CancelCronJobWithID(entryID int64) {
+	CronScheduler.Remove(cron.EntryID(entryID))
+	log.Printf("❌ Cron job with EntryID %d has been cancelled", entryID)
 }
