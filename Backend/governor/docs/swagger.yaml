@@ -1,4 +1,16 @@
 definitions:
+  models.CancelUserAlgorithmCronScheduleRequest:
+    properties:
+      algorithmID:
+        type: string
+    type: object
+  models.CancelUserAlgorithmCronScheduleResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.CreateUserAlgorithmResponse:
     properties:
       status:
@@ -181,7 +193,7 @@ paths:
       tags:
       - UserAlgorithm
   /v1/user/algorithm/schedule/:
-    put:
+    post:
       consumes:
       - application/json
       description: Updates the cron schedule for an existing user algorithm belonging
@@ -211,6 +223,39 @@ paths:
       security:
       - USER_TOKEN: []
       summary: Update user algorithm cron schedule
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/schedule/cancel/:
+    post:
+      consumes:
+      - application/json
+      description: Cancels the start and end cron jobs of a specific user algorithm,
+        if the algorithm belongs to the authenticated user.
+      parameters:
+      - description: Algorithm cancellation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully canceled algorithm schedule
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+        "500":
+          description: Internal server error during schedule cancellation
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Cancel cron schedule for a user's algorithm
       tags:
       - UserAlgorithm
 swagger: "2.0"

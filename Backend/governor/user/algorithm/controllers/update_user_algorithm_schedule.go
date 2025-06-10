@@ -21,7 +21,7 @@ import (
 // @Failure      400 {object} models.UpdateUserAlgorithmCronScheduleResponse "Invalid request payload"
 // @Failure      500 {object} models.UpdateUserAlgorithmCronScheduleResponse "Internal server error"
 // @Security     USER_TOKEN
-// @Router       /v1/user/algorithm/schedule/ [put]
+// @Router       /v1/user/algorithm/schedule/ [post]
 func (uac *UserAlgorithmController) UpdateUserAlgorithmCronSchedule(c *gin.Context) {
 	var updateUserAlgorithmCronScheduleRequest models.UpdateUserAlgorithmCronScheduleRequest
 	userID, _ := c.Get("USER_ID")

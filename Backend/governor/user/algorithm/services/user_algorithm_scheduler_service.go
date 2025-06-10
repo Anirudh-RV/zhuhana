@@ -38,3 +38,17 @@ func (uas *UserAlgorithmService) UpdateAlgorithmSchedule(userID, userAlgorithmID
 
 	return nil
 }
+
+func (uas *UserAlgorithmService) CancelAlgorithmSchedule(userID, userAlgorithmID string) error {
+	belongsTo, err := uas.userAlgorthmRepository.DoesUserAlgorithmBelongsToUser(userID, userAlgorithmID)
+	if err != nil {
+		go uas.logger.Error("could not check ownership of user_algorithm", zap.String("execution level", "CancelAlgorithmSchedule"), zap.String("Error", err.Error()))
+		return err
+	}
+	if !belongsTo {
+		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "CancelAlgorithmSchedule"))
+	}
+	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
+	scheduler.CancelCronJobForUserAlgorithm(userAlgorithmUUID)
+	return nil
+}

@@ -121,3 +121,45 @@ func UpdateCronEntryID(jobID uuid.UUID, entryID int64) error {
 	_, err := DB.Exec(query, entryID, jobID)
 	return err
 }
+
+func DeactivateUserAlgorithm(userAlgorithmID uuid.UUID) error {
+	query := `
+		UPDATE cron_job
+		SET is_active = false
+		WHERE user_algorithm_id = $1
+	`
+
+	_, err := DB.Exec(query, userAlgorithmID)
+	return err
+}
+
+func GetAllJobsForUserAlgorithm(userAlgorithmID uuid.UUID) ([]int64, error) {
+	query := `
+		SELECT cron_entry_id
+		FROM cron_job
+		WHERE is_active = true AND user_algorithm_id = $1
+	`
+
+	rows, err := DB.Query(query, userAlgorithmID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cronEntries []int64
+	for rows.Next() {
+		var cronEntryID int64
+		if err := rows.Scan(
+			&cronEntryID,
+		); err != nil {
+			return nil, err
+		}
+		cronEntries = append(cronEntries, cronEntryID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return cronEntries, nil
+}

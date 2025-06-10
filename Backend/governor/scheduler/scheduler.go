@@ -84,3 +84,16 @@ func CancelCronJobWithID(entryID int64) {
 	CronScheduler.Remove(cron.EntryID(entryID))
 	log.Printf("❌ Cron job with EntryID %d has been cancelled", entryID)
 }
+
+func CancelCronJobForUserAlgorithm(userAlgorithmID uuid.UUID) error {
+	cronEntries, err := GetAllJobsForUserAlgorithm(userAlgorithmID)
+	if err != nil {
+		return err
+	}
+	for _, cronEntryID := range cronEntries {
+		CancelCronJobWithID(cronEntryID)
+	}
+
+	DeactivateUserAlgorithm(userAlgorithmID)
+	return nil
+}

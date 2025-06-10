@@ -103,7 +103,7 @@ const docTemplate = `{
             }
         },
         "/v1/user/algorithm/schedule/": {
-            "put": {
+            "post": {
                 "security": [
                     {
                         "USER_TOKEN": []
@@ -153,6 +153,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/user/algorithm/schedule/cancel/": {
+            "post": {
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Cancels the start and end cron jobs of a specific user algorithm, if the algorithm belongs to the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Cancel cron schedule for a user's algorithm",
+                "parameters": [
+                    {
+                        "description": "Algorithm cancellation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CancelUserAlgorithmCronScheduleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully canceled algorithm schedule",
+                        "schema": {
+                            "$ref": "#/definitions/models.CancelUserAlgorithmCronScheduleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/models.CancelUserAlgorithmCronScheduleResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error during schedule cancellation",
+                        "schema": {
+                            "$ref": "#/definitions/models.CancelUserAlgorithmCronScheduleResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user/algorithm/{id}": {
             "get": {
                 "security": [
@@ -195,6 +246,25 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.CancelUserAlgorithmCronScheduleRequest": {
+            "type": "object",
+            "properties": {
+                "algorithmID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CancelUserAlgorithmCronScheduleResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "models.CreateUserAlgorithmResponse": {
             "type": "object",
             "properties": {
