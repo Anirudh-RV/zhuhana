@@ -36,8 +36,8 @@ func main() {
 	kafkaService.Init(log)
 	go log.Info("kafka initialization successful", zap.String("Execution Level", "Root"))
 
-	schedulerService := scheduler.NewSchedulerService(cache.RedisLockObj, log, db.DB, kafkaService)
-	schedulerService.LoadCronJob()
+	schedulerService := scheduler.NewSchedulerService(cache.RedisObj, cache.RedisLockObj, log, db.DB, kafkaService)
+	schedulerService.Init()
 	go log.Info("scheduler initialization successful", zap.String("Execution Level", "Root"))
 
 	router := gin.Default()

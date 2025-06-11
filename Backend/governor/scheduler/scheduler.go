@@ -1,12 +1,19 @@
 package scheduler
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 )
+
+func (scs *SchedulerService) Init() {
+	scs.LoadCronJob()
+	scs.StartRedisSubscriber(context.Background())
+}
 
 func (scs *SchedulerService) LoadCronJob() {
 	jobs, err := scs.GetAllActiveJobs()
@@ -14,17 +21,31 @@ func (scs *SchedulerService) LoadCronJob() {
 		log.Fatalln("Failed to load jobs:", err)
 	}
 
-	// Step 3: Setup Cron Scheduler
 	for _, job := range jobs {
-		entryID, err := scs.cronScheduler.AddFunc(job.Schedule, scs.KafkaJobWrapper(job))
-		if err := scs.UpdateCronEntryID(job.ID, int64(entryID)); err != nil {
-			log.Printf("Failed to schedule job %s: %v", job.UserAlgorithmID, err)
+		ctx := context.Background()
+		lockKey := fmt.Sprintf("cron-schedule-lock:%s", job.ID)
+
+		// Only one instance should schedule this cron
+		lock, err := scs.TryLock(ctx, lockKey, 2*time.Minute) // use a slightly longer lock for scheduling phase
+		if err != nil {
+			fmt.Println("another node is scheduling this job:", job.UserAlgorithmID)
+			continue
 		}
+
+		entryID, err := scs.cronScheduler.AddFunc(job.Schedule, scs.KafkaJobWrapper(job))
 		if err != nil {
 			log.Printf("Failed to schedule job %s: %v", job.UserAlgorithmID, err)
+			lock.Release(ctx) // unlock if scheduling failed
+			continue
+		}
+
+		if err := scs.UpdateCronEntryID(job.ID, int64(entryID)); err != nil {
+			log.Printf("Failed to update entry ID for job %s: %v", job.UserAlgorithmID, err)
 		} else {
 			fmt.Printf("Scheduled job %s with EntryID: %d\n", job.UserAlgorithmID, entryID)
 		}
+
+		lock.Release(ctx)
 	}
 }
 
@@ -74,15 +95,17 @@ func (scs *SchedulerService) CancelCronJobForUserAlgorithmWithJobType(userAlgori
 		return err
 	}
 	for _, cronEntryID := range cronEntries {
-		scs.CancelCronJobWithID(cronEntryID)
+		scs.CancelCronJobWithID(userAlgorithmID, cronEntryID)
 	}
 
 	return nil
 }
 
-func (scs *SchedulerService) CancelCronJobWithID(entryID int64) {
+func (scs *SchedulerService) CancelCronJobWithID(userAlgorithmID uuid.UUID, entryID int64) {
 	scs.cronScheduler.Remove(cron.EntryID(entryID))
-	log.Printf("❌ Cron job with EntryID %d has been cancelled", entryID)
+	log.Printf("❌ Cron job with EntryID %d has been cancelled locally", entryID)
+	log.Printf("Broadcasting cancellation of cron job with EntryID %d", entryID)
+	_ = scs.BroadcastCancelJob(userAlgorithmID, entryID)
 }
 
 func (scs *SchedulerService) CancelCronJobForUserAlgorithm(userAlgorithmID uuid.UUID) error {
@@ -91,7 +114,7 @@ func (scs *SchedulerService) CancelCronJobForUserAlgorithm(userAlgorithmID uuid.
 		return err
 	}
 	for _, cronEntryID := range cronEntries {
-		scs.CancelCronJobWithID(cronEntryID)
+		scs.CancelCronJobWithID(userAlgorithmID, cronEntryID)
 	}
 
 	scs.DeactivateUserAlgorithm(userAlgorithmID)
