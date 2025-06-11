@@ -1,0 +1,35 @@
+apiVersion: skaffold/v4beta6
+kind: Config
+metadata:
+  name: uasam-app
+build:
+  artifacts:
+    - image: uasam
+      context: Backend/uasam
+      docker:
+        dockerfile: dockerfiles/Dockerfile-local
+      sync:
+        manual:
+          - src: "**/*.go"
+            dest: .
+          - src: "**/*.tmpl"
+            dest: .
+          - src: ".air.toml"
+            dest: .
+  local:
+    push: false # Don't push to registry
+    useDockerCLI: true # Use system Docker (not Go's API)
+manifests:
+  rawYaml:
+    - Kubernetes/uasam/configmap.yaml
+    - Kubernetes/uasam/postgres.yaml
+    - Kubernetes/uasam/redis.yaml
+    - Kubernetes/uasam/deployment.yaml
+    - Kubernetes/uasam/service.yaml
+deploy:
+  kubectl: {}
+portForward:
+  - resourceType: service
+    resourceName: uasam-service
+    port: 8002
+    localPort: 8002

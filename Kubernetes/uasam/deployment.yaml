@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uasam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uasam
+  template:
+    metadata:
+      labels:
+        app: uasam
+    spec:
+      containers:
+        - name: uasam
+          image: uasam
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: uasam-env
