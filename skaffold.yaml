@@ -16,20 +16,52 @@ build:
             dest: .
           - src: ".air.toml"
             dest: .
+    - image: governor
+      context: Backend/governor
+      docker:
+        dockerfile: dockerfiles/Dockerfile-local
+      sync:
+        manual:
+          - src: "**/*.go"
+            dest: .
+          - src: "**/*.tmpl"
+            dest: .
+          - src: ".air.toml"
+            dest: .
   local:
-    push: false # Don't push to registry
-    useDockerCLI: true # Use system Docker (not Go's API)
+    push: false
+    useDockerCLI: true
+
 manifests:
   rawYaml:
+    # UASAM
     - Kubernetes/uasam/configmap.yaml
     - Kubernetes/uasam/postgres.yaml
     - Kubernetes/uasam/redis.yaml
     - Kubernetes/uasam/deployment.yaml
     - Kubernetes/uasam/service.yaml
+
+    # Governor
+    - Kubernetes/governor/configmap.yaml
+    - Kubernetes/governor/postgres.yaml
+    - Kubernetes/governor/redis.yaml
+    - Kubernetes/governor/zookeeper.yaml
+    - Kubernetes/governor/kafka.yaml
+    - Kubernetes/governor/deployment.yaml
+    - Kubernetes/governor/service.yaml
+    - Kubernetes/governor/job-role.yaml
+
 deploy:
   kubectl: {}
+
 portForward:
   - resourceType: service
     resourceName: uasam-service
+    namespace: default
     port: 8002
     localPort: 8002
+  - resourceType: service
+    resourceName: governor-service
+    namespace: default
+    port: 8008
+    localPort: 8008

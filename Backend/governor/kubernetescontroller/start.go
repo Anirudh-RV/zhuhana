@@ -30,8 +30,8 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) {
 		fmt.Printf("Error detected %s\n", err.Error())
 	}
 	userAlgorithmRunID := fmt.Sprint(userAlgorithmRunUUID)
-	containerName := fmt.Sprintf("%s/%s", userAlgorithmID, userAlgorithmRunID)
-	jobName := fmt.Sprintf("%s/%s", userAlgorithmID, userAlgorithmRunID)
+	containerName := fmt.Sprintf("%s-%s", userAlgorithmID, userAlgorithmRunID)
+	jobName := fmt.Sprintf("%s-%s", userAlgorithmID, userAlgorithmRunID)
 
 	// Define Job
 	job := &batchv1.Job{

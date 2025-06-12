@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: uasam-pgdata
+  name: governor-pgdata
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,28 +12,28 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: uasam-postgres
+  name: governor-postgres
 spec:
   selector:
-    app: uasam-postgres
+    app: governor-postgres
   ports:
     - protocol: TCP
-      port: 5432
+      port: 5435
       targetPort: 5432
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: uasam-postgres
+  name: governor-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: uasam-postgres
+      app: governor-postgres
   template:
     metadata:
       labels:
-        app: uasam-postgres
+        app: governor-postgres
     spec:
       containers:
         - name: postgres
@@ -42,11 +42,11 @@ spec:
             - containerPort: 5432
           envFrom:
             - configMapRef:
-                name: uasam-env
+                name: governor-env
           volumeMounts:
-            - mountPath: /var/lib/uasam/postgresql/data
-              name: uasam-pgdata
+            - mountPath: /var/lib/governor/postgresql/data
+              name: governor-pgdata
       volumes:
-        - name: uasam-pgdata
+        - name: governor-pgdata
           persistentVolumeClaim:
-            claimName: uasam-pgdata
+            claimName: governor-pgdata

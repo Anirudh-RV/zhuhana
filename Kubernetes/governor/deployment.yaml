@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: governor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: governor
+  template:
+    metadata:
+      labels:
+        app: governor
+    spec:
+      containers:
+        - name: governor
+          image: governor
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: governor-env
