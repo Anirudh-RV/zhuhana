@@ -4,6 +4,57 @@
         "contact": {}
     },
     "paths": {
+        "/user/algorithm/start/": {
+            "post": {
+                "security": [
+                    {
+                        "USER_TOKEN": []
+                    }
+                ],
+                "description": "Initiates the scheduled execution of a user algorithm based on the provided algorithm ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Stops the user algorithm using a cron schedule",
+                "parameters": [
+                    {
+                        "description": "Stop Algorithm Cron Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.StopUserAlgorithmRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.StopUserAlgorithmResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.StopUserAlgorithmResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.StopUserAlgorithmResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user/algorithm/": {
             "get": {
                 "security": [
@@ -311,6 +362,44 @@
                 "PaperTrading",
                 "LiveTrading"
             ]
+        },
+        "models.StartUserAlgorithmRequest": {
+            "type": "object",
+            "properties": {
+                "algorithmID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.StartUserAlgorithmResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.StopUserAlgorithmRequest": {
+            "type": "object",
+            "properties": {
+                "algorithmID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.StopUserAlgorithmResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
         },
         "models.UpdateUserAlgorithmCronScheduleRequest": {
             "type": "object",
