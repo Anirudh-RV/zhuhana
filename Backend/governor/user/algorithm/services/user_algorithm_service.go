@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"governor/commonutils"
 	"governor/kafka"
+	"governor/kubernetescontroller"
 	"governor/logger"
 	"governor/middleware"
 	"governor/scheduler"
@@ -19,15 +20,17 @@ type UserAlgorithmService struct {
 	microserviceAuthenticator *middleware.MicroSeviceAuthenticator
 	schedulerService          *scheduler.SchedulerService
 	kafkaService              *kafka.KafkaService
+	kubernetesService         *kubernetescontroller.KubernetesService
 }
 
-func NewUserAlgorithmService(logger *logger.Logger, userAlgorthmRepository *repositories.UserAlgorithmRepository, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService) *UserAlgorithmService {
+func NewUserAlgorithmService(logger *logger.Logger, userAlgorthmRepository *repositories.UserAlgorithmRepository, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) *UserAlgorithmService {
 	return &UserAlgorithmService{
 		logger:                    logger,
 		userAlgorthmRepository:    userAlgorthmRepository,
 		microserviceAuthenticator: microserviceAuthenticator,
 		schedulerService:          schedulerService,
 		kafkaService:              kafkaService,
+		kubernetesService:         kubernetesService,
 	}
 }
 

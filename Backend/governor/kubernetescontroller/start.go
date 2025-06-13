@@ -15,23 +15,34 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) {
+func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) error {
 	// TEST THIS OUT
 	userAlgorithm, err := ks.GetUserAlgorithm(userAlgorithmID)
 	if err != nil {
 		go ks.logger.Error("could not get useralgorithm from db", zap.String("Execution Level", "KubernetesStart"))
+		return err
 	}
 	dockerImageName := fmt.Sprintf("user-algorithm-%s-%s", userAlgorithm.UserID, userAlgorithmID)
 	pullImageName := fmt.Sprintf("%s/%s", DOCKER_REPOSITORY, dockerImageName)
 	go ks.logger.Info(fmt.Sprintf("trying to start: %s \n full name: %s", dockerImageName, pullImageName), zap.String("Execution Level", "KubernetesStart"))
 
-	userAlgorithmRunUUID, err := ks.AddUserAlgorithmRun(userAlgorithmID, *userAlgorithm.StartCronSchedule, *userAlgorithm.EndCronSchedule, int(userAlgorithm.OrderDomain))
+	startCronSchedule := ""
+	if userAlgorithm.StartCronSchedule != nil {
+		startCronSchedule = *userAlgorithm.StartCronSchedule
+	}
+
+	endCronSchedule := ""
+	if userAlgorithm.EndCronSchedule != nil {
+		endCronSchedule = *userAlgorithm.EndCronSchedule
+	}
+	userAlgorithmRunUUID, err := ks.AddUserAlgorithmRun(userAlgorithmID, startCronSchedule, endCronSchedule, int(userAlgorithm.OrderDomain))
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())
+		return err
 	}
 	userAlgorithmRunID := fmt.Sprint(userAlgorithmRunUUID)
-	containerName := fmt.Sprintf("%s-%s", userAlgorithmID, userAlgorithmRunID)
-	jobName := fmt.Sprintf("%s-%s", userAlgorithmID, userAlgorithmRunID)
+	containerName := userAlgorithmRunID
+	jobName := userAlgorithmRunID
 
 	// Define Job
 	job := &batchv1.Job{
@@ -80,17 +91,20 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) {
 		return false, nil
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Job pod not ready in time: %v", err))
+		fmt.Printf("Job pod not ready in time: %s", err.Error())
+		return err
 	}
 
 	// Stream Logs
 	req := ks.clientSet.CoreV1().Pods(ks.namespace).GetLogs(podName, &corev1.PodLogOptions{})
 	stream, err := req.Stream(context.TODO())
 	if err != nil {
-		panic(err)
+		fmt.Printf("unable to stream logs: %s", err.Error())
+		return err
 	}
 	defer stream.Close()
 
 	fmt.Println("Logs from job:")
 	io.Copy(os.Stdout, stream) // Replace io.Discard with os.Stdout if you want to print logs
+	return nil
 }

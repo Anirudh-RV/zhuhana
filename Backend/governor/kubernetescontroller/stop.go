@@ -8,11 +8,12 @@ import (
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (ks *KubernetesService) Stop(userAlgorithmID uuid.UUID) {
+func (ks *KubernetesService) Stop(userAlgorithmID uuid.UUID) error {
 	// TEST THIS OUT
 	userAlgorithmRunID, err := ks.GetUserAlgorithmRunByUserAlgorithmID(userAlgorithmID.String())
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())
+		return err
 	}
 	jobName := fmt.Sprintf("%s/%s", userAlgorithmID, userAlgorithmRunID)
 
@@ -23,6 +24,8 @@ func (ks *KubernetesService) Stop(userAlgorithmID uuid.UUID) {
 	})
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())
+		return err
 	}
 	fmt.Printf("Job %s deleted\n", jobName)
+	return nil
 }

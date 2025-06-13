@@ -28,6 +28,18 @@ build:
             dest: .
           - src: ".air.toml"
             dest: .
+    - image: forge
+      context: Backend/forge
+      docker:
+        dockerfile: dockerfiles/Dockerfile-local
+      sync:
+        manual:
+          - src: "**/*.go"
+            dest: .
+          - src: "**/*.tmpl"
+            dest: .
+          - src: ".air.toml"
+            dest: .
   local:
     push: false
     useDockerCLI: true
@@ -51,6 +63,13 @@ manifests:
     - Kubernetes/governor/service.yaml
     - Kubernetes/governor/job-role.yaml
 
+    #Forge
+    - Kubernetes/forge/configmap.yaml
+    - Kubernetes/forge/postgres.yaml
+    - Kubernetes/forge/redis.yaml
+    - Kubernetes/forge/deployment.yaml
+    - Kubernetes/forge/service.yaml
+
 deploy:
   kubectl: {}
 
@@ -65,3 +84,8 @@ portForward:
     namespace: default
     port: 8008
     localPort: 8008
+  - resourceType: service
+    resourceName: forge-service
+    namespace: default
+    port: 8010
+    localPort: 8010

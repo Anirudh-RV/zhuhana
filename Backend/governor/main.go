@@ -59,7 +59,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

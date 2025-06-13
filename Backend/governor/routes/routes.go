@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"governor/kafka"
+	"governor/kubernetescontroller"
 	"governor/logger"
 	"governor/middleware"
 	"governor/scheduler"
@@ -18,7 +19,7 @@ import (
 	UserUserAlgorithmRoutesV1 "governor/user/algorithm/routes"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) {
 	v1 := r.Group("/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -30,7 +31,7 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 
 		// Register other routes here
 		StradegyGatewayRoutesV1.RegisterStrategyGatewayRoutesV1(v1, log, db, redis, authMiddleware)
-		UserUserAlgorithmRoutesV1.UserAlgorithmRoutesV1(v1, log, db, redis, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService)
+		UserUserAlgorithmRoutesV1.UserAlgorithmRoutesV1(v1, log, db, redis, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
 
 	}
 }

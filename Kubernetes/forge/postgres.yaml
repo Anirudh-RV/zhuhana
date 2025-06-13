@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forge-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forge-postgres
+spec:
+  selector:
+    app: forge-postgres
+  ports:
+    - protocol: TCP
+      port: 5440
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forge-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: forge-postgres
+  template:
+    metadata:
+      labels:
+        app: forge-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: forge-env
+          volumeMounts:
+            - mountPath: /var/lib/forge/postgresql/data
+              name: forge-pgdata
+      volumes:
+        - name: forge-pgdata
+          persistentVolumeClaim:
+            claimName: forge-pgdata
