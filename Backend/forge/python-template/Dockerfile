@@ -1,10 +1,15 @@
+# Dockerfile
 FROM python:3.13-slim
 
-WORKDIR /app
-COPY . /app
+# Set work directory
+WORKDIR /code
 
+# Install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Run only the script, nothing else
-CMD ["python", "script_runner.py"]
+# Copy project
+COPY . .
+
+# Run the app
+CMD ["gunicorn", "useralgorithm.wsgi:application", "--bind", "0.0.0.0:8000"]

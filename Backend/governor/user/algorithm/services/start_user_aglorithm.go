@@ -15,6 +15,6 @@ func (uas *UserAlgorithmService) StartUserAlgorithm(userID, userAlgorithmID stri
 		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "StartUserAlgorithm"))
 	}
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
-	uas.kubernetesService.Start(userAlgorithmUUID)
+	go uas.kubernetesService.Start(userAlgorithmUUID)
 	return nil
 }

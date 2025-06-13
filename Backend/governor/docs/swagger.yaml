@@ -50,6 +50,30 @@ definitions:
     - Backtest
     - PaperTrading
     - LiveTrading
+  models.StartUserAlgorithmRequest:
+    properties:
+      algorithmID:
+        type: string
+    type: object
+  models.StartUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.StopUserAlgorithmRequest:
+    properties:
+      algorithmID:
+        type: string
+    type: object
+  models.StopUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.UpdateUserAlgorithmCronScheduleRequest:
     properties:
       algorithmID:
@@ -109,6 +133,39 @@ definitions:
 info:
   contact: {}
 paths:
+  /user/algorithm/start/:
+    post:
+      consumes:
+      - application/json
+      description: Initiates the scheduled execution of a user algorithm based on
+        the provided algorithm ID.
+      parameters:
+      - description: Stop Algorithm Cron Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StopUserAlgorithmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Stops the user algorithm using a cron schedule
+      tags:
+      - UserAlgorithm
   /v1/user/algorithm/:
     get:
       description: Retrieves the list of all algorithms associated with the authenticated

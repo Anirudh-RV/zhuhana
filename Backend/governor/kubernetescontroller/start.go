@@ -3,8 +3,6 @@ package kubernetescontroller
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -80,31 +78,46 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) error {
 		pods, err := ks.clientSet.CoreV1().Pods(ks.namespace).List(ctx, meta.ListOptions{
 			LabelSelector: "job-name=" + jobName,
 		})
-		if err != nil || len(pods.Items) == 0 {
+		if err != nil {
+			fmt.Printf("[PollLoop] Error listing pods: %s\n", err)
 			return false, nil
 		}
-		pod := pods.Items[0]
-		if pod.Status.Phase == corev1.PodSucceeded || pod.Status.Phase == corev1.PodFailed {
-			podName = pod.Name
-			return true, nil
+		if len(pods.Items) == 0 {
+			fmt.Println("[PollLoop] No pods found for job yet")
+			return false, nil
 		}
-		return false, nil
+
+		for _, pod := range pods.Items {
+			fmt.Printf("[PollLoop] Found pod: %s, Phase: %s\n", pod.Name, pod.Status.Phase)
+			for _, cs := range pod.Status.ContainerStatuses {
+				fmt.Printf("[PollLoop] Container %s - Ready: %v, State: %+v\n", cs.Name, cs.Ready, cs.State)
+			}
+		}
+
+		pod := pods.Items[0] // Assuming first one
+		switch pod.Status.Phase {
+		case corev1.PodRunning:
+			podName = pod.Name
+			fmt.Printf("[PollLoop] Pod %s is now Running\n", podName)
+			return true, nil
+		case corev1.PodFailed:
+			return false, fmt.Errorf("pod %s failed", pod.Name)
+		default:
+			fmt.Printf("[PollLoop] Pod %s in Phase: %s\n", pod.Name, pod.Status.Phase)
+			return false, nil
+		}
 	})
+
 	if err != nil {
-		fmt.Printf("Job pod not ready in time: %s", err.Error())
-		return err
+		fmt.Printf("unable to stream logs: %s", err.Error())
 	}
 
 	// Stream Logs
-	req := ks.clientSet.CoreV1().Pods(ks.namespace).GetLogs(podName, &corev1.PodLogOptions{})
-	stream, err := req.Stream(context.TODO())
-	if err != nil {
-		fmt.Printf("unable to stream logs: %s", err.Error())
-		return err
-	}
-	defer stream.Close()
+	go func() {
+		if err := ks.StreamPodLogs(podName); err != nil {
+			fmt.Printf("log stream error: %s\n", err)
+		}
+	}()
 
-	fmt.Println("Logs from job:")
-	io.Copy(os.Stdout, stream) // Replace io.Discard with os.Stdout if you want to print logs
 	return nil
 }

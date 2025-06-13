@@ -74,24 +74,55 @@ func (ks *KubernetesService) AddUserAlgorithmRun(userAlgorithmID uuid.UUID, star
 	return id, nil
 }
 
-func (ks *KubernetesService) GetUserAlgorithmRunByUserAlgorithmID(userAlgorithmID string) (uuid.UUID, error) {
+func (ks *KubernetesService) GetUserAlgorithmRunsByUserAlgorithmID(userAlgorithmID string) ([]uuid.UUID, error) {
 	query := `
 		SELECT id
 		FROM "user_algorithm_run"
 		WHERE user_algorithm_id = $1 AND is_active = true
 	`
 
-	var id uuid.UUID
-
-	err := ks.db.QueryRow(query, userAlgorithmID).Scan(
-		&id,
-	)
+	rows, err := ks.db.Query(query, userAlgorithmID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return uuid.Nil, nil
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
 		}
-		return uuid.Nil, err
+		ids = append(ids, id)
 	}
 
-	return id, nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
+func (ks *KubernetesService) DeactivateUserAlgorithmRunByID(runID uuid.UUID) error {
+	query := `
+		UPDATE "user_algorithm_run"
+		SET is_active = false
+		WHERE id = $1
+	`
+
+	result, err := ks.db.Exec(query, runID)
+	if err != nil {
+		return fmt.Errorf("failed to deactivate user_algorithm_run %s: %w", runID, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("could not determine rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no user_algorithm_run found with id %s", runID)
+	}
+
+	return nil
 }

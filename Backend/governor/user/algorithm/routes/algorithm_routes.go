@@ -52,7 +52,20 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 			IPWindow:    300,
 			Endpoint:    "/v1/user/algorithm/start/",
 		}), userAuthMiddleware,
-			userAlgorithmController.StartUserAlgorithmCronSchedule)
+			userAlgorithmController.StartUserAlgorithm)
+
+		algorithmRoutes.POST("stop/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "body",
+			Param:       "algorithmID",
+			EnableParam: true,
+			Limit:       10,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     10,
+			IPWindow:    300,
+			Endpoint:    "/v1/user/algorithm/stop/",
+		}), userAuthMiddleware,
+			userAlgorithmController.StopUserAlgorithm)
 
 		algorithmRoutes.POST("schedule/cancel/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 			Source:      "body",
