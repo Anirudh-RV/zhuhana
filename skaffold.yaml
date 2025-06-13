@@ -40,6 +40,18 @@ build:
             dest: .
           - src: ".air.toml"
             dest: .
+    - image: secretsmanager
+      context: Backend/secretsmanager
+      docker:
+        dockerfile: dockerfiles/Dockerfile-local
+      sync:
+        manual:
+          - src: "**/*.go"
+            dest: .
+          - src: "**/*.tmpl"
+            dest: .
+          - src: ".air.toml"
+            dest: .
   local:
     push: false
     useDockerCLI: true
@@ -63,12 +75,19 @@ manifests:
     - Kubernetes/governor/service.yaml
     - Kubernetes/governor/job-role.yaml
 
-    #Forge
+    # Forge
     - Kubernetes/forge/configmap.yaml
     - Kubernetes/forge/postgres.yaml
     - Kubernetes/forge/redis.yaml
     - Kubernetes/forge/deployment.yaml
     - Kubernetes/forge/service.yaml
+
+    # SecretsManager
+    - Kubernetes/secretsmanager/configmap.yaml
+    - Kubernetes/secretsmanager/postgres.yaml
+    - Kubernetes/secretsmanager/redis.yaml
+    - Kubernetes/secretsmanager/deployment.yaml
+    - Kubernetes/secretsmanager/service.yaml
 
 deploy:
   kubectl: {}
@@ -89,3 +108,8 @@ portForward:
     namespace: default
     port: 8010
     localPort: 8010
+  - resourceType: service
+    resourceName: secretsmanager-service
+    namespace: default
+    port: 8004
+    localPort: 8004
