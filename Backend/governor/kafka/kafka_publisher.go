@@ -15,46 +15,47 @@ import (
 var kafkaClient *kgo.Client
 
 // Initializes the global Kafka client
-func InitPublisher() {
+func (kfs *KafkaService) InitPublisher() {
 	var err error
-	brokers := GetKafkaBrokersFromEnv()
+	brokers := kfs.GetKafkaBrokersFromEnv()
 	kafkaClient, err = kgo.NewClient(
 		kgo.SeedBrokers(brokers...),
-		kgo.ProduceRequestTimeout(GetKafkaTimeoutFromEnv()),
+		kgo.ProduceRequestTimeout(kfs.GetKafkaTimeoutFromEnv()),
 	)
 	if err != nil {
 		log.Fatalf("failed to create Kafka client: %v", err)
 	}
 
-	err = CreateKafkaTopic(GetKafkaTopicFromEnv(), 1, 1)
+	err = kfs.CreateKafkaTopic(kfs.GetKafkaTopicFromEnv(), 1, 1)
 	if err != nil {
 		log.Fatalf("Failed to create topic: %v", err)
 	}
 }
 
 // Publishes a job to a Kafka topic
-func PublishJob(jobID string, payload interface{}) error {
-	go Logger.Info(fmt.Sprintf("publishing cron job: %s", jobID), zap.String("execution level", "GetAllUserAlgorithms"))
-	job := JobPayload{
-		JobID:   jobID,
-		Target:  os.Getenv("ORIGIN_SERVICE"),
-		Payload: payload,
-		Time:    time.Now().UTC(),
+func (kfs *KafkaService) PublishJob(eventID, eventType string, payload interface{}) error {
+	go kfs.logger.Info(fmt.Sprintf("publishing cron job: %s", eventID), zap.String("execution level", "GetAllUserAlgorithms"))
+	event := EventPayload{
+		EventID:   eventID,
+		EventType: eventType,
+		Target:    os.Getenv("ORIGIN_SERVICE"),
+		Payload:   payload,
+		Time:      time.Now().UTC(),
 	}
 
-	val, err := json.Marshal(job)
+	val, err := json.Marshal(event)
 	if err != nil {
 		return err
 	}
 
 	// Send the message
 	record := &kgo.Record{
-		Topic: GetKafkaTopicFromEnv(),
-		Key:   []byte(jobID),
+		Topic: kfs.GetKafkaTopicFromEnv(),
+		Key:   []byte(eventID),
 		Value: val,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), GetKafkaTimeoutFromEnv())
+	ctx, cancel := context.WithTimeout(context.Background(), kfs.GetKafkaTimeoutFromEnv())
 	defer cancel()
 
 	return kafkaClient.ProduceSync(ctx, record).FirstErr()

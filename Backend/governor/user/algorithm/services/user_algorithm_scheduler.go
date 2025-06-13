@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"governor/kafka"
 	"governor/scheduler"
 
 	"github.com/google/uuid"
@@ -33,8 +32,22 @@ func (uas *UserAlgorithmService) UpdateAlgorithmSchedule(userID, userAlgorithmID
 	}
 
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
-	scheduler.ScheduleCronJob(userAlgorithmUUID, startCronSchedule, scheduler.START_USER_ALGORITHM_JOB, kafka.GetKafkaTopicFromEnv())
-	scheduler.ScheduleCronJob(userAlgorithmUUID, endCronSchedule, scheduler.END_USER_ALGORITHM_JOB, kafka.GetKafkaTopicFromEnv())
+	uas.schedulerService.ScheduleCronJob(userAlgorithmUUID, startCronSchedule, scheduler.START_USER_ALGORITHM_JOB, uas.kafkaService.GetKafkaTopicFromEnv())
+	uas.schedulerService.ScheduleCronJob(userAlgorithmUUID, endCronSchedule, scheduler.END_USER_ALGORITHM_JOB, uas.kafkaService.GetKafkaTopicFromEnv())
 
+	return nil
+}
+
+func (uas *UserAlgorithmService) CancelAlgorithmSchedule(userID, userAlgorithmID string) error {
+	belongsTo, err := uas.userAlgorthmRepository.DoesUserAlgorithmBelongsToUser(userID, userAlgorithmID)
+	if err != nil {
+		go uas.logger.Error("could not check ownership of user_algorithm", zap.String("execution level", "CancelAlgorithmSchedule"), zap.String("Error", err.Error()))
+		return err
+	}
+	if !belongsTo {
+		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "CancelAlgorithmSchedule"))
+	}
+	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
+	uas.schedulerService.CancelCronJobForUserAlgorithm(userAlgorithmUUID)
 	return nil
 }

@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forge-env
+data:
+  PORT: "8080"
+  DB_HOST: forge-postgres
+  DB_PORT: "5440"
+  DB_USER: forge
+  DB_PASSWORD: password
+  DB_NAME: forge
+  POSTGRES_USER: forge
+  POSTGRES_PASSWORD: password
+  POSTGRES_DB: forge
+  REDIS_HOST: forge-redis
+  REDIS_PORT: "6319"
+  REDIS_PASSWORD: password
+  UASAM_URL: http://host.docker.internal:8002
+  DOCKER_USERNAME: anirudhrv1234
+  DOCKER_REPOSITORY: anirudhrv1234
+  DOCKER_PASSWORD: TF3dE5aay64,HnW
+  DOCKER_SERVER_ADDRESS: https://index.docker.io/v1/
+  DOCKER_BUILDKIT: "1"

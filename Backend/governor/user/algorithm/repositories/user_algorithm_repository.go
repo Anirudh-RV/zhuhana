@@ -169,3 +169,18 @@ func (uar *UserAlgorithmRepository) GetUserAlgorithmByUserID(userID, algorithmID
 
 	return &userAlgorithm, nil
 }
+
+func (uar *UserAlgorithmRepository) DoesUserAlgorithmBelongsToUser(userID, userAlgorithmID string) (bool, error) {
+	query := `SELECT 1 FROM "user_algorithm" WHERE id = $1 AND user_id = $2 LIMIT 1`
+	rows, err := uar.db.Query(query, userAlgorithmID, userID)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		return true, nil // Belongs to user
+	}
+
+	return false, nil // No matching row found
+}

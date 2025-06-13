@@ -3,8 +3,11 @@ package services
 import (
 	"fmt"
 	"governor/commonutils"
+	"governor/kafka"
+	"governor/kubernetescontroller"
 	"governor/logger"
 	"governor/middleware"
+	"governor/scheduler"
 	"governor/user/algorithm/models"
 	"governor/user/algorithm/repositories"
 
@@ -15,13 +18,19 @@ type UserAlgorithmService struct {
 	logger                    *logger.Logger
 	userAlgorthmRepository    *repositories.UserAlgorithmRepository
 	microserviceAuthenticator *middleware.MicroSeviceAuthenticator
+	schedulerService          *scheduler.SchedulerService
+	kafkaService              *kafka.KafkaService
+	kubernetesService         *kubernetescontroller.KubernetesService
 }
 
-func NewUserAlgorithmService(logger *logger.Logger, userAlgorthmRepository *repositories.UserAlgorithmRepository, microserviceAuthenticator *middleware.MicroSeviceAuthenticator) *UserAlgorithmService {
+func NewUserAlgorithmService(logger *logger.Logger, userAlgorthmRepository *repositories.UserAlgorithmRepository, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) *UserAlgorithmService {
 	return &UserAlgorithmService{
 		logger:                    logger,
 		userAlgorthmRepository:    userAlgorthmRepository,
 		microserviceAuthenticator: microserviceAuthenticator,
+		schedulerService:          schedulerService,
+		kafkaService:              kafkaService,
+		kubernetesService:         kubernetesService,
 	}
 }
 

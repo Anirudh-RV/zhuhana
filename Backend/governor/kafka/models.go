@@ -1,10 +1,31 @@
 package kafka
 
-import "time"
+import (
+	"time"
 
-type JobPayload struct {
-	JobID   string      `json:"job_id"`
-	Target  string      `json:"target"`  // who should consume it, e.g., "governor"
-	Payload interface{} `json:"payload"` // job data
-	Time    time.Time   `json:"time"`    // time of creation
+	"github.com/google/uuid"
+)
+
+var START_USER_ALGORITHM_JOB = "start-user-algorithm-job"
+var END_USER_ALGORITHM_JOB = "end-user-algorithm-job"
+var CRON_JOB_EVENT_TYPE = "cron-job"
+
+type EventPayload struct {
+	EventID   string      `json:"job_id"`
+	Target    string      `json:"target"`     // who should consume it, e.g., "governor"
+	EventType string      `json:"event_type"` // who should consume it, e.g., "governor"
+	Payload   interface{} `json:"payload"`    // job data
+	Time      time.Time   `json:"time"`       // time of creation
+}
+
+type CronJob struct {
+	ID              uuid.UUID `db:"id"`
+	UserAlgorithmID uuid.UUID `db:"user_algorithm_id"`
+	CronEntryID     int64     `db:"cron_entry_id"`
+	Schedule        string    `db:"schedule"`
+	JobType         string    `db:"job_type"`
+	KafkaTopic      string    `db:"kafka_topic"`
+	IsActive        bool      `db:"is_active"`
+	CreatedAt       time.Time `db:"created_at"`
+	UpdatedAt       time.Time `db:"updated_at"`
 }

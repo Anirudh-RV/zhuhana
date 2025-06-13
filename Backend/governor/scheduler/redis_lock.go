@@ -7,6 +7,6 @@ import (
 	"github.com/bsm/redislock"
 )
 
-func TryLock(ctx context.Context, key string, ttl time.Duration) (*redislock.Lock, error) {
-	return RedisLockObj.Obtain(ctx, key, ttl, nil)
+func (scs *SchedulerService) TryLock(ctx context.Context, key string, ttl time.Duration) (*redislock.Lock, error) {
+	return scs.redisLockObj.Obtain(ctx, key, ttl, nil)
 }
