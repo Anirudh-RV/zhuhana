@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secretsmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secretsmanager
+  template:
+    metadata:
+      labels:
+        app: secretsmanager
+    spec:
+      containers:
+        - name: secretsmanager
+          image: secretsmanager
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: secretsmanager-env

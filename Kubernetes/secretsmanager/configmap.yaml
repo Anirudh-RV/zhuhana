@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: secretsmanager-env
+data:
+  PORT: "8080"
+  DB_HOST: secretsmanager-postgres
+  DB_PORT: "5433"
+  DB_USER: secretsmanager
+  DB_PASSWORD: password
+  DB_NAME: secretsmanager
+  AES256_32BYTE_ENCRYPTION_KEY: your-32-byte-long-secret-key-her
+  AES256_32BYTE_DETERMINISTIC_ENCRYPTION_KEY: your-32-byte-long-secret-key-her
+  POSTGRES_USER: secretsmanager
+  POSTGRES_PASSWORD: password
+  POSTGRES_DB: secretsmanager
+  REDIS_HOST: secretsmanager-redis
+  REDIS_PORT: "6389"
+  REDIS_PASSWORD: password
+  UASAM_URL: http://host.docker.internal:8002

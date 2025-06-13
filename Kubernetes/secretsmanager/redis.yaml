@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: secretsmanager-redis
+spec:
+  selector:
+    app: secretsmanager-redis
+  ports:
+    - protocol: TCP
+      port: 6389
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secretsmanager-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secretsmanager-redis
+  template:
+    metadata:
+      labels:
+        app: secretsmanager-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7
+          args: ["redis-server", "--requirepass", "password"]
+          ports:
+            - containerPort: 6379
