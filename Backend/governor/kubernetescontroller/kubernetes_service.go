@@ -39,10 +39,12 @@ func NewKubernetesService(logger *logger.Logger, db *sql.DB) *KubernetesService 
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		logger.Fatal("Failed to get in-cluster config", zap.Error(err))
+		panic(err)
 	}
 
 	clientSet, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		logger.Fatal("Failed to get clientSet", zap.Error(err))
 		panic(err)
 	}
 	fmt.Printf("clientset connection completed")

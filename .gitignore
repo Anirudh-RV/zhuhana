@@ -2,6 +2,7 @@
 data/
 
 */*/env/local-env.env
+Frontend/env/local-env.env
 
 
 */*tmp/

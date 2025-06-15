@@ -15,7 +15,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	StradegyGatewayRoutesV1 "governor/strategyGateway/routes"
 	UserUserAlgorithmRoutesV1 "governor/user/algorithm/routes"
 )
 
@@ -30,7 +29,6 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 		})
 
 		// Register other routes here
-		StradegyGatewayRoutesV1.RegisterStrategyGatewayRoutesV1(v1, log, db, redis, authMiddleware)
 		UserUserAlgorithmRoutesV1.UserAlgorithmRoutesV1(v1, log, db, redis, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
 
 	}
