@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"algonexus/logger"
-	"algonexus/orderManager/services"
+	"algonexus/ordermanager/services"
 )
 
 type OrderManagerController struct {
