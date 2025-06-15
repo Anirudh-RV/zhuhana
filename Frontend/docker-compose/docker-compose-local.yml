@@ -1,12 +1,9 @@
 services:
-  node-app:
+  frontend:
     build:
-      context: "../"
+      context: ..
       dockerfile: Dockerfile
-    command: npm run start
-    env_file:
-      - "../env/local.env"
     ports:
       - "3000:3000"
-    volumes:
-      - ./:/app
+    env_file:
+      - "../env/local.env"
