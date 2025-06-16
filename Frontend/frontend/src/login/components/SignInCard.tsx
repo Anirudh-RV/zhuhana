@@ -2,18 +2,21 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MuiCard from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
-import Divider from "@mui/material/Divider";
 import FormLabel from "@mui/material/FormLabel";
 import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import MuiLink from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import ForgotPassword from "./ForgotPassword";
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
-import { Link } from "react-router-dom";
+import { SitemarkIcon } from "./CustomIcons";
+import { useNavigate, Link } from "react-router-dom";
+import { MuiOtpInput } from "mui-one-time-password-input";
+import { useAuth } from "../../AuthContext";
+
+import {
+  LOGIN_V1_VERIFY_PASSWORD_ENDPOINT,
+  LOGIN_V1_VERIFY_OTP_ENDPOINT,
+} from "../../constants";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -38,27 +41,12 @@ export default function SignInCard() {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [open, setOpen] = React.useState(false);
+  const [otpSent, setOtpSent] = React.useState(false);
+  const [otp, setOtp] = React.useState("");
+  const [emailForOtp, setEmailForOtp] = React.useState("");
 
-  const handlePasswordReset = () => {
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-  };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    if (emailError || passwordError) {
-      event.preventDefault();
-      return;
-    }
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
-    });
-  };
+  const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const validateInputs = () => {
     const email = document.getElementById("email") as HTMLInputElement;
@@ -87,6 +75,59 @@ export default function SignInCard() {
     return isValid;
   };
 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!validateInputs()) return;
+
+    const data = new FormData(event.currentTarget);
+    const payload = {
+      emailId: data.get("email"),
+      password: data.get("password"),
+    };
+
+    setEmailForOtp(payload.emailId as string);
+
+    try {
+      const res = await fetch(LOGIN_V1_VERIFY_PASSWORD_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setOtpSent(true);
+      } else {
+        const error = await res.json();
+        alert(error.statusDescription || "Invalid credentials");
+      }
+    } catch (err) {
+      console.error("Password verification failed", err);
+      alert("Network error");
+    }
+  };
+
+  const handleOtpVerification = async () => {
+    try {
+      const res = await fetch(LOGIN_V1_VERIFY_OTP_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId: emailForOtp, otp }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAuth(data.user, data.accessToken);
+        navigate("/dashboard");
+      } else {
+        const error = await res.json();
+        alert(error.statusDescription || "Invalid OTP");
+      }
+    } catch (err) {
+      console.error("OTP verification failed", err);
+      alert("Network error");
+    }
+  };
+
   return (
     <Card variant="outlined">
       <Box sx={{ display: { xs: "flex", md: "none" } }}>
@@ -97,79 +138,84 @@ export default function SignInCard() {
         variant="h4"
         sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
       >
-        Log in
+        {otpSent ? "Verify OTP" : "Log in"}
       </Typography>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        noValidate
-        sx={{ display: "flex", flexDirection: "column", width: "100%", gap: 2 }}
-      >
-        <FormControl>
-          <FormLabel htmlFor="email">Email</FormLabel>
-          <TextField
-            error={emailError}
-            helperText={emailErrorMessage}
-            id="email"
-            type="email"
-            name="email"
-            placeholder="your@email.com"
-            autoComplete="email"
-            required
-            fullWidth
-            variant="outlined"
-            color={emailError ? "error" : "primary"}
-          />
-        </FormControl>
-        <FormControl>
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <MuiLink
-              component="button"
-              type="button"
-              onClick={handlePasswordReset}
-              variant="body2"
-              sx={{ alignSelf: "baseline" }}
-            >
-              Forgot your password?
-            </MuiLink>
-          </Box>
-          <TextField
-            error={passwordError}
-            helperText={passwordErrorMessage}
-            name="password"
-            placeholder="••••••"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-            required
-            fullWidth
-            variant="outlined"
-            color={passwordError ? "error" : "primary"}
-          />
-        </FormControl>
-        <FormControlLabel
-          control={<Checkbox value="remember" color="primary" defaultChecked />}
-          label="Keep me logged in"
-        />
-        <ForgotPassword open={open} handleClose={handleClose} />
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          onClick={validateInputs}
+
+      {!otpSent ? (
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          noValidate
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-          Sign in
-        </Button>
-        <Typography sx={{ textAlign: "center" }}>
-          Don&apos;t have an account?{" "}
-          <span>
+          <FormControl>
+            <FormLabel htmlFor="email">Email</FormLabel>
+            <TextField
+              error={emailError}
+              helperText={emailErrorMessage}
+              id="email"
+              type="email"
+              name="email"
+              placeholder="your@email.com"
+              autoComplete="email"
+              required
+              fullWidth
+              variant="outlined"
+              color={emailError ? "error" : "primary"}
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel htmlFor="password">Password</FormLabel>
+            <TextField
+              error={passwordError}
+              helperText={passwordErrorMessage}
+              name="password"
+              placeholder="••••••"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              required
+              fullWidth
+              variant="outlined"
+              color={passwordError ? "error" : "primary"}
+            />
+          </FormControl>
+
+          <Button type="submit" fullWidth variant="contained">
+            Sign in
+          </Button>
+
+          <Typography sx={{ textAlign: "center" }}>
+            Don’t have an account?{" "}
             <Link to="/signup" style={{ alignSelf: "center" }}>
               Sign up
             </Link>
-          </span>
-        </Typography>
-      </Box>
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <MuiOtpInput
+            value={otp}
+            onChange={setOtp}
+            length={6}
+            autoFocus
+            TextFieldsProps={{ size: "small", sx: { width: "3rem", mx: 0.5 } }}
+          />
+          <Button variant="contained" onClick={handleOtpVerification}>
+            Verify OTP
+          </Button>
+          <Typography variant="caption" color="text.secondary">
+            Didn’t receive OTP?{" "}
+            <MuiLink
+              sx={{ cursor: "pointer" }}
+              onClick={() => alert("Resend OTP endpoint not implemented yet")}
+            >
+              Resend
+            </MuiLink>
+          </Typography>
+        </Box>
+      )}
     </Card>
   );
 }
