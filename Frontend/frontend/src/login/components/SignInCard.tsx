@@ -183,11 +183,11 @@ export default function SignInCard() {
           </FormControl>
 
           <Button type="submit" fullWidth variant="contained">
-            Sign in
+            Log in
           </Button>
 
           <Typography sx={{ textAlign: "center" }}>
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Link to="/signup" style={{ alignSelf: "center" }}>
               Sign up
             </Link>

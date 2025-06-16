@@ -71,7 +71,7 @@ export default function SideMenu() {
       >
         <Avatar
           sizes="small"
-          alt="Zhuhana User"
+          alt={user?.FirstName}
           src="/static/images/avatar/7.jpg"
           sx={{ width: 36, height: 36 }}
         />
@@ -80,7 +80,8 @@ export default function SideMenu() {
             variant="body2"
             sx={{ fontWeight: 500, lineHeight: "16px" }}
           >
-            {user?.FirstName} {user?.MiddleName} {user?.LastName}
+            {user?.FirstName} {user?.MiddleName}
+            {user?.LastName}
           </Typography>
           <Typography variant="caption" sx={{ color: "text.secondary" }}>
             {user?.EmailID}

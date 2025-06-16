@@ -155,9 +155,7 @@ export default function SignInCard() {
             component="h1"
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
-          >
-            Create your account
-          </Typography>
+          ></Typography>
           <FormControl>
             <FormLabel htmlFor="name">Full name</FormLabel>
             <TextField
