@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 	"uasam/users/user/models"
 	"uasam/users/user/utils"
@@ -12,6 +13,10 @@ import (
 )
 
 func (us *UserService) SignUpInitHandler(signUpRequestObject *models.SignUpInitRequest, device, ipAddress string) error {
+	if signUpRequestObject.Password == "" {
+		go us.logger.Warning("password cannot be empty", zap.String("execution level", "signUpInitHandler"))
+		return fmt.Errorf("password cannot be empty")
+	}
 	err := us.otpService.SendOTP(signUpRequestObject.EmailID, device, ipAddress)
 	if err != nil {
 		return err

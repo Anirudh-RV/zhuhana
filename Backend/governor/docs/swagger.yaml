@@ -1,73 +1,318 @@
 definitions:
-  stocks.AllTickerStockInformation:
+  models.CancelUserAlgorithmCronScheduleRequest:
     properties:
-      active:
-        type: boolean
-      cik:
-        type: string
-      composite_figi:
-        type: string
-      currency_name:
-        type: string
-      last_updated_utc:
-        type: string
-      locale:
-        type: string
-      market:
-        type: string
-      name:
-        type: string
-      primary_exchange:
-        type: string
-      share_class_figi:
-        type: string
-      ticker:
-        type: string
-      type:
+      algorithmID:
         type: string
     type: object
-  stocks.AllTickersAPIResponse:
+  models.CancelUserAlgorithmCronScheduleResponse:
     properties:
-      count:
-        type: integer
-      next_url:
-        type: string
-      request_id:
-        type: string
-      results:
-        items:
-          $ref: '#/definitions/stocks.AllTickerStockInformation'
-        type: array
       status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.CreateUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+      user_algorithm:
+        $ref: '#/definitions/models.UserAlgorithm'
+    type: object
+  models.GetAllUserAlgorithmsResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+      user_algorithms:
+        items:
+          $ref: '#/definitions/models.UserAlgorithmInfo'
+        type: array
+    type: object
+  models.GetUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+      user_algorithm:
+        $ref: '#/definitions/models.UserAlgorithmInfo'
+    type: object
+  models.OrderDomain:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-varnames:
+    - Backtest
+    - PaperTrading
+    - LiveTrading
+  models.StartUserAlgorithmRequest:
+    properties:
+      algorithmID:
+        type: string
+    type: object
+  models.StartUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.StopUserAlgorithmRequest:
+    properties:
+      algorithmID:
+        type: string
+    type: object
+  models.StopUserAlgorithmResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.UpdateUserAlgorithmCronScheduleRequest:
+    properties:
+      algorithmID:
+        type: string
+      endCronSchedule:
+        type: string
+      startCronSchedule:
+        type: string
+    type: object
+  models.UpdateUserAlgorithmCronScheduleResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.UserAlgorithm:
+    properties:
+      createdAt:
+        type: string
+      endCronSchedule:
+        type: string
+      id:
+        type: string
+      orderDomain:
+        $ref: '#/definitions/models.OrderDomain'
+      scriptName:
+        type: string
+      scriptURL:
+        type: string
+      startCronSchedule:
+        type: string
+      updatedAt:
+        type: string
+      userID:
+        type: string
+    type: object
+  models.UserAlgorithmInfo:
+    properties:
+      created_at:
+        type: string
+      endCronSchedule:
+        type: string
+      id:
+        type: string
+      order_domain:
+        $ref: '#/definitions/models.OrderDomain'
+      scriptName:
+        type: string
+      scriptUrl:
+        type: string
+      startCronSchedule:
+        type: string
+      updated_at:
         type: string
     type: object
 info:
   contact: {}
 paths:
-  /api/marketdata/v1/stocks/polygon/all-tickers:
-    get:
+  /user/algorithm/start/:
+    post:
       consumes:
       - application/json
-      description: Fetches all tickers with an optional limit parameter
+      description: Initiates the scheduled execution of a user algorithm based on
+        the provided algorithm ID.
       parameters:
-      - description: 'Number of tickers to retrieve (default: 10)'
-        in: query
-        name: limit
-        type: integer
+      - description: Stop Algorithm Cron Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.StopUserAlgorithmRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: List of tickers
+          description: OK
           schema:
-            $ref: '#/definitions/stocks.AllTickersAPIResponse'
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
         "400":
-          description: Error message
+          description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get all tickers
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.StopUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Stops the user algorithm using a cron schedule
       tags:
-      - Tickers
+      - UserAlgorithm
+  /v1/user/algorithm/:
+    get:
+      description: Retrieves the list of all algorithms associated with the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User algorithms retrieved successfully
+          schema:
+            $ref: '#/definitions/models.GetAllUserAlgorithmsResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.GetAllUserAlgorithmsResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Get all user algorithms
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/{id}:
+    get:
+      description: Retrieves a specific user algorithm for the authenticated user
+        using the algorithm ID.
+      parameters:
+      - description: Algorithm ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Algorithm fetched successfully
+          schema:
+            $ref: '#/definitions/models.GetUserAlgorithmResponse'
+        "500":
+          description: Failed to fetch user algorithm
+          schema:
+            $ref: '#/definitions/models.GetUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Get user algorithm by ID
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/python/upload/:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a script file and creates a new user algorithm associated
+        with the authenticated user.
+      parameters:
+      - description: Script Name
+        in: formData
+        name: script_name
+        required: true
+        type: string
+      - description: Python script file
+        in: formData
+        name: script
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Algorithm created successfully
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+        "400":
+          description: Invalid input or file upload failed
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.CreateUserAlgorithmResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Create a user algorithm
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/schedule/:
+    post:
+      consumes:
+      - application/json
+      description: Updates the cron schedule for an existing user algorithm belonging
+        to the authenticated user.
+      parameters:
+      - description: Cron schedule update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Cron schedule updated successfully
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.UpdateUserAlgorithmCronScheduleResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Update user algorithm cron schedule
+      tags:
+      - UserAlgorithm
+  /v1/user/algorithm/schedule/cancel/:
+    post:
+      consumes:
+      - application/json
+      description: Cancels the start and end cron jobs of a specific user algorithm,
+        if the algorithm belongs to the authenticated user.
+      parameters:
+      - description: Algorithm cancellation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully canceled algorithm schedule
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+        "500":
+          description: Internal server error during schedule cancellation
+          schema:
+            $ref: '#/definitions/models.CancelUserAlgorithmCronScheduleResponse'
+      security:
+      - USER_TOKEN: []
+      summary: Cancel cron schedule for a user's algorithm
+      tags:
+      - UserAlgorithm
 swagger: "2.0"

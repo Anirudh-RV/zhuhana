@@ -1,23 +1,32 @@
-# Use a Node.js base image
-FROM node:18-alpine
+# Stage 1: Build React app
+FROM node:20-alpine as builder
 
-# Set the working directory
-WORKDIR /
+WORKDIR /app
 
-# Copy package.json and package-lock.json to install dependencies
-COPY package*.json ./
+# Copy and build frontend
+COPY frontend ./frontend
+WORKDIR /app/frontend
+RUN npm install && npm run build
 
-# Install dependencies
+# Stage 2: Build Node.js server
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy backend code
+COPY package*.json tsconfig.json ./
+COPY src ./src
+
+# Install backend deps
 RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+# Copy built frontend from builder
+COPY --from=builder /app/frontend/build ./frontend/build
 
-# Build the TypeScript code
-RUN npm run build
+# Build TypeScript
+RUN npx tsc
 
-# Expose the port your application listens on
+# Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["node", "build/index.js"]
+CMD ["node", "dist/index.js"]

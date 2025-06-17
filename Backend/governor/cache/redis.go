@@ -7,12 +7,14 @@ import (
 	"log"
 	"os"
 
+	"github.com/bsm/redislock"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
 var RedisObj *redis.Client
+var RedisLockObj *redislock.Client
 
 func InitRedis(ctx context.Context, logger *logger.Logger) {
 	redisHost := os.Getenv("REDIS_HOST")
@@ -24,7 +26,7 @@ func InitRedis(ctx context.Context, logger *logger.Logger) {
 		Addr:     redisAddr,
 		Password: redisPassword,
 	})
-	go logger.Info("redis instance creation successful", zap.String("Execution Level", "Root"))
+	go logger.Info("redis instance creation successful", zap.String("Execution Level", "InitRedis"))
 
 	errSet := RedisObj.Set(ctx, "key", "I got the value", 0).Err()
 	if errSet != nil {
@@ -36,5 +38,8 @@ func InitRedis(ctx context.Context, logger *logger.Logger) {
 		panic(errGet)
 	}
 
-	go logger.Info("redis SET/GET method tested. value: "+value, zap.String("Execution Level", "Root"))
+	go logger.Info("redis SET/GET method tested. value: "+value, zap.String("Execution Level", "InitRedis"))
+
+	RedisLockObj = redislock.New(RedisObj)
+	go logger.Info("redis lock object initialized", zap.String("Execution Level", "InitRedis"))
 }

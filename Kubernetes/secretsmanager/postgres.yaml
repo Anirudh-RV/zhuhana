@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: secretsmanager-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: secretsmanager-postgres
+spec:
+  selector:
+    app: secretsmanager-postgres
+  ports:
+    - protocol: TCP
+      port: 5433
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secretsmanager-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secretsmanager-postgres
+  template:
+    metadata:
+      labels:
+        app: secretsmanager-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: secretsmanager-env
+          volumeMounts:
+            - mountPath: /var/lib/secretsmanager/postgresql/data
+              name: secretsmanager-pgdata
+      volumes:
+        - name: secretsmanager-pgdata
+          persistentVolumeClaim:
+            claimName: secretsmanager-pgdata

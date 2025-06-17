@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: governor-pgdata
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: governor-postgres
+spec:
+  selector:
+    app: governor-postgres
+  ports:
+    - protocol: TCP
+      port: 5435
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: governor-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: governor-postgres
+  template:
+    metadata:
+      labels:
+        app: governor-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: governor-env
+          volumeMounts:
+            - mountPath: /var/lib/governor/postgresql/data
+              name: governor-pgdata
+      volumes:
+        - name: governor-pgdata
+          persistentVolumeClaim:
+            claimName: governor-pgdata
