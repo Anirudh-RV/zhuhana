@@ -33,12 +33,21 @@ func RegisterOrderManagerRoutesV1(
 			},
 		}
 
+		go logger.Info("order manager handler created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
+
 		orderManagerController := controllers.NewOrderManagerController(
 			logger, orderManagerService, orderManagerControllerHandlers)
 
-		orderManagerRoutes.GET("/ping", func(c *gin.Context) {
+		go logger.Info("order manager controller created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
 
+		orderManagerRoutes.GET("/ping", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"status": "ok",
+			})
 		})
+
+		orderManagerRoutes.POST("/submit", orderManagerController.SubmitOrder)
+
 	}
 
 }

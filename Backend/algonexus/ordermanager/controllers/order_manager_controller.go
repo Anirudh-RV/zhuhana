@@ -4,6 +4,11 @@ import (
 	"algonexus/logger"
 	"algonexus/ordermanager/models"
 	"algonexus/ordermanager/services"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 type OrderDomainHandlerFunc func(*models.OrderRequest) (*models.OrderResponse, error)
@@ -22,24 +27,36 @@ func NewOrderManagerController(logger *logger.Logger, orderManagerService *servi
 	}
 }
 
-func (omc *OrderManagerController) SubmitOrder(req *models.OrderRequest) (*models.OrderResponse, error) {
-	//if err := req.Validate(); err != nil {
-	//	return nil, fmt.Errorf("validation failed: %w", err)
-	//}
+func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 
-	// ======= Backtest For Now =======
-	//var order = req.Order
-	//
-	//var orderRequest = &models.OrderRequest{
-	//	Order:     order,
-	//	OrderID:   uuid.New().String(),
-	//	Timestamp: time.Now(),
-	//}
+	var req models.Order
 
-	//if err != nil {
-	//	s.logger.Error("Error occurs in order request submission", zap.Error(err))
-	//	return nil, err
-	//}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		omc.logger.Error("failed to parse order request", zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request format"})
+		return
+	}
 
-	return nil, nil
+	handler, ok := omc.handlers[req.Domain]
+
+	if !ok {
+		c.JSON(http.StatusNotImplemented, gin.H{"error": "unsupported domain"})
+		return
+	}
+
+	var orderRequest = &models.OrderRequest{
+		Order:     req,
+		OrderID:   uuid.New().String(),
+		Timestamp: time.Now(),
+	}
+
+	res, err := handler(orderRequest)
+	if err != nil {
+		omc.logger.Error("handler error", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+
 }
