@@ -3,7 +3,6 @@ package services
 import (
 	logger "algonexus/logger"
 	orderLogger "algonexus/ordermanager/logger"
-	"algonexus/ordermanager/models"
 )
 
 type OrderManagerService struct {
@@ -17,9 +16,4 @@ func NewOrderManagerService(logger *logger.Logger) *OrderManagerService {
 		logger:      logger,
 		orderLogger: orderlogger,
 	}
-}
-
-func (service *OrderManagerService) SubmitOrder(req models.OrderRequest) (*models.OrderResponse, error) {
-	// TODO
-	return nil, nil
 }

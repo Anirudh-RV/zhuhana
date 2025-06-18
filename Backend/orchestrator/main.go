@@ -40,5 +40,8 @@ func main() {
 	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
-	router.Run(":8080")
+	err := router.Run(":8080")
+	if err != nil {
+		return
+	}
 }
