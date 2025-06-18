@@ -47,13 +47,13 @@ const (
 // Order represents a trade order in the system.
 // It includes fields for the symbol, side, quantity, price, and type of the order.
 type Order struct {
-	Symbol      string          `json:"symbol"` // Stock symbol, e.g., "AAPL", "GOOGL"
-	Mode        OrderMode       `json:"mode"`
-	Side        OrderSide       `json:"side"`
-	Type        OrderType       `json:"type"`   // Type of order, e.g., "MARKET", "LIMIT"
-	Domain      OrderDomain     `json:"domain"` // Trading domain, e.g., "NASDAQ"
+	Symbol      string          `json:"symbol" binding:"required"` // Stock symbol, e.g., "AAPL", "GOOGL"
+	Mode        OrderMode       `json:"mode" binding:"required"`
+	Side        OrderSide       `json:"side" binding:"required"`
+	Type        OrderType       `json:"type" binding:"required"` // Type of order, e.g., "MARKET", "LIMIT"
+	Domain      OrderDomain     `json:"domain"`                  // Trading domain, e.g., "NASDAQ"
 	TimeInForce TimeInForceType `json:"time_in_force"`
-	Quantity    float64         `json:"quantity"` // Number of shares
-	Price       float64         `json:"price"`    // Price per share for limit orders
-	Priority    int             `json:"priority"` // Priority of the order, lower values indicate higher priority
+	Quantity    float64         `json:"quantity" binding:"required"` // Number of shares
+	Price       float64         `json:"price" binding:"required" `   // Price per share for limit orders
+	Priority    int             `json:"priority"`                    // Priority of the order, lower values indicate higher priority
 }

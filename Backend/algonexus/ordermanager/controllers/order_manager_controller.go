@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-type OrderDomainHandlerFunc func(*models.OrderRequest) (*models.OrderResponse, error)
+type OrderHandlerFunc func(*models.OrderRequest) (*models.OrderResponse, error)
 
 type OrderManagerController struct {
 	logger   *logger.Logger
 	service  *services.OrderManagerService
-	handlers map[models.OrderDomain]OrderDomainHandlerFunc
+	handlers map[models.OrderMode]OrderHandlerFunc
 }
 
-func NewOrderManagerController(logger *logger.Logger, orderManagerService *services.OrderManagerService, handlers map[models.OrderDomain]OrderDomainHandlerFunc) *OrderManagerController {
+func NewOrderManagerController(logger *logger.Logger, orderManagerService *services.OrderManagerService, handlers map[models.OrderMode]OrderHandlerFunc) *OrderManagerController {
 	return &OrderManagerController{
 		logger:   logger,
 		service:  orderManagerService,
@@ -37,10 +37,11 @@ func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 		return
 	}
 
-	handler, ok := omc.handlers[req.Domain]
+	handler, ok := omc.handlers[req.Mode]
 
 	if !ok {
-		c.JSON(http.StatusNotImplemented, gin.H{"error": "unsupported domain"})
+		omc.logger.Info("invalid trade mode")
+		c.JSON(http.StatusNotImplemented, gin.H{"error": "unsupported trade mode (has to be backtest/live/paper)"})
 		return
 	}
 
