@@ -5,7 +5,7 @@ services:
       dockerfile: dockerfiles/Dockerfile-local
     container_name: algonexus-container
     ports:
-      - "8012:8080"
+      - "8080:${PORT}"
     env_file:
       - ../env/local-env.env
     volumes:
@@ -14,6 +14,8 @@ services:
     depends_on:
       - algonexus-postgres
       - algonexus-redis
+      - algonexus-zookeeper
+      - algonexus-kafka
 
   algonexus-postgres:
     image: postgres:17
@@ -23,7 +25,7 @@ services:
     volumes:
       - algonexus_pgdata:/var/lib/postgresql/data
     ports:
-      - "5423:5432"
+      - "5423:${POSTGRES_PORT}"
     restart: unless-stopped
 
   algonexus-redis:
@@ -31,7 +33,49 @@ services:
     container_name: algonexus-redis-container
     command: ["redis-server", "--requirepass", "password"]
     ports:
-      - "6350:6379"
+      - "6350:${REDIS_PORT}"
+    env_file:
+      - ../env/local-env.env
+
+  algonexus-zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: algonexus-zookeeper-container
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2281
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2281:${ZOOKEEPER_PORT}"
+    volumes:
+      - algonexus_zookeeper_data:/var/lib/zookeeper/data
+      - algonexus_zookeeper_datalog:/var/lib/zookeeper/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "2281"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  algonexus-kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: algonexus-eventqueue-container
+    depends_on:
+      algonexus-zookeeper:
+        condition: service_healthy
+    ports:
+      - "9192:${KAFKA_PORT}"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: algonexus-zookeeper:2281
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://algonexus-eventqueue:9192
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9192
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    restart: unless-stopped
+    volumes:
+      - algonexus_kafka_data:/var/lib/eventqueue/data
+
 
 volumes:
   algonexus_pgdata:
+  algonexus_zookeeper_data:
+  algonexus_zookeeper_datalog:
+  algonexus_kafka_data:

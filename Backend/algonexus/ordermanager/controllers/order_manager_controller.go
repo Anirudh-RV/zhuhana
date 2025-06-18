@@ -2,49 +2,44 @@ package controllers
 
 import (
 	"algonexus/logger"
+	"algonexus/ordermanager/models"
 	"algonexus/ordermanager/services"
 )
 
+type OrderDomainHandlerFunc func(*models.OrderRequest) (*models.OrderResponse, error)
+
 type OrderManagerController struct {
-	log                 *logger.Logger
-	orderManagerService *services.OrderManagerService
+	logger   *logger.Logger
+	service  *services.OrderManagerService
+	handlers map[models.OrderDomain]OrderDomainHandlerFunc
 }
 
-func NewOrderManagerController(log *logger.Logger, orderManagerService *services.OrderManagerService) *OrderManagerController {
+func NewOrderManagerController(logger *logger.Logger, orderManagerService *services.OrderManagerService, handlers map[models.OrderDomain]OrderDomainHandlerFunc) *OrderManagerController {
 	return &OrderManagerController{
-		log:                 log,
-		orderManagerService: orderManagerService,
+		logger:   logger,
+		service:  orderManagerService,
+		handlers: handlers,
 	}
 }
 
-func (omc *OrderManagerController) HandleSubmitOrder(c *gin.Context) {
-	var order models.Order
-	if err := json.NewDecoder(c.Request.Body).Decode(&order); err != nil {
-		c.JSON(http.StatusBadRequest, models.OrderResponse{
-			Status:  string(models.ResponseStatusError),
-			Message: "Invalid request payload",
-		})
-		return
-	}
+func (omc *OrderManagerController) SubmitOrder(req *models.OrderRequest) (*models.OrderResponse, error) {
+	//if err := req.Validate(); err != nil {
+	//	return nil, fmt.Errorf("validation failed: %w", err)
+	//}
 
-	var orderRequest models.OrderRequest
+	// ======= Backtest For Now =======
+	//var order = req.Order
+	//
+	//var orderRequest = &models.OrderRequest{
+	//	Order:     order,
+	//	OrderID:   uuid.New().String(),
+	//	Timestamp: time.Now(),
+	//}
 
-	orderRequest.Order = order
-	orderRequest.Timestamp = time.Now()
-	orderRequest.OrderID = uuid.New().String()
+	//if err != nil {
+	//	s.logger.Error("Error occurs in order request submission", zap.Error(err))
+	//	return nil, err
+	//}
 
-	// WebSocket Streaming
-	resp, err := omc.orderManagerService.SubmitOrder(&orderRequest)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.OrderResponse{
-			Status:  string(models.ResponseStatusError),
-			Message: "Internal Server Error",
-		})
-		return
-	}
-
-	resp.Status = string(models.ResponseStatusSubmitted)
-	resp.Message = "Order successfully submitted"
-	c.JSON(http.StatusCreated, resp)
-
+	return nil, nil
 }
