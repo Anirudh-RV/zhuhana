@@ -22,4 +22,5 @@ func NewOrderManagerService(logger *logger.Logger) *OrderManagerService {
 func (oms *OrderManagerService) SubmitQueuedOrder(req *models.OrderRequest) (*models.OrderResponse, error) {
 	//Round trip, sync (catch response) in service and return to controller
 
+	return nil, nil
 }

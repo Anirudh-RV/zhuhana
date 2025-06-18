@@ -1,0 +1,13 @@
+set shell := ["powershell.exe", "-c"]
+
+build:
+	docker compose --env-file env/local-env.env -f docker-compose/docker-compose-local.yml up -d --build
+
+up:
+	docker-compose --env-file env/local-env.env -f docker-compose/docker-compose-local.yml up --build
+
+down:
+	docker-compose -f docker-compose/docker-compose-local.yml down
+
+restart service:
+    docker compose --env-file env/local-env.env -f docker-compose/docker-compose-local.yml restart {{service}}

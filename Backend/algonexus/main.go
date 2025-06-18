@@ -4,6 +4,7 @@ import (
 	"algonexus/cache"
 	"algonexus/constants"
 	"algonexus/db"
+	"algonexus/eventqueue"
 	"algonexus/logger"
 	"algonexus/middleware"
 	"algonexus/routes"
@@ -25,6 +26,9 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
 
+	rsEventqueue := eventqueue.NewRedisStreamEventQueue(ctx, log)
+	go log.Info("RedisStreams connection successful", zap.String("Execution Level", "Root"))
+
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
@@ -37,7 +41,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, rsEventqueue, authMiddleware)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

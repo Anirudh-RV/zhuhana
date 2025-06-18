@@ -16,10 +16,10 @@ type OrderHandlerFunc func(*models.OrderRequest) (*models.OrderResponse, error)
 type OrderManagerController struct {
 	logger   *logger.Logger
 	service  *services.OrderManagerService
-	handlers map[models.OrderMode]OrderHandlerFunc
+	handlers map[models.OrderDomain]OrderHandlerFunc
 }
 
-func NewOrderManagerController(logger *logger.Logger, orderManagerService *services.OrderManagerService, handlers map[models.OrderMode]OrderHandlerFunc) *OrderManagerController {
+func NewOrderManagerController(logger *logger.Logger, orderManagerService *services.OrderManagerService, handlers map[models.OrderDomain]OrderHandlerFunc) *OrderManagerController {
 	return &OrderManagerController{
 		logger:   logger,
 		service:  orderManagerService,
@@ -37,7 +37,7 @@ func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 		return
 	}
 
-	handler, ok := omc.handlers[req.Mode]
+	handler, ok := omc.handlers[req.Domain]
 
 	if !ok {
 		omc.logger.Info("invalid trade mode")

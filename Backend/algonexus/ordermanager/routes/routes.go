@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"algonexus/eventqueue"
 	logger "algonexus/logger"
 	"algonexus/ordermanager/controllers"
 	"algonexus/ordermanager/controllers/handlers"
@@ -20,14 +21,16 @@ func RegisterOrderManagerRoutesV1(
 	logger *logger.Logger,
 	db *sql.DB,
 	redis *redis.Client,
+	redisEQ *eventqueue.RedisStreamEventQueue,
 	auth gin.HandlerFunc,
 ) {
+
 	orderManagerRoutes := r.Group("ordermanager/")
 	{
 		orderManagerService := services.NewOrderManagerService(logger)
 		go logger.Info("order manager service created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
 
-		orderManagerControllerHandlers := map[models.OrderDomain]controllers.OrderDomainHandlerFunc{
+		orderManagerControllerHandlers := map[models.OrderDomain]controllers.OrderHandlerFunc{
 			models.DomainBacktest: func(req *models.OrderRequest) (*models.OrderResponse, error) {
 				return handlers.SubmitBacktestOrder(req)
 			},
