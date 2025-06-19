@@ -4,7 +4,7 @@ import (
 	"algonexus/cache"
 	"algonexus/constants"
 	"algonexus/db"
-	"algonexus/eventqueue"
+	EQservices "algonexus/eventqueue/services"
 	"algonexus/logger"
 	"algonexus/middleware"
 	"algonexus/routes"
@@ -26,7 +26,7 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
 
-	rsOrderService := eventqueue.NewRsOrderService(log)
+	rsOrderService := EQservices.NewRsOrderService(log)
 	go log.Info("RedisStreams event queue init successful", zap.String("Execution Level", "Root"))
 
 	rsOrderService.StartAll(ctx)

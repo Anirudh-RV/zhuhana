@@ -9,14 +9,16 @@ import (
 type RsOrderConsumerMsgHandler struct{}
 
 func (h *RsOrderConsumerMsgHandler) Handle(ctx context.Context, msg redis.XMessage) error {
-	orderIDVal, ok := msg.Values["order_id"]
-	if !ok {
-		return fmt.Errorf("missing order_id in message %s", msg.ID)
+
+	if msg.ID == "" {
+		return fmt.Errorf("invalid msg id")
 	}
-	orderID, ok := orderIDVal.(string)
+	data, ok := msg.Values["data"]
 	if !ok {
-		return fmt.Errorf("order_id is not string in message %s", msg.ID)
+		return fmt.Errorf("missing data in message %s", msg.ID)
 	}
+
+	fmt.Printf("Wow, order consumed: %s", data.(string))
 
 	return nil
 }

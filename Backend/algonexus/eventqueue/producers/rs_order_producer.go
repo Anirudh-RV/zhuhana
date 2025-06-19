@@ -22,7 +22,7 @@ func NewRsOrderProducer(logger *logger.Logger, rsEventQueue *eventqueue.RedisStr
 	}
 }
 
-func (p *RsOrderProducer) SendEvent(ctx context.Context, stream string, values map[string]interface{}) error {
+func (p *RsOrderProducer) Produce(ctx context.Context, stream string, values map[string]interface{}) error {
 	args := &redis.XAddArgs{
 		Stream: stream,
 		Values: values,
@@ -40,9 +40,9 @@ func (p *RsOrderProducer) SendEvent(ctx context.Context, stream string, values m
 
 	p.Logger.Info("Producer XAdd Done",
 		zap.String("stream", stream),
+		zap.String("msgID", id),
 		zap.String("execution level", "EventQueue Producer"),
 	)
 
-	fmt.Printf("Event sent to %s with ID: %s\n", stream, id)
 	return nil
 }

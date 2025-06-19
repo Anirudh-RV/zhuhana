@@ -43,12 +43,13 @@ func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStrea
 	}
 
 	return &RsOrderConsumer{
-		Logger:       logger,
-		EventQueue:   eventQueue,
-		Group:        group,
-		ConsumerName: consumer,
-		StreamKey:    stream,
-		WaitGroup:    &sync.WaitGroup{},
+		Logger:         logger,
+		EventQueue:     eventQueue,
+		Group:          group,
+		ConsumerName:   consumer,
+		StreamKey:      stream,
+		WaitGroup:      &sync.WaitGroup{},
+		MessageHandler: &RsOrderConsumerMsgHandler{},
 	}
 }
 
@@ -83,6 +84,11 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 		return
 	}
 
+	if entries == nil {
+		c.Logger.Warning("XReadGroup returned nil entries")
+		return
+	}
+
 	for _, stream := range entries {
 		for _, msg := range stream.Messages {
 			c.WaitGroup.Add(1)
@@ -98,8 +104,11 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 				if err != nil {
 					c.Logger.Error("XAck failed", zap.String("msgID", msg.ID), zap.Error(err))
 				}
+
+				c.Logger.Info("Message received", zap.String("msgID", msg.ID))
 			}(msg)
 		}
+		c.WaitGroup.Wait()
 	}
-	c.WaitGroup.Wait()
+
 }

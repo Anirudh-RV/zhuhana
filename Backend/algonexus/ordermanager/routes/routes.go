@@ -1,11 +1,9 @@
 package routes
 
 import (
-	"algonexus/eventqueue"
+	EQservices "algonexus/eventqueue/services"
 	logger "algonexus/logger"
 	"algonexus/ordermanager/controllers"
-	"algonexus/ordermanager/controllers/handlers"
-	"algonexus/ordermanager/models"
 	"algonexus/ordermanager/services"
 	"go.uber.org/zap"
 
@@ -21,25 +19,17 @@ func RegisterOrderManagerRoutesV1(
 	logger *logger.Logger,
 	db *sql.DB,
 	redis *redis.Client,
-	rsOrderService *eventqueue.RsOrderService,
+	rsOrderService *EQservices.RsOrderService,
 	auth gin.HandlerFunc,
 ) {
 
 	orderManagerRoutes := r.Group("ordermanager/")
 	{
-		orderManagerService := services.NewOrderManagerService(logger)
+		orderManagerService := services.NewOrderManagerService(logger, rsOrderService)
 		go logger.Info("order manager service created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
 
-		orderManagerControllerHandlers := map[models.OrderDomain]controllers.OrderHandlerFunc{
-			models.DomainBacktest: func(req *models.OrderRequest) (*models.OrderResponse, error) {
-				return handlers.SubmitBacktestOrder(req)
-			},
-		}
-
-		go logger.Info("order manager handler created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
-
 		orderManagerController := controllers.NewOrderManagerController(
-			logger, orderManagerService, orderManagerControllerHandlers)
+			logger, orderManagerService)
 
 		go logger.Info("order manager controller created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
 

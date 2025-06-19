@@ -2,7 +2,7 @@ package routes
 
 import (
 	_ "algonexus/docs"
-	"algonexus/eventqueue"
+	EQservices "algonexus/eventqueue/services"
 	logger "algonexus/logger"
 	"database/sql"
 
@@ -14,7 +14,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, rsOrderService *eventqueue.RsOrderService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, rsOrderService *EQservices.RsOrderService, authMiddleware gin.HandlerFunc) {
 
 	v1 := r.Group("/v1/algonexus")
 	{
