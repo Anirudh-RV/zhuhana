@@ -11,9 +11,9 @@ services:
     env_file:
       - ../env/local-env.env
     restart: unless-stopped
-    depends_on:
-      - algonexus-postgres
-      - algonexus-redis
+#    depends_on:
+#      - algonexus-postgres
+#      - algonexus-redis
 
   algonexus-postgres:
     image: postgres:17

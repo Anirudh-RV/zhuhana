@@ -1,10 +1,10 @@
 package routes
 
 import (
+	_ "algonexus/docs"
+	EQservices "algonexus/eventqueue/services"
 	logger "algonexus/logger"
 	"database/sql"
-
-	_ "algonexus/docs"
 
 	ordermanagerroutes "algonexus/ordermanager/routes"
 
@@ -14,7 +14,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, rsOrderService *EQservices.RsOrderService, authMiddleware gin.HandlerFunc) {
+
 	v1 := r.Group("/v1/algonexus")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -23,6 +24,6 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 				"status": "ok",
 			})
 		})
-		ordermanagerroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, authMiddleware)
+		ordermanagerroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, rsOrderService, authMiddleware)
 	}
 }
