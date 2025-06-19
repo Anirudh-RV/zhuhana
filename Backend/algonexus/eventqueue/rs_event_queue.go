@@ -11,9 +11,8 @@ import (
 )
 
 type RedisStreamEventQueue struct {
-	ctx    context.Context
-	rdb    *redis.Client
-	logger *logger.Logger
+	Client *redis.Client
+	Logger *logger.Logger
 }
 
 func NewRedisStreamEventQueue(ctx context.Context, logger *logger.Logger) *RedisStreamEventQueue {
@@ -38,8 +37,7 @@ func NewRedisStreamEventQueue(ctx context.Context, logger *logger.Logger) *Redis
 	}
 
 	return &RedisStreamEventQueue{
-		ctx:    ctx,
-		rdb:    rdb,
-		logger: logger,
+		Client: rdb,
+		Logger: logger,
 	}
 }

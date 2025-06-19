@@ -1,14 +1,16 @@
 package services
 
 import (
+	"algonexus/eventqueue"
 	logger "algonexus/logger"
 	orderLogger "algonexus/ordermanager/logger"
 	"algonexus/ordermanager/models"
 )
 
 type OrderManagerService struct {
-	logger      *logger.Logger           //System-level Logger
-	orderLogger *orderLogger.OrderLogger // Trade Information Logger
+	logger         *logger.Logger           //System-level Logger
+	orderLogger    *orderLogger.OrderLogger // Trade Information Logger
+	rsOrderService *eventqueue.RsOrderService
 }
 
 func NewOrderManagerService(logger *logger.Logger) *OrderManagerService {

@@ -14,7 +14,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, redisEQ *eventqueue.RedisStreamEventQueue, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, rsOrderService *eventqueue.RsOrderService, authMiddleware gin.HandlerFunc) {
 
 	v1 := r.Group("/v1/algonexus")
 	{
@@ -24,6 +24,6 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 				"status": "ok",
 			})
 		})
-		ordermanagerroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, redisEQ, authMiddleware)
+		ordermanagerroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, rsOrderService, authMiddleware)
 	}
 }

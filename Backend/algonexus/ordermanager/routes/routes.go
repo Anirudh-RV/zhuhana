@@ -21,7 +21,7 @@ func RegisterOrderManagerRoutesV1(
 	logger *logger.Logger,
 	db *sql.DB,
 	redis *redis.Client,
-	redisEQ *eventqueue.RedisStreamEventQueue,
+	rsOrderService *eventqueue.RsOrderService,
 	auth gin.HandlerFunc,
 ) {
 
