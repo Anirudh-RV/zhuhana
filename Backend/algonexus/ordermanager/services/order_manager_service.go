@@ -38,7 +38,7 @@ func (oms *OrderManagerService) SubmitQueuedOrder(req *models.OrderRequest) (*mo
 		OrderDetails:  req.Order,
 		SubmitTime:    req.Timestamp,
 		BrokerOrderID: "SIM-" + uuid.New().String(),
-		Status:        models.ResponseStatusSubmitted,
+		Status:        models.StatusSubmitted,
 		Message:       "Order successfully accepted in simulation.",
 		Fills:         []models.OrderFill{},
 		Time:          time.Now(),
