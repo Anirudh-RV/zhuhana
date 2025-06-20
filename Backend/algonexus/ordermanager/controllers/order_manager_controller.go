@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"algonexus/logger"
+	"algonexus/ordermanager/controllers/orderfsm"
 	"algonexus/ordermanager/models"
 	"algonexus/ordermanager/services"
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -36,18 +38,20 @@ func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 	}
 
 	var orderRequest = &models.OrderRequest{
-		Order:     req,
-		OrderID:   uuid.New().String(),
-		Timestamp: time.Now(),
+		Order:           req,
+		OrderID:         uuid.New().String(),
+		Timestamp:       time.Now(),
+		ResponseChannel: make(chan models.OrderResponse, 1),
 	}
 
 	var err error = nil
-	var response *models.OrderResponse = nil
+
+	orderFSM := orderfsm.NewOrderFSM(orderRequest)
 
 	switch req.Domain {
 	case models.DomainBacktest:
 		omc.logger.Info("backtest order received")
-		response, err = omc.SubmitBacktestOrder(orderRequest)
+		err = omc.HandleBacktestOrder(orderFSM)
 		omc.logger.Info("backtest order submitted")
 	default:
 		omc.logger.Info("invalid trade mode")
@@ -55,16 +59,16 @@ func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 		return
 	}
 
-	if err != nil || response == nil {
+	if err != nil {
 		omc.logger.Error("handler error", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{"msg": "success!"})
 }
 
-func (c *OrderManagerController) SubmitBacktestOrder(req *models.OrderRequest) (*models.OrderResponse, error) {
+func (c *OrderManagerController) HandleBacktestOrder(order *orderfsm.OrderFSM) error {
 	//return &models.OrderResponse{
 	//	OrderID:       req.OrderID,
 	//	OrderDetails:  req.Order,
@@ -76,15 +80,47 @@ func (c *OrderManagerController) SubmitBacktestOrder(req *models.OrderRequest) (
 	//	Time:          time.Now(),
 	//}, nil
 
+	err := order.Transition(models.StatusPendingSend)
+	if err != nil {
+		return err
+	}
+
 	c.logger.Info("order pending to submit to queue")
-	response, err := c.service.SubmitQueuedOrder(req)
+
+	err = c.service.EnqueueOrder(order.OrderRequest)
 
 	if err != nil {
-		c.logger.Error("order submitted failed", zap.Error(err))
-		return nil, err
+		c.logger.Error("order enqueue failed", zap.Error(err))
+		return err
+	}
+
+	err = order.Transition(models.StatusEnqueued)
+	if err != nil {
+		return err
 	}
 
 	c.logger.Info("order submitted to queue")
-	
-	return response, nil
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		select {
+		case resp := <-order.OrderRequest.ResponseChannel:
+			c.logger.Info("order was consumed",
+				zap.String("order ID", resp.OrderID),
+				zap.String("status", string(resp.Status)))
+
+			err := order.Transition(resp.Status)
+			if err != nil {
+				c.logger.Error("Order Status Transition Error")
+				return
+			}
+		case <-ctx.Done(): //timeout
+			return
+		default:
+			c.logger.Warning("Response channel unavailable or closed (timeout)")
+		}
+	}()
+
+	return nil
 }

@@ -6,8 +6,6 @@ import (
 	orderLogger "algonexus/ordermanager/logger"
 	"algonexus/ordermanager/models"
 	"context"
-	"github.com/google/uuid"
-	"time"
 )
 
 type OrderManagerService struct {
@@ -25,22 +23,13 @@ func NewOrderManagerService(logger *logger.Logger, orderservice *EQservices.RsOr
 	}
 }
 
-func (oms *OrderManagerService) SubmitQueuedOrder(req *models.OrderRequest) (*models.OrderResponse, error) {
+func (oms *OrderManagerService) EnqueueOrder(req *models.OrderRequest) error {
 	var ctx = context.Background()
 	//Round trip, sync (catch response) in service and return to controller
 
 	err := oms.rsOrderService.PushOrder(ctx, *req)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &models.OrderResponse{
-		OrderID:       req.OrderID,
-		OrderDetails:  req.Order,
-		SubmitTime:    req.Timestamp,
-		BrokerOrderID: "SIM-" + uuid.New().String(),
-		Status:        models.StatusSubmitted,
-		Message:       "Order successfully accepted in simulation.",
-		Fills:         []models.OrderFill{},
-		Time:          time.Now(),
-	}, nil
+	return nil
 }
