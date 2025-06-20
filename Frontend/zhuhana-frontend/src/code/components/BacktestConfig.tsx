@@ -44,7 +44,7 @@ export default function BacktestConfig() {
       <ToggleButtonGroup
         value={timeDuration}
         exclusive
-        onChange={(e, val) => val && setTimeDuration(val)}
+        onChange={(_e, val) => val && setTimeDuration(val)}
         fullWidth
         sx={{ mb: 2 }}
       >
@@ -88,7 +88,7 @@ export default function BacktestConfig() {
       <ToggleButtonGroup
         value={frequency}
         exclusive
-        onChange={(e, val) => val && setFrequency(val)}
+        onChange={(_e, val) => val && setFrequency(val)}
         sx={{ mb: 2 }}
       >
         <ToggleButton value="15">15</ToggleButton>

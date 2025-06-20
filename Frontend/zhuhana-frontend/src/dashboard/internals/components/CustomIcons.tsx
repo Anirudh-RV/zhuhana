@@ -1,5 +1,4 @@
-import * as React from 'react';
-import SvgIcon from '@mui/material/SvgIcon';
+import SvgIcon from "@mui/material/SvgIcon";
 
 export function SitemarkIcon() {
   return (
@@ -55,7 +54,12 @@ export function SitemarkIcon() {
 export function IndiaFlag() {
   return (
     <SvgIcon>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="none"
+      >
         <g clipPath="url(#a)">
           <mask
             id="b"
@@ -317,7 +321,12 @@ export function GlobeFlag() {
         </g>
         <defs>
           <clipPath id="clip0_986_1789">
-            <rect width="24" height="24" fill="white" transform="translate(0 0.5)" />
+            <rect
+              width="24"
+              height="24"
+              fill="white"
+              transform="translate(0 0.5)"
+            />
           </clipPath>
         </defs>
       </svg>

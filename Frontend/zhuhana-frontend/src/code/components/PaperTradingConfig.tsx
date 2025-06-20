@@ -1,6 +1,4 @@
-import React from "react";
-import { Typography, TextField, Stack, InputAdornment } from "@mui/material";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import { Typography } from "@mui/material";
 
 export default function PaperTradeConfig() {
   return (

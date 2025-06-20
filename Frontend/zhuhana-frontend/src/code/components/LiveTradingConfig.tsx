@@ -1,6 +1,4 @@
-import React from "react";
-import { Typography, Alert, TextField, InputAdornment } from "@mui/material";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import { Typography } from "@mui/material";
 
 export default function LiveTradeConfig() {
   return (

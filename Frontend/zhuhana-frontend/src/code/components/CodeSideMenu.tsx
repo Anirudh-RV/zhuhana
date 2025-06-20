@@ -49,7 +49,7 @@ export default function CodeSideMenu() {
         <ToggleButtonGroup
           value={mode}
           exclusive
-          onChange={(e, newMode) => newMode && setMode(newMode)}
+          onChange={(_e, newMode) => newMode && setMode(newMode)}
           fullWidth
           sx={{ mb: 2 }}
         >
