@@ -29,6 +29,10 @@ const defaultPythonCode = `def greet(name):\n    return f"Hello, {name}"\n\nprin
 export default function CodeEditorDashboard(props: {
   disableCustomTheme?: boolean;
 }) {
+  useEffect(() => {
+    document.title = "Zhuhana - Algorithm IDE";
+  }, []);
+
   const [code, setCode] = useState(defaultPythonCode);
   const [terminalOutput, setTerminalOutput] = useState(
     ">> Terminal ready...\n"
