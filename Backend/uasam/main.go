@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 	"uasam/cache"
 	"uasam/commonutils"
 	"uasam/db"
@@ -9,6 +10,8 @@ import (
 	"uasam/logger"
 	"uasam/middleware"
 	"uasam/routes"
+
+	"github.com/gin-contrib/cors"
 
 	constants "uasam/constants"
 
@@ -36,6 +39,15 @@ func main() {
 
 	router := gin.Default()
 	go log.Info("router setup successful", zap.String("execution level", "Root"))
+
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)
 	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
