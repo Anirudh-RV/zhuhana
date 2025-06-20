@@ -1,4 +1,4 @@
-package orderfsm
+package runtime
 
 import (
 	"algonexus/ordermanager/models"
@@ -24,8 +24,15 @@ var validTransitions = map[OrderStatus][]OrderStatus{
 	models.StatusInTransaction:   {models.StatusBrokerConfirmed, models.StatusError},
 }
 
-// OrderFSM Map-based FSM
-type OrderFSM struct {
+var terminateStatus = map[OrderStatus]struct{}{
+	models.StatusComplete:  {},
+	models.StatusExpired:   {},
+	models.StatusError:     {},
+	models.StatusCancelled: {},
+}
+
+// OrderFlow Map-based FSM
+type OrderFlow struct {
 	OrderID      string
 	OrderRequest *models.OrderRequest
 	status       OrderStatus
@@ -33,8 +40,8 @@ type OrderFSM struct {
 	OnChange     func(from OrderStatus, to OrderStatus) // hook
 }
 
-func NewOrderFSM(orderRequest *models.OrderRequest) *OrderFSM {
-	return &OrderFSM{
+func NewOrderFlow(orderRequest *models.OrderRequest) *OrderFlow {
+	return &OrderFlow{
 		OrderID:      orderRequest.OrderID,
 		OrderRequest: orderRequest,
 		status:       models.StatusNew,
@@ -42,15 +49,15 @@ func NewOrderFSM(orderRequest *models.OrderRequest) *OrderFSM {
 	}
 }
 
-func (fsm *OrderFSM) Current() OrderStatus {
+func (fsm *OrderFlow) Current() OrderStatus {
 	return fsm.status
 }
 
-func (fsm *OrderFSM) GetHistory() []OrderStatusTransition {
+func (fsm *OrderFlow) GetHistory() []OrderStatusTransition {
 	return fsm.history
 }
 
-func (fsm *OrderFSM) CanTransition(to OrderStatus) bool {
+func (fsm *OrderFlow) CanTransition(to OrderStatus) bool {
 	allowed, ok := validTransitions[fsm.status]
 	if !ok {
 		return false
@@ -63,9 +70,14 @@ func (fsm *OrderFSM) CanTransition(to OrderStatus) bool {
 	return false
 }
 
-func (fsm *OrderFSM) Transition(to OrderStatus) error {
+func (fsm *OrderFlow) IsTerminated() bool {
+	_, ok := terminateStatus[fsm.status]
+	return ok
+}
+
+func (fsm *OrderFlow) Transition(to OrderStatus) error {
 	if !fsm.CanTransition(to) {
-		return fmt.Errorf("orderfsm invalid transition: %s → %s", fsm.status, to)
+		return fmt.Errorf("orderflow invalid transition: %s → %s", fsm.status, to)
 	}
 	from := fsm.status
 	fsm.status = to

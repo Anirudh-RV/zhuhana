@@ -49,7 +49,7 @@ func (s *RsOrderService) StartAll(ctx context.Context) {
 	}("strategy-1", s.consumer)
 }
 
-func (s *RsOrderService) PushOrder(ctx context.Context, request models.OrderRequest) error {
+func (s *RsOrderService) PushOrder(ctx context.Context, request *models.OrderRequest) error {
 	jsonBytes, err := json.Marshal(request)
 	if err != nil {
 		s.logger.Error("json marshal failed", zap.Error(err))

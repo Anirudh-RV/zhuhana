@@ -1,35 +1,41 @@
 package services
 
 import (
-	EQservices "algonexus/eventqueue/services"
-	logger "algonexus/logger"
+	"algonexus/logger"
 	orderLogger "algonexus/ordermanager/logger"
 	"algonexus/ordermanager/models"
-	"context"
+	orderHubServices "algonexus/ordermanager/orderhub/services"
 )
 
 type OrderManagerService struct {
-	logger         *logger.Logger           //System-level Logger
-	orderLogger    *orderLogger.OrderLogger // Trade Information Logger
-	rsOrderService *EQservices.RsOrderService
+	logger      *logger.Logger           //System-level Logger
+	orderLogger *orderLogger.OrderLogger // Trade Information Logger
+
+	orderHubService *orderHubServices.OrderHubService
 }
 
-func NewOrderManagerService(logger *logger.Logger, orderservice *EQservices.RsOrderService) *OrderManagerService {
+func NewOrderManagerService(logger *logger.Logger, hubService *orderHubServices.OrderHubService) *OrderManagerService {
 	orderlogger := orderLogger.NewOrderLogger()
 	return &OrderManagerService{
-		logger:         logger,
-		orderLogger:    orderlogger,
-		rsOrderService: orderservice,
+		logger:          logger,
+		orderLogger:     orderlogger,
+		orderHubService: hubService,
 	}
 }
 
-func (oms *OrderManagerService) EnqueueOrder(req *models.OrderRequest) error {
-	var ctx = context.Background()
-	//Round trip, sync (catch response) in service and return to controller
+//func (oms *OrderManagerService) EnqueueOrder(req *models.OrderRequest) error {
+//	var ctx = context.Background()
+//	//Round trip, sync (catch response) in service and return to controller
+//
+//	err := oms.rsOrderService.PushOrder(ctx, *req)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
 
-	err := oms.rsOrderService.PushOrder(ctx, *req)
-	if err != nil {
-		return err
-	}
+func (oms *OrderManagerService) DeliverOrderToHub(req *models.OrderRequest) error {
+	//Register Order Handle in hub first
+	oms.orderHubService.RegisterOrder(req)
 	return nil
 }
