@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import MonacoEditor from "./components/MonacoEditor";
 import CodeSideMenu from "./components/CodeSideMenu";
-import AppNavbar from "../dashboard/components/AppNavbar";
 import LLMPanel from "./components/LLMPanel";
 
 const defaultPythonCode = `def greet(name):\n    return f"Hello, {name}"\n\nprint(greet("World"))`;
@@ -15,9 +14,40 @@ export default function CodeEditorDashboard(props: {
 }) {
   const [code, setCode] = useState(defaultPythonCode);
   const [llmOutput, setLlmOutput] = useState("");
+  const [terminalOutput, setTerminalOutput] = useState(
+    ">> Terminal ready...\n"
+  );
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
+
+  // Default editorHeight = 80% of 100vh - navbar & padding estimate
+  const [editorHeight, setEditorHeight] = useState(
+    () => window.innerHeight * 0.8
+  );
 
   useEffect(() => {
-    document.title = "Zhuhana - Code Editor";
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragInfo.current) return;
+      const delta = e.clientY - dragInfo.current.startY;
+      const newHeight = dragInfo.current.startHeight + delta;
+      setEditorHeight(
+        Math.max(100, Math.min(newHeight, window.innerHeight - 100))
+      ); // clamp values
+    };
+
+    const handleMouseUp = () => {
+      dragInfo.current = null;
+      document.body.style.cursor = "default";
+      document.body.style.userSelect = "auto";
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
   }, []);
 
   const handleSendToLLM = (input: string, onChunk: (token: string) => void) => {
@@ -41,6 +71,7 @@ export default function CodeEditorDashboard(props: {
             const token = line.replace("data: ", "");
             setLlmOutput((prev) => prev + token);
             onChunk(token);
+            setTerminalOutput((prev) => prev + token);
           }
         }
       }
@@ -54,21 +85,68 @@ export default function CodeEditorDashboard(props: {
         {/* Left Panel - Sidebar */}
         <CodeSideMenu />
 
-        {/* Middle Panel - Code Editor */}
-        <Box sx={{ flex: 2, p: 2, display: "flex", flexDirection: "column" }}>
+        {/* Middle Panel - Editor + Terminal */}
+        <Box
+          ref={containerRef}
+          sx={{
+            flex: 2,
+            p: 1,
+            display: "flex",
+            flexDirection: "column",
+            minWidth: 0,
+            height: "100vh", // ensure it's relative to full height
+          }}
+        >
+          {/* Code Editor */}
           <Box
             sx={{
-              flexGrow: 1,
+              height: `${editorHeight}px`,
               border: "1px solid #ccc",
-              borderRadius: 2,
+              borderRadius: 1,
               overflow: "hidden",
             }}
           >
             <MonacoEditor code={code} onChange={(v) => setCode(v ?? "")} />
           </Box>
+
+          {/* Draggable Divider */}
+          <Divider
+            sx={{
+              height: "6px",
+              backgroundColor: "divider",
+              my: 0.5,
+              cursor: "row-resize",
+            }}
+            onMouseDown={(e) => {
+              dragInfo.current = {
+                startY: e.clientY,
+                startHeight: editorHeight,
+              };
+              document.body.style.cursor = "row-resize";
+              document.body.style.userSelect = "none";
+            }}
+          />
+
+          {/* Terminal Output */}
+          <Box
+            sx={{
+              height: `calc(100% - ${editorHeight + 6 + 16}px)`, // 6px divider + 16px (0.5rem x 2) padding offset
+              border: "1px solid #333",
+              borderRadius: 1,
+              backgroundColor: "#111",
+              color: "#0f0",
+              fontFamily: "monospace",
+              fontSize: "0.875rem",
+              p: 1,
+              overflowY: "auto",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {terminalOutput}
+          </Box>
         </Box>
 
-        {/* Right Panel - LLM Panel */}
+        {/* Right Panel - LLM */}
         <Box
           sx={{
             width: "25%",
