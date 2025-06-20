@@ -5,6 +5,7 @@ import Login from "./login/login";
 import SignUp from "./signup/signup";
 import Dashboard from "./dashboard/Dashboard";
 import { AuthProvider } from "./AuthContext";
+import Code from "./code/Code";
 import "./App.css";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/code" element={<Code />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
