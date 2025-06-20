@@ -11,57 +11,78 @@ import (
 )
 
 type OrderHubService struct {
-	Logger         *logger.Logger
-	Orders         map[string]*runtime.OrderHandle
+	logger         *logger.Logger
+	orders         map[string]*runtime.OrderHandle
 	rsOrderService *eqServices.RsOrderService
-	RWmu           sync.RWMutex
+	rwmu           sync.RWMutex
 }
 
 func NewOrderHubService(logger *logger.Logger) *OrderHubService {
 	return &OrderHubService{
-		Logger: logger,
-		Orders: make(map[string]*runtime.OrderHandle),
+		logger: logger,
+		orders: make(map[string]*runtime.OrderHandle),
 	}
 }
 
 func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
-	s.RWmu.Lock()
-	defer s.RWmu.Unlock()
+	s.rwmu.Lock()
+	defer s.rwmu.Unlock()
 	handle := runtime.NewOrderHandle(req)
-	s.Orders[req.OrderID] = handle
+	s.orders[req.OrderID] = handle
+
+	// Producer
 	go func() {
 		err := s.rsOrderService.PushOrder(context.Background(), req)
 		if err != nil {
-			s.Logger.Error("unable to push order request into the event queue", zap.Error(err))
+			s.logger.Error("unable to push order request into the event queue", zap.Error(err))
 			return
 		}
 
-		s.Logger.Info("order successfully enqueued", zap.String("request", req.OrderID))
+		s.logger.Info("order successfully enqueued", zap.String("request", req.OrderID))
 
 		err = handle.OrderFlow.Transition(models.StatusEnqueued)
 		if err != nil {
-			s.Logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
+			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
 			return
 		}
 	}()
+
+	// Listener routine (listen to consumer)
+	go s.Listen(req.OrderID)
+
+}
+
+func (s *OrderHubService) Listen(id string) {
+	s.rwmu.RLock()
+	handle, ok := s.orders[id]
+	s.rwmu.RUnlock()
+
+	if !ok {
+		s.logger.Warning("attempted to listen to unknown order", zap.String("id", id))
+		return
+	}
+
+	for event := range handle.Channel {
+		s.logger.Info("received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
+	}
 }
 
 func (s *OrderHubService) UnregisterOrder(id string) {
-	s.RWmu.Lock()
-	defer s.RWmu.Unlock()
+	s.rwmu.Lock()
+	defer s.rwmu.Unlock()
 
-	orderHandle, ok := s.Orders[id]
+	orderHandle, ok := s.orders[id]
 
 	if !ok {
-		s.Logger.Warning("can't find order", zap.String("orderID", id))
+		s.logger.Warning("can't find order", zap.String("orderID", id))
 		return
 	}
 
 	if !orderHandle.OrderFlow.IsTerminated() {
-		s.Logger.Fatal("Order delete too early!", zap.String("orderID", id))
+		s.logger.Fatal("Order delete too early!", zap.String("orderID", id))
 		return
 	}
 
-	delete(s.Orders, id)
+	delete(s.orders, id)
 
 }
