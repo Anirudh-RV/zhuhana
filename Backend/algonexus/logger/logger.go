@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"runtime"
 	"sync"
 	"time"
 
@@ -31,9 +32,30 @@ func NewLogger() *Logger {
 	return instance
 }
 
+func CallerInfo(fields ...zap.Field) []zap.Field {
+	pc, file, line, ok := runtime.Caller(2)
+	if ok {
+		funcName := runtime.FuncForPC(pc).Name()
+		fields = append(fields,
+			zap.String("caller_func", funcName),
+			zap.String("caller_file", file),
+			zap.Int("caller_line", line),
+		)
+		return fields
+	}
+	return nil
+}
+
+func (l *Logger) Debug(msg string, fields ...zap.Field) {
+	fields = CallerInfo(fields...)
+	fields = append(fields, zap.Time("logged_at", time.Now()))
+	l.zapLogger.Debug(msg, fields...)
+}
+
 // Info logs an informational message with timestamp
 func (l *Logger) Info(msg string, fields ...zap.Field) {
 	fields = append(fields, zap.Time("logged_at", time.Now()))
+
 	l.zapLogger.Info(msg, fields...)
 }
 
