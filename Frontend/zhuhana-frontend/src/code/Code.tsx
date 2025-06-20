@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-const defaultPythonCode = `def greet(name):\n    return f"Hello, {name}"\n\nprint(greet("World"))\n\nimport sys\nsys.stderr.write("This is an error message from stderr\\n")`;
+const defaultPythonCode = `def greet(name):\n    return f"Hello, {name}"\n\nprint(greet("World"))`;
 
 export default function CodeEditorDashboard(props: {
   disableCustomTheme?: boolean;
@@ -60,9 +60,7 @@ export default function CodeEditorDashboard(props: {
       return;
     }
 
-    setTerminalOutput(
-      (prev) => prev + ">> Dynamically loading Pyodide script...\n"
-    );
+    setTerminalOutput((prev) => prev);
     setIsLoadingPyodide(true);
 
     const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
@@ -82,9 +80,7 @@ export default function CodeEditorDashboard(props: {
 
     // Event listener for when the script has loaded
     script.onload = async () => {
-      setTerminalOutput(
-        (prev) => prev + ">> Pyodide script loaded. Initializing runtime...\n"
-      );
+      setTerminalOutput((prev) => prev);
       try {
         if (typeof window.loadPyodide === "function") {
           const pyodide = await window.loadPyodide({
@@ -93,7 +89,10 @@ export default function CodeEditorDashboard(props: {
             stderr: appendStderr.current,
           });
           pyodideInstanceRef.current = pyodide; // Store instance in ref
-          setTerminalOutput((prev) => prev + ">> Python runtime loaded!\n");
+          setTerminalOutput(
+            (prev) =>
+              prev + ">> Python runtime loaded. Run the script to test...\n"
+          );
           console.log("Pyodide successfully loaded and initialized.");
         } else {
           throw new Error(

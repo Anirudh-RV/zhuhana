@@ -9,7 +9,7 @@ TODO:
 
 ## Running frontend for dev
 
-> npm start
+> npm run dev
 
 ## For building the Frontend
 
