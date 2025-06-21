@@ -10,7 +10,32 @@ import (
 	"time"
 )
 
-func LoadTicksFromCSV() ([]models.MarketTick, error) {
+func ParseTick(record []string) models.MarketTick {
+	volume, _ := strconv.Atoi(record[1])
+	open, _ := strconv.ParseFloat(record[2], 64)
+	closePrice, _ := strconv.ParseFloat(record[3], 64)
+	high, _ := strconv.ParseFloat(record[4], 64)
+	low, _ := strconv.ParseFloat(record[5], 64)
+
+	startNs, _ := strconv.ParseInt(record[6], 10, 64)
+	startTime := time.Unix(0, startNs)
+
+	transactions, _ := strconv.Atoi(record[7])
+
+	return *&models.MarketTick{
+		Ticker:       record[0],
+		Volume:       volume,
+		Open:         open,
+		Close:        closePrice,
+		High:         high,
+		Low:          low,
+		Start:        startTime,
+		Transactions: transactions,
+	}
+
+}
+
+func LoadTicksFromCSV(interval time.Duration) ([]models.MarketTick, error) {
 	path := "ordermanager/backtestengine/marketsimulator/marketfeed/repositories/data/csv/polygon_sample.csv"
 
 	cwd, _ := os.Getwd()
@@ -38,30 +63,27 @@ func LoadTicksFromCSV() ([]models.MarketTick, error) {
 			return nil, fmt.Errorf("failed to read record: %w", err)
 		}
 
-		volume, _ := strconv.Atoi(record[1])
-		open, _ := strconv.ParseFloat(record[2], 64)
-		closePrice, _ := strconv.ParseFloat(record[3], 64)
-		high, _ := strconv.ParseFloat(record[4], 64)
-		low, _ := strconv.ParseFloat(record[5], 64)
-
-		startNs, _ := strconv.ParseInt(record[6], 10, 64)
-		startTime := time.Unix(0, startNs)
-
-		transactions, _ := strconv.ParseFloat(record[7], 64)
-
-		tick := models.MarketTick{
-			Ticker:       record[0],
-			Volume:       volume,
-			Open:         open,
-			Close:        closePrice,
-			High:         high,
-			Low:          low,
-			Start:        startTime,
-			Transactions: transactions,
-		}
-
+		tick := ParseTick(record)
 		ticks = append(ticks, tick)
 	}
 
-	return ticks, nil
+	return SampleByInterval(ticks, interval), nil
+}
+
+func SampleByInterval(ticks []models.MarketTick, interval time.Duration) []models.MarketTick {
+	if len(ticks) == 0 {
+		return nil
+	}
+
+	var sampled []models.MarketTick
+	lastTime := ticks[0].Start
+	sampled = append(sampled, ticks[0])
+
+	for _, tick := range ticks[1:] {
+		if tick.Start.Sub(lastTime) >= interval {
+			sampled = append(sampled, tick)
+			lastTime = tick.Start
+		}
+	}
+	return sampled
 }

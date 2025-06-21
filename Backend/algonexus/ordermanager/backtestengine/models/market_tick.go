@@ -4,12 +4,12 @@ import "time"
 
 // MarketTick ticker,volume,open,close,high,low,window_start,transactions
 type MarketTick struct {
-	Ticker       string
-	Volume       int
-	Open         float64
-	Close        float64
-	High         float64
-	Low          float64
-	Start        time.Time
-	Transactions float64
+	Ticker       string    `json:"ticker"`
+	Volume       int       `json:"volume"`
+	Open         float64   `json:"open"`
+	Close        float64   `json:"close"`
+	High         float64   `json:"high"`
+	Low          float64   `json:"low"`
+	Start        time.Time `json:"start"`
+	Transactions int       `json:"transactions"`
 }

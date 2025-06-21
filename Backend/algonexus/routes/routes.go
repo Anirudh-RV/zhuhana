@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"go.uber.org/zap"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -32,7 +33,8 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 		dev := v1.Group("dev")
 		{
 			dev.GET("/loadcsv", func(context *gin.Context) {
-				tickets, err := loaders.LoadTicksFromCSV()
+				dur := 5 * time.Minute
+				tickets, err := loaders.LoadTicksFromCSV(dur)
 
 				if err != nil {
 					log.Error("loadcsv error", zap.Error(err))
