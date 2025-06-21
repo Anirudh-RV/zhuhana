@@ -50,7 +50,7 @@ func (h *RsOrderConsumerMsgHandler) Handle(ctx context.Context, msg redis.XMessa
 		return fmt.Errorf("couldn't find the handle %s", req.OrderID)
 	}
 
-	h.logger.Info("OrderHub Handle Lookup check", zap.String("orderID", string(handle.OrderFlow.Current())))
+	h.logger.Info("OrderHub Handle Lookup check", zap.String("order status", string(handle.OrderFlow.Current())))
 
 	//TODO backtest
 	//Test event

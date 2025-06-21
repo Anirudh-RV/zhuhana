@@ -38,13 +38,13 @@ func (s *OrderHubService) Listen(id string) {
 	handle := s.registry.Get(id)
 
 	if handle == nil {
-		s.logger.Warning("attempted to listen to unknown order", zap.String("id", id))
+		s.logger.Warning("OrderHub attempted to listen to unknown order", zap.String("id", id))
 		return
 	}
 
 	for event := range handle.Channel {
 		//TODO Stop Condition
-		s.logger.Info("received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
+		s.logger.Info("OrderHub received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
 	}
 }
 

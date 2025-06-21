@@ -6,11 +6,15 @@ import (
 	orderHubServices "algonexus/ordermanager/orderhub/services"
 	orderManageRroutes "algonexus/ordermanager/routes"
 	"database/sql"
+	"go.uber.org/zap"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"algonexus/ordermanager/backtestengine/marketsimulator/marketfeed/loaders"
 )
 
 func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
@@ -25,5 +29,26 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 		})
 		orderManageRroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, orderHubService, authMiddleware)
 
+		dev := v1.Group("dev")
+		{
+			dev.GET("/loadcsv", func(context *gin.Context) {
+				tickets, err := loaders.LoadTicksFromCSV()
+
+				if err != nil {
+					log.Error("loadcsv error", zap.Error(err))
+					context.JSON(http.StatusInternalServerError, gin.H{
+						"error": err,
+					})
+				}
+
+				//data, err := json.Marshal(tickets)
+				//if err != nil {
+				//	log.Error("failed to marshal tickets", zap.Error(err))
+				//	return
+				//}
+				//log.Info("tickets", zap.String("data", string(data)))
+				context.JSON(http.StatusOK, tickets)
+			})
+		}
 	}
 }

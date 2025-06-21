@@ -22,10 +22,10 @@ type Logger struct {
 // NewLogger initializes and returns a singleton Logger instance
 func NewLogger() *Logger {
 	once.Do(func() {
-		config := zap.NewProductionConfig()
+		config := zap.NewDevelopmentConfig()
 		config.EncoderConfig.TimeKey = "timestamp"                   // Explicitly set timestamp key
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder // Format as ISO8601
-
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		logger, _ := config.Build()
 		instance = &Logger{zapLogger: logger}
 	})
