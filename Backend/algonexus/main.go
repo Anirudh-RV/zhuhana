@@ -4,9 +4,9 @@ import (
 	"algonexus/cache"
 	"algonexus/constants"
 	"algonexus/db"
-	EQservices "algonexus/eventqueue/services"
 	"algonexus/logger"
 	"algonexus/middleware"
+	orderHubServices "algonexus/ordermanager/orderhub/services"
 	"algonexus/routes"
 	"context"
 
@@ -26,11 +26,9 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
 
-	rsOrderService := EQservices.NewRsOrderService(log)
-	go log.Info("RedisStreams event queue init successful", zap.String("Execution Level", "Root"))
-
-	rsOrderService.StartAll(ctx)
-	go log.Info("RedisStreams event queue is running", zap.String("Execution Level", "Root"))
+	// Algonexus Service-level Infra init
+	orderHubService := orderHubServices.NewOrderHubService(log)
+	go log.Info("OrderHub service started", zap.String("Execution level", "Root"))
 
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
@@ -44,7 +42,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, rsOrderService, authMiddleware)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, orderHubService, authMiddleware)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")
