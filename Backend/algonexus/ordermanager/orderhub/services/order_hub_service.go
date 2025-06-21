@@ -49,12 +49,12 @@ func (s *OrderHubService) Listen(id string) {
 }
 
 func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
-	handle := runtime.NewOrderHandle(req)
-	s.registry.Update(req.OrderID, handle)
+	session := runtime.NewOrderSession(req)
+	s.registry.Update(req.OrderID, session)
 
 	// Producer
 	go func() {
-		err := handle.OrderFlow.Transition(models.StatusPendingSend)
+		err := session.OrderFlow.Transition(models.StatusPendingSend)
 		if err != nil {
 			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
 			return
@@ -68,7 +68,7 @@ func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
 
 		s.logger.Info("order successfully enqueued", zap.String("request", req.OrderID))
 
-		err = handle.OrderFlow.Transition(models.StatusEnqueued)
+		err = session.OrderFlow.Transition(models.StatusEnqueued)
 		if err != nil {
 			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
 			return
@@ -76,6 +76,8 @@ func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
 	}()
 
 	// Listener routine (listen to consumer)
+	// TODO: Refactor listener logic later
+	// TODO: Relocate per-order handling logic into OrderHandle for encapsulation
 	s.logger.Info("started a listener", zap.String("orderId", req.OrderID))
 	go s.Listen(req.OrderID)
 

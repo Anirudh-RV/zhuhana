@@ -33,45 +33,45 @@ services:
     ports:
       - "6378:${REDIS_PORT}"
 
-  algonexus-zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: algonexus-zookeeper-container
-    environment:
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "10067:${ZOOKEEPER_PORT}"
-    volumes:
-      - algonexus_zookeeper_data:/var/lib/zookeeper/data
-      - algonexus_zookeeper_datalog:/var/lib/zookeeper/log
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "${ZOOKEEPER_PORT}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  algonexus-kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: algonexus-kafka-container
-    depends_on:
-      algonexus-zookeeper:
-        condition: service_healthy
-    ports:
-      - "9199:${KAFKA_PORT}"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: algonexus-zookeeper:${ZOOKEEPER_PORT}
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://algonexus-kafka:${KAFKA_PORT}
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:${KAFKA_PORT}
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    restart: unless-stopped
-    volumes:
-      - algonexus_kafka_data:/var/lib/kafka/data
+#  algonexus-zookeeper:
+#    image: confluentinc/cp-zookeeper:7.4.0
+#    container_name: algonexus-zookeeper-container
+#    environment:
+#      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+#      ZOOKEEPER_TICK_TIME: 2000
+#    ports:
+#      - "10067:${ZOOKEEPER_PORT}"
+#    volumes:
+#      - algonexus_zookeeper_data:/var/lib/zookeeper/data
+#      - algonexus_zookeeper_datalog:/var/lib/zookeeper/log
+#    restart: unless-stopped
+#    healthcheck:
+#      test: ["CMD", "echo", "ruok", "|", "nc", "localhost", "${ZOOKEEPER_PORT}"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#
+#  algonexus-kafka:
+#    image: confluentinc/cp-kafka:7.4.0
+#    container_name: algonexus-kafka-container
+#    depends_on:
+#      algonexus-zookeeper:
+#        condition: service_healthy
+#    ports:
+#      - "9199:${KAFKA_PORT}"
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: algonexus-zookeeper:${ZOOKEEPER_PORT}
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://algonexus-kafka:${KAFKA_PORT}
+#      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:${KAFKA_PORT}
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#    restart: unless-stopped
+#    volumes:
+#      - algonexus_kafka_data:/var/lib/kafka/data
 
 
 volumes:
   algonexus_pgdata:
-  algonexus_zookeeper_data:
-  algonexus_zookeeper_datalog:
-  algonexus_kafka_data:
+#  algonexus_zookeeper_data:
+#  algonexus_zookeeper_datalog:
+#  algonexus_kafka_data:
