@@ -49,12 +49,12 @@ func (s *OrderHubService) Listen(id string) {
 }
 
 func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
-	session := runtime.NewOrderSession(req)
-	s.registry.Update(req.OrderID, session)
+	orderSession := runtime.NewOrderSession(req)
+	s.registry.Update(req.OrderID, orderSession)
 
 	// Producer
 	go func() {
-		err := session.OrderFlow.Transition(models.StatusPendingSend)
+		err := orderSession.OrderFlow.Transition(models.StatusPendingSend)
 		if err != nil {
 			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
 			return
@@ -68,7 +68,7 @@ func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
 
 		s.logger.Info("order successfully enqueued", zap.String("request", req.OrderID))
 
-		err = session.OrderFlow.Transition(models.StatusEnqueued)
+		err = orderSession.OrderFlow.Transition(models.StatusEnqueued)
 		if err != nil {
 			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
 			return

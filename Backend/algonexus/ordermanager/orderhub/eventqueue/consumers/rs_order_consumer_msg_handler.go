@@ -44,13 +44,13 @@ func (h *RsOrderConsumerMsgHandler) Handle(ctx context.Context, msg redis.XMessa
 
 	h.logger.Info("Wow, order consumed", zap.String("data", data.(string)))
 
-	session := h.registry.Get(req.OrderID)
-	if session == nil {
+	orderSession := h.registry.Get(req.OrderID)
+	if orderSession == nil {
 		h.logger.Error("couldn't find the handle", zap.String("orderID", req.OrderID))
 		return fmt.Errorf("couldn't find the handle %s", req.OrderID)
 	}
 
-	h.logger.Info("OrderHub session Lookup check", zap.String("order status", string(session.OrderFlow.Current())))
+	h.logger.Info("OrderHub session Lookup check", zap.String("order status", string(orderSession.OrderFlow.Current())))
 
 	//TODO backtest
 	//Test event
@@ -62,7 +62,7 @@ func (h *RsOrderConsumerMsgHandler) Handle(ctx context.Context, msg redis.XMessa
 			Payload:   nil,
 		}
 
-		session.Channel <- *event
+		orderSession.Channel <- *event
 	}()
 
 	return nil
