@@ -2,11 +2,10 @@ package routes
 
 import (
 	_ "algonexus/docs"
-	EQservices "algonexus/eventqueue/services"
-	logger "algonexus/logger"
+	"algonexus/logger"
+	orderHubServices "algonexus/ordermanager/orderhub/services"
+	orderManageRroutes "algonexus/ordermanager/routes"
 	"database/sql"
-
-	ordermanagerroutes "algonexus/ordermanager/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -14,7 +13,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, rsOrderService *EQservices.RsOrderService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
 
 	v1 := r.Group("/v1/algonexus")
 	{
@@ -24,6 +23,7 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 				"status": "ok",
 			})
 		})
-		ordermanagerroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, rsOrderService, authMiddleware)
+		orderManageRroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, orderHubService, authMiddleware)
+
 	}
 }

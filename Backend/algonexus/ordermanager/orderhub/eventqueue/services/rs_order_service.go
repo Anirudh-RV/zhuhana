@@ -1,11 +1,12 @@
 package services
 
 import (
-	"algonexus/eventqueue"
-	"algonexus/eventqueue/consumers"
-	"algonexus/eventqueue/producers"
 	"algonexus/logger"
 	"algonexus/ordermanager/models"
+	"algonexus/ordermanager/orderhub/eventqueue"
+	"algonexus/ordermanager/orderhub/eventqueue/consumers"
+	"algonexus/ordermanager/orderhub/eventqueue/producers"
+	"algonexus/ordermanager/orderhub/registry"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,12 +15,14 @@ import (
 
 type RsOrderService struct {
 	strategyName string
-	consumer     *consumers.RsOrderConsumer // Single consumer
-	producer     *producers.RsOrderProducer
+	registry     *registry.OrderHubRegistry
 	logger       *logger.Logger
+
+	consumer *consumers.RsOrderConsumer // Single consumer
+	producer *producers.RsOrderProducer
 }
 
-func NewRsOrderService(logger *logger.Logger) *RsOrderService {
+func NewRsOrderService(logger *logger.Logger, registry *registry.OrderHubRegistry) *RsOrderService {
 	ctx := context.Background()
 	rsEq := eventqueue.NewRedisStreamEventQueue(ctx, logger)
 
@@ -32,7 +35,7 @@ func NewRsOrderService(logger *logger.Logger) *RsOrderService {
 	var groupName = fmt.Sprintf("group:%s", strategy)
 	var consumerName = fmt.Sprintf("consumer-%s", strategy)
 
-	c := consumers.NewRsOrderConsumer(logger, rsEq, streamKey, groupName, consumerName)
+	c := consumers.NewRsOrderConsumer(logger, rsEq, registry, streamKey, groupName, consumerName)
 
 	return &RsOrderService{
 		strategyName: strategy,
@@ -49,7 +52,7 @@ func (s *RsOrderService) StartAll(ctx context.Context) {
 	}("strategy-1", s.consumer)
 }
 
-func (s *RsOrderService) PushOrder(ctx context.Context, request *models.OrderRequest) error {
+func (s *RsOrderService) PushOrderNonWait(ctx context.Context, request *models.OrderRequest) error {
 	jsonBytes, err := json.Marshal(request)
 	if err != nil {
 		s.logger.Error("json marshal failed", zap.Error(err))

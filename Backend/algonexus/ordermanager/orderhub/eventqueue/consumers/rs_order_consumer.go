@@ -1,8 +1,9 @@
 package consumers
 
 import (
-	"algonexus/eventqueue"
 	"algonexus/logger"
+	"algonexus/ordermanager/orderhub/eventqueue"
+	"algonexus/ordermanager/orderhub/registry"
 	"context"
 	"errors"
 	"github.com/redis/go-redis/v9"
@@ -14,6 +15,7 @@ import (
 type RsOrderConsumer struct {
 	Logger         *logger.Logger
 	EventQueue     *eventqueue.RedisStreamEventQueue
+	Registry       *registry.OrderHubRegistry
 	Group          string
 	ConsumerName   string
 	StreamKey      string
@@ -25,7 +27,7 @@ type StreamMessageHandler interface {
 	Handle(ctx context.Context, msg redis.XMessage) error
 }
 
-func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStreamEventQueue, stream, group, consumer string) *RsOrderConsumer {
+func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStreamEventQueue, registry *registry.OrderHubRegistry, stream, group, consumer string) *RsOrderConsumer {
 	ctx := context.Background()
 
 	err := eventQueue.Client.XGroupCreateMkStream(ctx, stream, group, "0").Err() // Sole consumer
@@ -49,7 +51,7 @@ func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStrea
 		ConsumerName:   consumer,
 		StreamKey:      stream,
 		WaitGroup:      &sync.WaitGroup{},
-		MessageHandler: &RsOrderConsumerMsgHandler{},
+		MessageHandler: NewRsOrderConsumerMsgHandler(logger, registry),
 	}
 }
 
@@ -94,6 +96,7 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 			c.WaitGroup.Add(1)
 			go func(m redis.XMessage) {
 				defer c.WaitGroup.Done()
+				c.Logger.Info("Message received", zap.String("msgID", msg.ID))
 				err := c.MessageHandler.Handle(ctx, msg)
 				if err != nil {
 					c.Logger.Error("Fail to handle message", zap.String("msgID", msg.ID), zap.Error(err))
@@ -104,8 +107,6 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 				if err != nil {
 					c.Logger.Error("XAck failed", zap.String("msgID", msg.ID), zap.Error(err))
 				}
-
-				c.Logger.Info("Message received", zap.String("msgID", msg.ID))
 			}(msg)
 		}
 		c.WaitGroup.Wait()

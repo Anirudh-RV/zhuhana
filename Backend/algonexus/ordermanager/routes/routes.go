@@ -1,9 +1,9 @@
 package routes
 
 import (
-	EQservices "algonexus/eventqueue/services"
 	logger "algonexus/logger"
 	"algonexus/ordermanager/controllers"
+	orderHubServices "algonexus/ordermanager/orderhub/services"
 	"algonexus/ordermanager/services"
 	"go.uber.org/zap"
 
@@ -19,20 +19,21 @@ func RegisterOrderManagerRoutesV1(
 	logger *logger.Logger,
 	db *sql.DB,
 	redis *redis.Client,
-	rsOrderService *EQservices.RsOrderService,
+	orderHubService *orderHubServices.OrderHubService,
 	auth gin.HandlerFunc,
 ) {
 
+	// Manager service init
+	orderManagerService := services.NewOrderManagerService(logger, orderHubService)
+	go logger.Info("order manager service created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
+
+	orderManagerController := controllers.NewOrderManagerController(
+		logger, orderManagerService)
+
+	go logger.Info("order manager controller created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
+
 	orderManagerRoutes := r.Group("ordermanager/")
 	{
-		orderManagerService := services.NewOrderManagerService(logger, rsOrderService)
-		go logger.Info("order manager service created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
-
-		orderManagerController := controllers.NewOrderManagerController(
-			logger, orderManagerService)
-
-		go logger.Info("order manager controller created", zap.String("execution level", "RegisterOrderManagerRoutesV1"))
-
 		orderManagerRoutes.GET("/ping", func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status": "ok",

@@ -1,9 +1,10 @@
 package services
 
 import (
-	eqServices "algonexus/eventqueue/services"
 	"algonexus/logger"
 	"algonexus/ordermanager/models"
+	eqServices "algonexus/ordermanager/orderhub/eventqueue/services"
+	"algonexus/ordermanager/orderhub/registry"
 	"algonexus/ordermanager/orderhub/runtime"
 	"context"
 	"go.uber.org/zap"
@@ -11,28 +12,55 @@ import (
 )
 
 type OrderHubService struct {
-	logger         *logger.Logger
-	orders         map[string]*runtime.OrderHandle
-	rsOrderService *eqServices.RsOrderService
-	rwmu           sync.RWMutex
+	logger    *logger.Logger
+	registry  *registry.OrderHubRegistry
+	eqService *eqServices.RsOrderService
+	rwmu      sync.RWMutex
 }
 
 func NewOrderHubService(logger *logger.Logger) *OrderHubService {
+	hubRegistry := registry.NewOrderHubRegistry(logger)
+
+	rsOrderService := eqServices.NewRsOrderService(logger, hubRegistry)
+	logger.Info("RedisStreams event queue init successful", zap.String("Execution Level", "OrderHub"))
+
+	rsOrderService.StartAll(context.Background())
+	logger.Info("RedisStreams event queue is running", zap.String("Execution Level", "OrderHub"))
+
 	return &OrderHubService{
-		logger: logger,
-		orders: make(map[string]*runtime.OrderHandle),
+		logger:    logger,
+		registry:  hubRegistry,
+		eqService: rsOrderService,
+	}
+}
+
+func (s *OrderHubService) Listen(id string) {
+	handle := s.registry.Get(id)
+
+	if handle == nil {
+		s.logger.Warning("attempted to listen to unknown order", zap.String("id", id))
+		return
+	}
+
+	for event := range handle.Channel {
+		//TODO Stop Condition
+		s.logger.Info("received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
 	}
 }
 
 func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
-	s.rwmu.Lock()
-	defer s.rwmu.Unlock()
 	handle := runtime.NewOrderHandle(req)
-	s.orders[req.OrderID] = handle
+	s.registry.Update(req.OrderID, handle)
 
 	// Producer
 	go func() {
-		err := s.rsOrderService.PushOrder(context.Background(), req)
+		err := handle.OrderFlow.Transition(models.StatusPendingSend)
+		if err != nil {
+			s.logger.Error("transition failed", zap.String("request", req.OrderID), zap.Error(err))
+			return
+		}
+
+		err = s.eqService.PushOrderNonWait(context.Background(), req)
 		if err != nil {
 			s.logger.Error("unable to push order request into the event queue", zap.Error(err))
 			return
@@ -48,41 +76,27 @@ func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
 	}()
 
 	// Listener routine (listen to consumer)
+	s.logger.Info("started a listener", zap.String("orderId", req.OrderID))
 	go s.Listen(req.OrderID)
 
-}
-
-func (s *OrderHubService) Listen(id string) {
-	s.rwmu.RLock()
-	handle, ok := s.orders[id]
-	s.rwmu.RUnlock()
-
-	if !ok {
-		s.logger.Warning("attempted to listen to unknown order", zap.String("id", id))
-		return
-	}
-
-	for event := range handle.Channel {
-		s.logger.Info("received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
-	}
 }
 
 func (s *OrderHubService) UnregisterOrder(id string) {
 	s.rwmu.Lock()
 	defer s.rwmu.Unlock()
 
-	orderHandle, ok := s.orders[id]
+	handle := s.registry.Get(id)
 
-	if !ok {
+	if handle == nil {
 		s.logger.Warning("can't find order", zap.String("orderID", id))
 		return
 	}
 
-	if !orderHandle.OrderFlow.IsTerminated() {
+	if !handle.OrderFlow.IsTerminated() {
 		s.logger.Fatal("Order delete too early!", zap.String("orderID", id))
 		return
 	}
 
-	delete(s.orders, id)
+	s.registry.Delete(id)
 
 }

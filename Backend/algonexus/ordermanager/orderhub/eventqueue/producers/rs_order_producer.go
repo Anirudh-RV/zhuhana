@@ -1,8 +1,8 @@
 package producers
 
 import (
-	"algonexus/eventqueue"
 	"algonexus/logger"
+	"algonexus/ordermanager/orderhub/eventqueue"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
