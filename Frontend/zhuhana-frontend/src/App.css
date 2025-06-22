@@ -33,3 +33,20 @@
 .read-the-docs {
   color: #888;
 }
+
+.errorLineHighlight {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+.errorLineHighlight {
+  background-color: rgba(255, 0, 0, 0.2);
+}
+
+/* Highlight the entire error line */
+.monaco-editor .errorLineHighlight {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.monaco-editor .margin .line-numbers:contains("❗") {
+  color: #f55;
+}

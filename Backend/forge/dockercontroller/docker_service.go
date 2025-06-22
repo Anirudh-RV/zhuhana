@@ -43,7 +43,7 @@ func NewDockerService(logger *logger.Logger) *DockerService {
 
 func (ds *DockerService) BuildUserAlgorithm(userID, scriptID, scriptURLPath string) error {
 	destinationFolder := fmt.Sprintf("user-algorithm-%s-%s", userID, scriptID)
-	destinationFilePath := fmt.Sprintf("%s/algorithm/algorithm.py", destinationFolder)
+	destinationFilePath := fmt.Sprintf("%s/algorithm/zhuhana_algorithm.py", destinationFolder)
 	dockerImageName := fmt.Sprintf("user-algorithm-%s-%s", userID, scriptID)
 	defer os.RemoveAll(destinationFolder)
 	defer ds.RemoveImage(dockerImageName)
