@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) {
+func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, userAlgorithmAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) {
 	algorithmRoutes := r.Group("user/algorithm/")
 	{
 		userAlgorithmRepository := repositories.NewUserAlgorithmRepository(db)

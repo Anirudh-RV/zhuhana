@@ -47,7 +47,10 @@ func main() {
 	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
 
 	userAuthMiddleware := middleware.UserAuthMiddleware(constants.USER_AUTHENTICATION_ENDPOINT)
-	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
+	go log.Info("user authentication middleware initialization successful", zap.String("execution level", "Root"))
+
+	userAlgorithmAuthMiddleware := middleware.UserAlgorithmAuthMiddleware(constants.MICROSERVICE_USER_ALGORITHM_AUTHENTICATE_ENDPOINT)
+	go log.Info("user algorithm authentication middleware initialization successful", zap.String("execution level", "Root"))
 
 	microserviceAuthenticator := middleware.NewMicroSeviceAuthenticator(log)
 	microserviceAuthenticator.GetAllServiceTokens()
@@ -59,7 +62,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, userAlgorithmAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

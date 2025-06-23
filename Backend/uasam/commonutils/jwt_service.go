@@ -32,6 +32,7 @@ func NewJWTService(logger *logger.Logger) *JWTService {
 	UASAM_API_KEY := os.Getenv("UASAM_API_KEY")
 	SECRETS_MANAGER_API_KEY := os.Getenv("SECRETS_MANAGER_API_KEY")
 	FORGE_API_KEY := os.Getenv("FORGE_API_KEY")
+	ALGONEXUS_API_KEY := os.Getenv("ALGONEXUS_API_KEY")
 	ALL_API_KEYS := map[string]string{
 		GOVERNOR_API_KEY:        "governor",
 		ORCHESTRATOR_API_KEY:    "orchestrator",
@@ -39,6 +40,7 @@ func NewJWTService(logger *logger.Logger) *JWTService {
 		UASAM_API_KEY:           "uasam",
 		SECRETS_MANAGER_API_KEY: "secrets-manager",
 		FORGE_API_KEY:           "forge",
+		ALGONEXUS_API_KEY:       ALGONEXUS_API_KEY,
 	}
 
 	return &JWTService{
