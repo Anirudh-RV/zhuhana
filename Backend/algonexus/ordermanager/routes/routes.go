@@ -5,8 +5,10 @@ import (
 	"algonexus/ordermanager/controllers"
 	orderHubServices "algonexus/ordermanager/orderhub/services"
 	"algonexus/ordermanager/services"
+
 	"go.uber.org/zap"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/gin-gonic/gin"
 
 	"database/sql"
@@ -18,6 +20,7 @@ func RegisterOrderManagerRoutesV1(
 	r *gin.RouterGroup,
 	logger *logger.Logger,
 	db *sql.DB,
+	clickHouse *clickhouse.Conn,
 	redis *redis.Client,
 	orderHubService *orderHubServices.OrderHubService,
 	auth gin.HandlerFunc,
@@ -34,14 +37,7 @@ func RegisterOrderManagerRoutesV1(
 
 	orderManagerRoutes := r.Group("ordermanager/")
 	{
-		orderManagerRoutes.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"status": "ok",
-			})
-		})
-
 		orderManagerRoutes.POST("/submit", orderManagerController.SubmitOrder)
-
 	}
 
 }

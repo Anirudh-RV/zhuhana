@@ -21,7 +21,10 @@ func main() {
 	go log.Info("Logger started", zap.String("Execution Level", "Root"))
 
 	db.InitDB(log)
-	go log.Info("DB connection successful", zap.String("Execution Level", "Root"))
+	go log.Info("Postgres DB connection successful", zap.String("Execution Level", "Root"))
+
+	db.InitClickHouse(log)
+	go log.Info("ClickHouse DB connection successful", zap.String("Execution Level", "Root"))
 
 	cache.InitRedis(ctx, log)
 	go log.Info("Redis connection successful", zap.String("Execution Level", "Root"))
@@ -42,7 +45,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, orderHubService, authMiddleware)
+	routes.RegisterRoutes(router, log, db.DB, &db.ClickHouse, cache.RedisObj, orderHubService, authMiddleware)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

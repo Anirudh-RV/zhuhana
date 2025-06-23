@@ -3,19 +3,21 @@ package routes
 import (
 	_ "algonexus/docs"
 	"algonexus/logger"
+	backtestRoutes "algonexus/ordermanager/backtestengine/routes"
 	orderHubServices "algonexus/ordermanager/orderhub/services"
-	orderManageRroutes "algonexus/ordermanager/routes"
+	orderManagerRoutes "algonexus/ordermanager/routes"
 	"database/sql"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, clickHouse *clickhouse.Conn, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
 
-	v1 := r.Group("/v1/algonexus")
+	v1 := r.Group("/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		v1.GET("/ping", func(c *gin.Context) {
@@ -23,7 +25,7 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 				"status": "ok",
 			})
 		})
-		orderManageRroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, orderHubService, authMiddleware)
-
+		orderManagerRoutes.RegisterOrderManagerRoutesV1(v1, log, db, clickHouse, redis, orderHubService, authMiddleware)
+		backtestRoutes.RegisterBacktestRoutesV1(v1, log, db, clickHouse, redis, authMiddleware)
 	}
 }
