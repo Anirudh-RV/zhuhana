@@ -6,4 +6,5 @@ var ALL_SERVICES = map[string]bool{
 	"outbound":        true,
 	"uasam":           true,
 	"secrets-manager": true,
+	"algonexus":       true,
 }

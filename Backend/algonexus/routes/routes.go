@@ -15,7 +15,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, clickHouse *clickhouse.Conn, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, clickHouse *clickhouse.Conn, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc, userAlgorithmAuthMiddleware gin.HandlerFunc) {
 
 	v1 := r.Group("/v1/")
 	{
@@ -26,6 +26,6 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, clickHouse *c
 			})
 		})
 		orderManagerRoutes.RegisterOrderManagerRoutesV1(v1, log, db, clickHouse, redis, orderHubService, authMiddleware)
-		backtestRoutes.RegisterBacktestRoutesV1(v1, log, db, clickHouse, redis, authMiddleware)
+		backtestRoutes.RegisterBacktestRoutesV1(v1, log, db, clickHouse, redis, authMiddleware, userAlgorithmAuthMiddleware)
 	}
 }

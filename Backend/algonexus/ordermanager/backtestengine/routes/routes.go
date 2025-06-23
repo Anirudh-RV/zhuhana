@@ -19,28 +19,28 @@ import (
 
 func RegisterBacktestRoutesV1(
 	r *gin.RouterGroup,
-	log *logger.Logger,
+	logger *logger.Logger,
 	db *sql.DB,
 	clickHouse *clickhouse.Conn,
 	redis *redis.Client,
 	auth gin.HandlerFunc,
+	userAlgorithmAuthMiddleware gin.HandlerFunc,
 ) {
-
 	// Manager service init
 	backtest := r.Group("backtest/")
 	{
 		backtestRepo := repositories.NewBacktestRepository(clickHouse)
-		go log.Info("backtest repository created", zap.String("execution level", "RegisterBacktestRoutesV1"))
+		go logger.Info("backtest repository created", zap.String("execution level", "RegisterBacktestRoutesV1"))
 
-		backtestService := services.NewBacktestService(log, clickHouse, backtestRepo)
-		go log.Info("backtest service created", zap.String("execution level", "UserRoutesV1"))
+		backtestService := services.NewBacktestService(logger, clickHouse, backtestRepo)
+		go logger.Info("backtest service created", zap.String("execution level", "UserRoutesV1"))
 
-		backtestController := controllers.NewBacktestController(backtestService, log)
-		go log.Info("backtest controller created", zap.String("execution level", "UserRoutesV1"))
+		backtestController := controllers.NewBacktestController(backtestService, logger)
+		go logger.Info("backtest controller created", zap.String("execution level", "UserRoutesV1"))
 
 		ohlc := backtest.Group("ohlc/")
 		{
-			ohlc.GET("range/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			ohlc.GET("range/", userAlgorithmAuthMiddleware, middleware.RateLimiter(redis, logger, middleware.RateLimiterConfig{
 				Source:      "header",
 				Param:       "USER_ALGORITHM_TOKEN",
 				EnableParam: true,
