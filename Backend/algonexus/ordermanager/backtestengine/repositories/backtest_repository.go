@@ -19,18 +19,32 @@ func NewBacktestRepository(clickHouse *clickhouse.Conn) *BacktestRepository {
 	}
 }
 
-func (ur *BacktestRepository) GetOHLCDataWithDateRange(symbol, market string, from, to time.Time) ([]models.OHLC, error) {
+func (ur *BacktestRepository) GetOHLCDataWithDateRange(symbol, market string, from, to time.Time, limit, offset int) ([]models.OHLC, uint64, error) {
 	ctx := context.Background()
-	query := `
+
+	// Get total count
+	countQuery := `
+		SELECT count(*)
+		FROM OHLC
+		WHERE Symbol = ? AND Market = ? AND Date_Time >= ? AND Date_Time <= ?
+	`
+	var total uint64
+	if err := db.ClickHouse.QueryRow(ctx, countQuery, symbol, market, from, to).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	// Fetch paginated results
+	dataQuery := `
 		SELECT Symbol, Market, Date_Time, Open, High, Low, Close, Volume, Day, Weekday, Week, Month, Year
 		FROM OHLC
 		WHERE Symbol = ? AND Market = ? AND Date_Time >= ? AND Date_Time <= ?
 		ORDER BY Date_Time
+		LIMIT ? OFFSET ?
 	`
 
-	rows, err := db.ClickHouse.Query(ctx, query, symbol, market, from, to)
+	rows, err := db.ClickHouse.Query(ctx, dataQuery, symbol, market, from, to, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -38,10 +52,10 @@ func (ur *BacktestRepository) GetOHLCDataWithDateRange(symbol, market string, fr
 	for rows.Next() {
 		var row models.OHLC
 		if err := rows.ScanStruct(&row); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		result = append(result, row)
 	}
 
-	return result, nil
+	return result, total, nil
 }

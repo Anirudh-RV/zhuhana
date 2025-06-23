@@ -11,6 +11,9 @@ type OHLCRangeRequest struct {
 
 type OHLCRangeResponse struct {
 	Status            int    `json:"status"`
-	StatusDescription string `json:"statusDescription"`
-	OHLCData          []OHLC `json:"OHLCData,omitempty"`
+	StatusDescription string `json:"status_description"`
+	OHLCData          []OHLC `json:"ohlc_data"`
+	PageLimit         int    `json:"page_limit"`
+	PageNo            int    `json:"page_no"`
+	NextPageNo        *int   `json:"next_page_no,omitempty"`
 }

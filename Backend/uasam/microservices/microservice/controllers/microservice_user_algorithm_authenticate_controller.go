@@ -23,12 +23,12 @@ func NewMicroServiceUserAlgorithmAuthenticateController(microServiceServiceObj *
 
 // MicroServiceUserAlgorithmAuthenticateHandler godoc
 // @Summary Authorize a microservice user
-// @Description Validates the access token of a microservice user and returns the user ID
+// @Description Validates the access token of a microservice user algorithm and returns the user algorithm ID
 // @Tags Microservice Authentication
 // @Accept json
 // @Produce json
-// @Param authHeaders header models.MicroServiceUserAuthenticateRequestHeaders true "Access Token of the microservice user"
-// @Success 200 {object} models.MicroServiceUserAuthenticateResponse
+// @Param authHeaders header models.MicroServiceUserAlgorithmAuthenticateRequestHeaders true "Access Token of the microservice user algorithm"
+// @Success 200 {object} models.MicroServiceUserAlgorithmAuthenticateResponse
 // @Failure 400 {object} models.MicroServiceUserAuthenticateResponse "Missing or invalid required headers"
 // @Failure 401 {object} models.MicroServiceUserAuthenticateResponse "Not Authorized"
 // @Router /v1/microservice/user/authenticate/ [get]

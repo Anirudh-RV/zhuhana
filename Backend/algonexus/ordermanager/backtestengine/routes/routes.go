@@ -44,10 +44,10 @@ func RegisterBacktestRoutesV1(
 				Source:      "header",
 				Param:       "USER_ALGORITHM_TOKEN",
 				EnableParam: true,
-				Limit:       3,
+				Limit:       300,
 				Window:      300,
 				EnableIP:    true,
-				IPLimit:     15,
+				IPLimit:     300,
 				IPWindow:    300,
 				Endpoint:    "/v1/backtest/ohlc/range/",
 			}), backtestController.GetOHLCDataWithRange)

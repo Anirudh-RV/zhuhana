@@ -595,6 +595,45 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MicroServiceUserAlgorithmAuthenticateResponse": {
+            "type": "object",
+            "properties": {
+                "UserAlgorithmID": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MicroServiceUserAlgorithmLoginRequest": {
+            "type": "object",
+            "required": [
+                "userAlgorithmID"
+            ],
+            "properties": {
+                "userAlgorithmID": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MicroServiceUserAlgorithmLoginResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MicroServiceUserAuthenticateResponse": {
             "type": "object",
             "properties": {

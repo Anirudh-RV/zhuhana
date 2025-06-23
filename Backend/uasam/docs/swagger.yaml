@@ -51,6 +51,31 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.MicroServiceUserAlgorithmAuthenticateResponse:
+    properties:
+      UserAlgorithmID:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.MicroServiceUserAlgorithmLoginRequest:
+    properties:
+      userAlgorithmID:
+        type: string
+    required:
+    - userAlgorithmID
+    type: object
+  models.MicroServiceUserAlgorithmLoginResponse:
+    properties:
+      accessToken:
+        type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.MicroServiceUserAuthenticateResponse:
     properties:
       UserID:

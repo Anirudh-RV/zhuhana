@@ -4,9 +4,14 @@
         "contact": {}
     },
     "paths": {
-        "/api/marketdata/v1/stocks/polygon/all-tickers": {
+        "/v1/backtest/ohlc/range/": {
             "get": {
-                "description": "Fetches all tickers with an optional limit parameter",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves OHLC (Open, High, Low, Close) data for a given symbol and market between the specified start and end times. Supports pagination.",
                 "consumes": [
                     "application/json"
                 ],
@@ -14,31 +19,76 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Tickers"
+                    "Backtest"
                 ],
-                "summary": "Get all tickers",
+                "summary": "Get OHLC data for a symbol within a date time range",
                 "parameters": [
                     {
+                        "type": "string",
+                        "example": "2020-06-10T00:00:00Z",
+                        "description": "Start time in RFC3339 format",
+                        "name": "start_time",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2020-06-15T00:00:00Z",
+                        "description": "End time in RFC3339 format",
+                        "name": "end_time",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "SPY",
+                        "description": "Symbol to retrieve OHLC data for",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "NYSEARCA",
+                        "description": "Market for the symbol",
+                        "name": "market",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "Number of tickers to retrieve (default: 10)",
-                        "name": "limit",
+                        "default": 50,
+                        "description": "Number of results per page",
+                        "name": "page_limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number to retrieve",
+                        "name": "page_no",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of tickers",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/stocks.AllTickersAPIResponse"
+                            "$ref": "#/definitions/models.OHLCRangeResponse"
                         }
                     },
                     "400": {
-                        "description": "Error message",
+                        "description": "Invalid time format or missing required query parameters",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/models.OHLCRangeResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.OHLCRangeResponse"
                         }
                     }
                 }
@@ -46,66 +96,72 @@
         }
     },
     "definitions": {
-        "stocks.AllTickerStockInformation": {
+        "models.OHLC": {
             "type": "object",
             "properties": {
-                "active": {
-                    "type": "boolean"
+                "close": {
+                    "type": "number"
                 },
-                "cik": {
+                "date_Time": {
                     "type": "string"
                 },
-                "composite_figi": {
-                    "type": "string"
+                "day": {
+                    "type": "integer"
                 },
-                "currency_name": {
-                    "type": "string"
+                "high": {
+                    "type": "number"
                 },
-                "last_updated_utc": {
-                    "type": "string"
-                },
-                "locale": {
-                    "type": "string"
+                "low": {
+                    "type": "number"
                 },
                 "market": {
                     "type": "string"
                 },
-                "name": {
+                "month": {
+                    "type": "integer"
+                },
+                "open": {
+                    "type": "number"
+                },
+                "symbol": {
                     "type": "string"
                 },
-                "primary_exchange": {
-                    "type": "string"
+                "volume": {
+                    "type": "integer"
                 },
-                "share_class_figi": {
-                    "type": "string"
+                "week": {
+                    "type": "integer"
                 },
-                "ticker": {
-                    "type": "string"
+                "weekday": {
+                    "type": "integer"
                 },
-                "type": {
-                    "type": "string"
+                "year": {
+                    "type": "integer"
                 }
             }
         },
-        "stocks.AllTickersAPIResponse": {
+        "models.OHLCRangeResponse": {
             "type": "object",
             "properties": {
-                "count": {
+                "next_page_no": {
                     "type": "integer"
                 },
-                "next_url": {
-                    "type": "string"
-                },
-                "request_id": {
-                    "type": "string"
-                },
-                "results": {
+                "ohlc_data": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/stocks.AllTickerStockInformation"
+                        "$ref": "#/definitions/models.OHLC"
                     }
                 },
+                "page_limit": {
+                    "type": "integer"
+                },
+                "page_no": {
+                    "type": "integer"
+                },
                 "status": {
+                    "type": "integer"
+                },
+                "status_description": {
                     "type": "string"
                 }
             }
