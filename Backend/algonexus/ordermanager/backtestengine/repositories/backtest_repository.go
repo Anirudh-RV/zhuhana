@@ -59,3 +59,24 @@ func (ur *BacktestRepository) GetOHLCDataWithDateRange(symbol, market string, fr
 
 	return result, total, nil
 }
+
+func (ur *BacktestRepository) GetOHLCDataByTimestamp(symbol, market string, timestamp time.Time) (*models.OHLC, error) {
+	ctx := context.Background()
+
+	query := `
+		SELECT Symbol, Market, Date_Time, Open, High, Low, Close, Volume, Day, Weekday, Week, Month, Year
+		FROM OHLC
+		WHERE Symbol = ? AND Market = ? AND Date_Time = ?
+		LIMIT 1
+	`
+
+	row := db.ClickHouse.QueryRow(ctx, query, symbol, market, timestamp)
+
+	var result models.OHLC
+	if err := row.ScanStruct(&result); err != nil {
+		// You might want to use sql.ErrNoRows check here if needed
+		return nil, err
+	}
+
+	return &result, nil
+}

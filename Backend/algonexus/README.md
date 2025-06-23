@@ -12,7 +12,7 @@
 
 - To Stop:
 
-  > docker compose -f docker-compose/docker-compose-local.yml down
+  > docker compose --env-file env/local-env.env -f docker-compose/docker-compose-local.yml down
 
 - To update Swagger:
 

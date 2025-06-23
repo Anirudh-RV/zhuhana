@@ -15,6 +15,88 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/backtest/ohlc/next/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves OHLC (Open, High, Low, Close) data for a given symbol and market at the specified timestamp (` + "`" + `current_time` + "`" + `). Also returns a ` + "`" + `next_url` + "`" + ` link with ` + "`" + `next_step` + "`" + ` seconds added to ` + "`" + `current_time` + "`" + ` if within ` + "`" + `end_time` + "`" + `.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Backtest"
+                ],
+                "summary": "Get OHLC data for a symbol at a specific timestamp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2020-06-10T00:00:00Z",
+                        "description": "Current timestamp in RFC3339 format",
+                        "name": "current_time",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2020-07-15T00:00:00Z",
+                        "description": "End timestamp in RFC3339 format",
+                        "name": "end_time",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "SPY",
+                        "description": "Symbol to retrieve OHLC data for",
+                        "name": "symbol",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "NYSEARCA",
+                        "description": "Market for the symbol",
+                        "name": "market",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 86400,
+                        "description": "Step in seconds to calculate next_url",
+                        "name": "next_step",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.OHLCNextResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format or query params",
+                        "schema": {
+                            "$ref": "#/definitions/models.OHLCNextResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error while retrieving data",
+                        "schema": {
+                            "$ref": "#/definitions/models.OHLCNextResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/backtest/ohlc/range/": {
             "get": {
                 "security": [
@@ -148,6 +230,23 @@ const docTemplate = `{
                 },
                 "year": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.OHLCNextResponse": {
+            "type": "object",
+            "properties": {
+                "next_url": {
+                    "type": "string"
+                },
+                "ohlc_data": {
+                    "$ref": "#/definitions/models.OHLC"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "status_description": {
+                    "type": "string"
                 }
             }
         },

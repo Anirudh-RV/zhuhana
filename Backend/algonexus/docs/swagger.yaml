@@ -28,6 +28,17 @@ definitions:
       year:
         type: integer
     type: object
+  models.OHLCNextResponse:
+    properties:
+      next_url:
+        type: string
+      ohlc_data:
+        $ref: '#/definitions/models.OHLC'
+      status:
+        type: integer
+      status_description:
+        type: string
+    type: object
   models.OHLCRangeResponse:
     properties:
       next_page_no:
@@ -48,6 +59,64 @@ definitions:
 info:
   contact: {}
 paths:
+  /v1/backtest/ohlc/next/:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves OHLC (Open, High, Low, Close) data for a given symbol
+        and market at the specified timestamp (`current_time`). Also returns a `next_url`
+        link with `next_step` seconds added to `current_time` if within `end_time`.
+      parameters:
+      - description: Current timestamp in RFC3339 format
+        example: "2020-06-10T00:00:00Z"
+        in: query
+        name: current_time
+        required: true
+        type: string
+      - description: End timestamp in RFC3339 format
+        example: "2020-07-15T00:00:00Z"
+        in: query
+        name: end_time
+        required: true
+        type: string
+      - description: Symbol to retrieve OHLC data for
+        example: SPY
+        in: query
+        name: symbol
+        required: true
+        type: string
+      - description: Market for the symbol
+        example: NYSEARCA
+        in: query
+        name: market
+        required: true
+        type: string
+      - description: Step in seconds to calculate next_url
+        example: 86400
+        in: query
+        name: next_step
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.OHLCNextResponse'
+        "400":
+          description: Invalid request format or query params
+          schema:
+            $ref: '#/definitions/models.OHLCNextResponse'
+        "500":
+          description: Internal server error while retrieving data
+          schema:
+            $ref: '#/definitions/models.OHLCNextResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get OHLC data for a symbol at a specific timestamp
+      tags:
+      - Backtest
   /v1/backtest/ohlc/range/:
     get:
       consumes:

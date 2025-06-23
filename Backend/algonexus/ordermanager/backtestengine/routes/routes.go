@@ -51,6 +51,18 @@ func RegisterBacktestRoutesV1(
 				IPWindow:    300,
 				Endpoint:    "/v1/backtest/ohlc/range/",
 			}), backtestController.GetOHLCDataWithRange)
+
+			ohlc.GET("next/", userAlgorithmAuthMiddleware, middleware.RateLimiter(redis, logger, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_ALGORITHM_TOKEN",
+				EnableParam: true,
+				Limit:       300,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     300,
+				IPWindow:    300,
+				Endpoint:    "/v1/backtest/ohlc/next/",
+			}), backtestController.GetOHLCDataWithNext)
 		}
 	}
 }

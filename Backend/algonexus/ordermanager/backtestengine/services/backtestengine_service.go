@@ -36,3 +36,12 @@ func (bts *BacktestService) GetStockDataWithRange(symbol, market string, from, t
 	}
 	return ohlc_records, int(total), nil
 }
+
+func (bts *BacktestService) GetStockDataAtTime(symbol, market string, current time.Time) (*models.OHLC, error) {
+	ohlc_record, err := bts.backtestRepository.GetOHLCDataByTimestamp(symbol, market, current)
+	if err != nil {
+		go bts.logger.Error("error retrieving ohlc data with range", zap.String("execution level", "GetStockDataAtTime"), zap.String("Error", err.Error()))
+		return nil, err
+	}
+	return ohlc_record, nil
+}
