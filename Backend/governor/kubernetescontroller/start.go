@@ -3,6 +3,7 @@ package kubernetescontroller
 import (
 	"context"
 	"fmt"
+	"governor/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -106,6 +107,10 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 								{
 									Name:  "FREQUENCY",
 									Value: fmt.Sprint(frequency),
+								},
+								{
+									Name:  "API_ENDPOINT",
+									Value: constants.USER_ALGORITHM_API_ENDPOINT,
 								},
 							},
 						},

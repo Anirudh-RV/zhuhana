@@ -45,3 +45,7 @@ func (bts *BacktestService) GetStockDataAtTime(symbol, market string, current ti
 	}
 	return ohlc_record, nil
 }
+
+func (svc *BacktestService) GetNextAvailableTime(symbol, market string, after time.Time) (*time.Time, error) {
+	return svc.backtestRepository.GetNextAvailableTimeAfter(symbol, market, after)
+}
