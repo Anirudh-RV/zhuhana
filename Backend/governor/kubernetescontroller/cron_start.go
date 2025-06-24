@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol string, startTime, endTime *time.Time, portfolioSize, frequency int) error {
+func (ks *KubernetesService) CronStart(userAlgorithmID uuid.UUID) error {
 	userAlgorithm, err := ks.GetUserAlgorithm(userAlgorithmID)
 	if err != nil {
 		go ks.logger.Error("could not get useralgorithm from db", zap.String("Execution Level", "KubernetesStart"))
@@ -47,11 +47,11 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 		startCronSchedule,
 		endCronSchedule,
 		int(userAlgorithm.OrderDomain),
-		market,
-		symbol,
-		startTime,
-		endTime,
-		portfolioSize)
+		"",
+		"",
+		nil,
+		nil,
+		0)
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())
 		return err
@@ -78,34 +78,6 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 								{
 									Name:  "USER_ALGORITHM_TOKEN",
 									Value: userAlgorithmToken,
-								},
-								{
-									Name:  "ORDER_DOMAIN",
-									Value: userAlgorithm.OrderDomain.String(),
-								},
-								{
-									Name:  "MARKET",
-									Value: market,
-								},
-								{
-									Name:  "SYMBOL",
-									Value: symbol,
-								},
-								{
-									Name:  "START_TIME",
-									Value: startTime.String(),
-								},
-								{
-									Name:  "END_TIME",
-									Value: endTime.String(),
-								},
-								{
-									Name:  "PORTFOLIO_SIZE",
-									Value: fmt.Sprint(portfolioSize),
-								},
-								{
-									Name:  "FREQUENCY",
-									Value: fmt.Sprint(frequency),
 								},
 							},
 						},
