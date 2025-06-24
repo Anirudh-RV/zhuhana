@@ -80,3 +80,22 @@ func (ur *BacktestRepository) GetOHLCDataByTimestamp(symbol, market string, time
 
 	return &result, nil
 }
+
+func (ur *BacktestRepository) GetNextAvailableTimeAfter(symbol, market string, after time.Time) (*time.Time, error) {
+	ctx := context.Background()
+
+	query := `
+		SELECT Date_Time
+		FROM OHLC
+		WHERE Symbol = ? AND Market = ? AND Date_Time >= ?
+		ORDER BY Date_Time ASC
+		LIMIT 1
+	`
+
+	var nextTime time.Time
+	err := db.ClickHouse.QueryRow(ctx, query, symbol, market, after).Scan(&nextTime)
+	if err != nil {
+		return nil, err
+	}
+	return &nextTime, nil
+}

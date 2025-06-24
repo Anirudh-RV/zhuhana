@@ -55,7 +55,7 @@ func (btc *BacktestController) GetOHLCDataWithRange(c *gin.Context) {
 	}
 
 	pageLimit, err := strconv.Atoi(pageLimitStr)
-	if err != nil || pageLimit <= 0 {
+	if err != nil || pageLimit <= 0 || pageLimit >= 500 {
 		pageLimit = 50
 	}
 	pageNo, err := strconv.Atoi(pageNoStr)

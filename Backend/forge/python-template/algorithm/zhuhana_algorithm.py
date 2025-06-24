@@ -1,4 +1,4 @@
-from models import OrderInstruction
+from algorithm.models import OrderInstruction
 
 class ZhuhanaStrategy:
     def __init__(self, zhuhana_sdk):

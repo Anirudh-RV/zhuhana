@@ -71,11 +71,13 @@ func (btc *BacktestController) GetOHLCDataWithNext(c *gin.Context) {
 	}
 
 	var nextURL *string
-	nextTime := current.Add(time.Duration(nextStep) * time.Second)
-	if nextTime.Before(end) {
+	nextSearchStart := current.Add(time.Duration(nextStep) * time.Second)
+	nextAvailableTime, err := btc.backtestService.GetNextAvailableTime(symbol, market, nextSearchStart)
+
+	if err == nil && nextAvailableTime != nil && !nextAvailableTime.After(end) {
 		url := fmt.Sprintf(
 			constants.ALGONEXUS_URL+"/v1/backtest/ohlc/next/?current_time=%s&end_time=%s&symbol=%s&market=%s&next_step=%d",
-			nextTime.Format(time.RFC3339), end.Format(time.RFC3339), symbol, market, nextStep,
+			nextAvailableTime.Format(time.RFC3339), end.Format(time.RFC3339), symbol, market, nextStep,
 		)
 		nextURL = &url
 	}

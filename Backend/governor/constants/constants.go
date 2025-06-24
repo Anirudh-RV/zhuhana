@@ -4,6 +4,7 @@ import "os"
 
 var UASAM_ENDPOINT = os.Getenv("UASAM_URL")
 var FORGE_ENDPOINT = os.Getenv("FORGE_URL")
+var USER_ALGORITHM_API_ENDPOINT = os.Getenv("GOVERNOR_URL") // Subject to change
 var MICROSERVICE_LOGIN_ENDPOINT = UASAM_ENDPOINT + "/v1/microservice/login/"
 var API_AUTHENTICATION_ENDPOINT = UASAM_ENDPOINT + "/v1/microservice/authenticate/"
 var USER_AUTHENTICATION_ENDPOINT = UASAM_ENDPOINT + "/v1/user/authenticate/"
