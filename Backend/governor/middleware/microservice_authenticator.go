@@ -18,6 +18,7 @@ type MicroSeviceAuthenticator struct {
 	ALL_API_KEYS           map[string]string
 	ALL_SERVICE_JWT_TOKENS map[string]string
 	FORGE_SERVICE_NAME     string
+	UASAM_SERVICE_NAME     string
 }
 
 type MicroServiceLoginResponse struct {
@@ -29,10 +30,12 @@ type MicroServiceLoginResponse struct {
 func NewMicroSeviceAuthenticator(logger *logger.Logger) *MicroSeviceAuthenticator {
 	ORIGIN_SERVICE := os.Getenv("ORIGIN_SERVICE")
 	FORGE_API_KEY := os.Getenv("FORGE_API_KEY")
+	UASAM_API_KEY := os.Getenv("UASAM_API_KEY")
 	ALL_SERVICE_JWT_TOKENS := map[string]string{}
 
 	ALL_API_KEYS := map[string]string{
 		FORGE_API_KEY: "forge",
+		UASAM_API_KEY: "uasam",
 	}
 
 	return &MicroSeviceAuthenticator{
@@ -40,6 +43,7 @@ func NewMicroSeviceAuthenticator(logger *logger.Logger) *MicroSeviceAuthenticato
 		ORIGIN_SERVICE:         ORIGIN_SERVICE,
 		ALL_API_KEYS:           ALL_API_KEYS,
 		FORGE_SERVICE_NAME:     "forge",
+		UASAM_SERVICE_NAME:     "uasam",
 		ALL_SERVICE_JWT_TOKENS: ALL_SERVICE_JWT_TOKENS,
 	}
 }

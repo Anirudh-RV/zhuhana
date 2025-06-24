@@ -11,4 +11,5 @@ Algorithm Trading Platform
   > > docker compose -f docker-compose/local-docker-compose.yml up
 
 - To run kubernetes cluster:
+  > skaffold dev
   > skaffold dev --cleanup=true --no-prune=false

@@ -38,7 +38,7 @@ func (kfs *KafkaService) CronJobConsumer(cronJob CronJob) {
 	go kfs.logger.Info(fmt.Sprintf("processing cronJob %+v", cronJob), zap.String("execution level", "KafkaConsumer"))
 	switch cronJob.JobType {
 	case START_USER_ALGORITHM_JOB:
-		kfs.kubernetesService.Start(cronJob.UserAlgorithmID)
+		kfs.kubernetesService.CronStart(cronJob.UserAlgorithmID)
 	case END_USER_ALGORITHM_JOB:
 		kfs.kubernetesService.Stop(cronJob.UserAlgorithmID)
 	default:

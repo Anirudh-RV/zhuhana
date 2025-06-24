@@ -53,7 +53,19 @@ type UserAlgorithmRun struct {
 	StartCronSchedule *string     `db:"start_cron_schedule"`
 	EndCronSchedule   *string     `db:"end_cron_schedule"`
 	OrderDomain       OrderDomain `db:"order_domain"`
+	Market            *string     `db:"market"`
+	Symbol            *string     `db:"symbol"`
+	StartTime         *time.Time  `db:"start_time"`
+	EndTime           *time.Time  `db:"end_time"`
+	Frequency         *int        `db:"frequency"`
+	PortfolioSize     *int        `db:"portfolio_size"`
 	CreatedAt         time.Time   `db:"created_at"`
-	StoppedAt         time.Time   `db:"stopped_at"`
+	StoppedAt         *time.Time  `db:"stopped_at"`
 	UpdatedAt         time.Time   `db:"updated_at"`
+}
+
+type UserAlgorithmLoginResponse struct {
+	Status            int    `json:"status"`
+	StatusDescription string `json:"statusDescription"`
+	AccessToken       string `json:"accessToken"`
 }

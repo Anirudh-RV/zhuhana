@@ -26,6 +26,7 @@ data:
   DOCKER_SERVER_ADDRESS: https://index.docker.io/v1/
   DOCKER_BUILDKIT: "1"
   FORGE_API_KEY: passkey_forge
+  UASAM_API_KEY: passkey_uasam
   KAFKA_BROKERS: governor-kafka:9092
   KAFKA_TIMEOUT: "30"
   KAFKA_GROUP_ID: governor-consumer-group
