@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: secretsmanager-pgdata
+  name: algonexus-pgdata
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,28 +12,28 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: secretsmanager-postgres
+  name: algonexus-postgres
 spec:
   selector:
-    app: secretsmanager-postgres
+    app: algonexus-postgres
   ports:
     - protocol: TCP
-      port: 5433
+      port: 5425
       targetPort: 5432
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: secretsmanager-postgres
+  name: algonexus-postgres
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: secretsmanager-postgres
+      app: algonexus-postgres
   template:
     metadata:
       labels:
-        app: secretsmanager-postgres
+        app: algonexus-postgres
     spec:
       containers:
         - name: postgres
@@ -42,11 +42,11 @@ spec:
             - containerPort: 5432
           envFrom:
             - configMapRef:
-                name: secretsmanager-env
+                name: algonexus-env
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: secretsmanager-pgdata
+              name: algonexus-pgdata
       volumes:
-        - name: secretsmanager-pgdata
+        - name: algonexus-pgdata
           persistentVolumeClaim:
-            claimName: secretsmanager-pgdata
+            claimName: algonexus-pgdata

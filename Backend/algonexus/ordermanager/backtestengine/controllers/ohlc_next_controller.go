@@ -76,7 +76,7 @@ func (btc *BacktestController) GetOHLCDataWithNext(c *gin.Context) {
 
 	if err == nil && nextAvailableTime != nil && !nextAvailableTime.After(end) {
 		url := fmt.Sprintf(
-			constants.ALGONEXUS_URL+"/v1/backtest/ohlc/next/?current_time=%s&end_time=%s&symbol=%s&market=%s&next_step=%d",
+			constants.USER_ALGORITHM_API_ENDPOINT+"/v1/backtest/ohlc/next/?current_time=%s&end_time=%s&symbol=%s&market=%s&next_step=%d",
 			nextAvailableTime.Format(time.RFC3339), end.Format(time.RFC3339), symbol, market, nextStep,
 		)
 		nextURL = &url

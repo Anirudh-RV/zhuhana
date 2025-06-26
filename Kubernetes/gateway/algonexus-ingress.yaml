@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: algonexus-ingress
+  annotations:
+    konghq.com/strip-path: "false"
+spec:
+  ingressClassName: kong
+  rules:
+    - host: algonexus-dns-alias.default.svc.cluster.local
+      http:
+        paths:
+          - path: /v1/backtest/ohlc/next
+            pathType: Prefix
+            backend:
+              service:
+                name: algonexus-service
+                port:
+                  number: 8081

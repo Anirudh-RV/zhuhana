@@ -1,14 +1,25 @@
 import pandas as pd
 from clickhouse_connect import get_client
 
+# Run
+'''
+anirudhrv@MacBook-Pro zhuana-trading % kubectl port-forward svc/algonexus-clickhouse 8123:8123
+
+Forwarding from 127.0.0.1:8123 -> 8123
+Forwarding from [::1]:8123 -> 8123
+Handling connection for 8123
+
+'''
+
 # Connect to ClickHouse
 client = get_client(
-    host='',
-    port=0000,
-    username='',
-    password='',
-    database='',
+    host='localhost',
+    port=8123,
+    username='default',
+    password='password',
+    database='algonexus',
 )
+
 
 # Drop the old table (optional during dev)
 client.command("DROP TABLE IF EXISTS OHLC")

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: algonexus-service
+spec:
+  selector:
+    app: algonexus
+  ports:
+    - port: 8081
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP

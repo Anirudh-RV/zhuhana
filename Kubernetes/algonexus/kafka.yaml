@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algonexus-kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algonexus-kafka
+  template:
+    metadata:
+      labels:
+        app: algonexus-kafka
+    spec:
+      containers:
+        - name: kafka
+          image: confluentinc/cp-kafka:7.4.0
+          ports:
+            - containerPort: 9092 # Standard Kafka internal port
+          env:
+            - name: KAFKA_BROKER_ID
+              value: "2"
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: algonexus-zookeeper:2183
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://algonexus-kafka:9199
+            - name: KAFKA_LISTENERS
+              value: PLAINTEXT://0.0.0.0:9092
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+          readinessProbe:
+            tcpSocket:
+              port: 9092
+            initialDelaySeconds: 10
+            periodSeconds: 5
+      initContainers:
+        - name: wait-for-algonexus-zookeeper
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              'until nc -z algonexus-zookeeper 2183; do echo "Waiting for Zookeeper..."; sleep 2; done; echo "Zookeeper is ready."',
+            ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: algonexus-kafka
+spec:
+  selector:
+    app: algonexus-kafka
+  ports:
+    - name: kafka
+      port: 9199 # Exposed within the cluster
+      targetPort: 9092 # Maps to Kafka's internal port
