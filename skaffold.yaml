@@ -1,7 +1,7 @@
 apiVersion: skaffold/v4beta6
 kind: Config
 metadata:
-  name: uasam-app
+  name: app
 build:
   artifacts:
     - image: uasam
@@ -52,6 +52,18 @@ build:
             dest: .
           - src: ".air.toml"
             dest: .
+    - image: algonexus
+      context: Backend/algonexus
+      docker:
+        dockerfile: dockerfiles/Dockerfile-local
+      sync:
+        manual:
+          - src: "**/*.go"
+            dest: .
+          - src: "**/*.tmpl"
+            dest: .
+          - src: ".air.toml"
+            dest: .
   local:
     push: false
     useDockerCLI: true
@@ -89,6 +101,21 @@ manifests:
     - Kubernetes/secretsmanager/deployment.yaml
     - Kubernetes/secretsmanager/service.yaml
 
+    #AlgoNexus
+    - Kubernetes/algonexus/configmap.yaml
+    - Kubernetes/algonexus/postgres.yaml
+    - Kubernetes/algonexus/redis.yaml
+    - Kubernetes/algonexus/zookeeper.yaml
+    - Kubernetes/algonexus/kafka.yaml
+    - Kubernetes/algonexus/clickhouse.yaml
+    - Kubernetes/algonexus/tabix.yaml
+    - Kubernetes/algonexus/deployment.yaml
+    - Kubernetes/algonexus/service.yaml
+
+    #Kong
+    - Kubernetes/gateway/algonexus-ingress.yaml
+    - Kubernetes/gateway/algonexus-hostname-service.yaml
+
 deploy:
   kubectl: {}
 
@@ -113,3 +140,8 @@ portForward:
     namespace: default
     port: 8004
     localPort: 8004
+  - resourceType: service
+    resourceName: algonexus-service
+    namespace: default
+    port: 8081
+    localPort: 8081

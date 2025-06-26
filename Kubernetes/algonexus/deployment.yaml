@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algonexus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algonexus
+  template:
+    metadata:
+      labels:
+        app: algonexus
+    spec:
+      containers:
+        - name: algonexus
+          image: algonexus
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: algonexus-env
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock

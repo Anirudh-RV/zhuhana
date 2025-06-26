@@ -19,7 +19,7 @@ data:
   REDIS_PASSWORD: password
   UASAM_URL: http://host.docker.internal:8002
   FORGE_URL: http://host.docker.internal:8010
-  GOVERNOR_URL: http://host.docker.internal:8008
+  USER_ALGORITHM_API_ENDPOINT: http://algonexus-dns-alias.default.svc.cluster.local
   DOCKER_USERNAME: anirudhrv1234
   DOCKER_REPOSITORY: anirudhrv1234
   DOCKER_PASSWORD: TF3dE5aay64,HnW

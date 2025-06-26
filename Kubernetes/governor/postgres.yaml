@@ -44,7 +44,7 @@ spec:
             - configMapRef:
                 name: governor-env
           volumeMounts:
-            - mountPath: /var/lib/governor/postgresql/data
+            - mountPath: /var/lib/postgresql/data
               name: governor-pgdata
       volumes:
         - name: governor-pgdata

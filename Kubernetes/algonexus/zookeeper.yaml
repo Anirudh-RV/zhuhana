@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: zk-governor-data-pvc
+  name: zk-algonexus-data-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -23,29 +23,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: governor-zookeeper
+  name: algonexus-zookeeper
 spec:
   selector:
-    app: governor-zookeeper
+    app: algonexus-zookeeper
   ports:
-    - port: 2181
+    - name: zk-2183
+      port: 2183
+      targetPort: 2181
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: governor-zookeeper
+  name: algonexus-zookeeper
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: governor-zookeeper
+      app: algonexus-zookeeper
   template:
     metadata:
       labels:
-        app: governor-zookeeper
+        app: algonexus-zookeeper
     spec:
       containers:
-        - name: governor-zookeeper
+        - name: algonexus-zookeeper
           image: confluentinc/cp-zookeeper:7.4.0
           ports:
             - containerPort: 2181
@@ -69,7 +71,7 @@ spec:
       volumes:
         - name: zk-algonexus-data
           persistentVolumeClaim:
-            claimName: zk-governor-data-pvc
+            claimName: zk-algonexus-data-pvc
         - name: zk-algonexus-datalog
           persistentVolumeClaim:
             claimName: zk-algonexus-datalog-pvc

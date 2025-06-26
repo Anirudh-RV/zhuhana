@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: algonexus-env
+data:
+  PORT: "8080"
+  DB_HOST: algonexus-postgres
+  DB_PORT: "5425"
+  DB_USER: algonexus
+  DB_NAME: algonexus
+  DB_PASSWORD: password
+  POSTGRES_USER: algonexus
+  POSTGRES_PASSWORD: password
+  POSTGRES_DB: algonexus
+  REDIS_HOST: algonexus-redis
+  REDIS_PASSWORD: password
+  REDIS_PORT: "6378"
+  ORIGIN_SERVICE: algonexus
+  UASAM_URL: http://host.docker.internal:8002
+  UASAM_API_KEY: passkey_uasam
+  USER_ALGORITHM_API_ENDPOINT: http://algonexus-dns-alias.default.svc.cluster.local
+  ZOOKEEPER_PORT: "2183"
+  KAFKA_PORT: "9199"
+  CLICKHOUSE_HOST: algonexus-clickhouse
+  CLICKHOUSE_PORT: "9000"
+  CLICKHOUSE_USER: default
+  CLICKHOUSE_DB: algonexus
+  CLICKHOUSE_PASSWORD: password

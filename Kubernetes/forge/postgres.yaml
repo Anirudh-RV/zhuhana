@@ -44,7 +44,7 @@ spec:
             - configMapRef:
                 name: forge-env
           volumeMounts:
-            - mountPath: /var/lib/forge/postgresql/data
+            - mountPath: /var/lib/postgresql/data
               name: forge-pgdata
       volumes:
         - name: forge-pgdata
