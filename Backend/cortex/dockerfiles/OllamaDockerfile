@@ -1,0 +1,7 @@
+# dockerfiles/OllamaDockerfile
+
+FROM ollama/ollama:latest
+
+# Default entrypoint: launch the server and pull model
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["ollama serve & sleep 5 && ollama pull llama3:8b-instruct-q4_0 && wait"]

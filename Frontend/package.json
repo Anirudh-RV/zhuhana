@@ -20,7 +20,8 @@
     "@monaco-editor/react": "^4.7.0",
     "fastify": "^5.2.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "rehype-highlight": "^7.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.15.31",

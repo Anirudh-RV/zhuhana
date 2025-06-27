@@ -44,7 +44,6 @@ export default function CodeEditorDashboard(props: {
   ]);
   const pyodideInstanceRef = useRef<any>(null);
   const [isLoadingPyodide, setIsLoadingPyodide] = useState(true);
-  const [llmOutput, setLlmOutput] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
@@ -205,34 +204,57 @@ export default function CodeEditorDashboard(props: {
     }
   };
 
-  const handleSendToLLM = (input: string, onChunk: (token: string) => void) => {
-    setLlmOutput("");
-    fetch("http://localhost:8002/stream-llm", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input }),
-    })
-      .then(async (res) => {
-        const reader = res.body?.getReader();
-        const decoder = new TextDecoder();
-        if (!reader) return;
+  const handleSendToLLM = async (
+    input: string,
+    onChunk: (token: string) => void,
+    signal: AbortSignal
+  ) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/v1/ask?q=${encodeURIComponent(input)}`,
+        { signal } // ✅ tie fetch to AbortController
+      );
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value);
-          for (const line of chunk.split("\n")) {
-            if (line.startsWith("data: ")) {
-              const token = line.replace("data: ", "");
-              setLlmOutput((prev) => prev + token);
-              onChunk(token);
-            }
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        onChunk("[Error: No stream]");
+        return;
+      }
+
+      while (true) {
+        // ✅ Check if aborted
+        if (signal.aborted) {
+          try {
+            await reader.cancel();
+          } catch {}
+          throw new DOMException("Aborted", "AbortError");
+        }
+
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            if (data.done) return;
+            onChunk(data.response || "");
+          } catch {
+            onChunk(chunk);
           }
         }
-      })
-      .catch((error) => {
-        setLlmOutput((prev) => prev + `\nError: ${error.message}`);
-      });
+      }
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        console.log("Request aborted");
+      } else {
+        onChunk(`[LLM Error]: ${err.message}`);
+      }
+    }
   };
 
   const handleCodeChange = (newCode: string | undefined) => {
@@ -371,7 +393,7 @@ export default function CodeEditorDashboard(props: {
             p: 2,
           }}
         >
-          <LLMPanel output={llmOutput} onSend={handleSendToLLM} />
+          <LLMPanel onSend={handleSendToLLM} />
         </Box>
       </Box>
     </AppTheme>
