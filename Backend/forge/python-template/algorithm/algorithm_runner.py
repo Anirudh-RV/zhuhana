@@ -2,11 +2,12 @@ import os
 import requests
 import zhuhana
 from zhuhana.types import OHLCData, OHLCResponse
+
 from algorithm.zhuhana_algorithm import ZhuhanaStrategy
 
 class ZhuhanaStrategyRunner:
     def __init__(self, USER_ALGORITHM_TOKEN, ORDER_DOMAIN, API_ENDPOINT):
-        self.zhuhana_sdk = zhuhana.init(api_endpoint=API_ENDPOINT, token=USER_ALGORITHM_TOKEN)
+        self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana.init(api_endpoint=API_ENDPOINT, token=USER_ALGORITHM_TOKEN)
         self.order_domain = ORDER_DOMAIN
         self.user_algorithm_token = USER_ALGORITHM_TOKEN
         self.api_endpoint = API_ENDPOINT
