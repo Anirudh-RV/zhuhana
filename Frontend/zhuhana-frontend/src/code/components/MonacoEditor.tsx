@@ -1,11 +1,10 @@
 import Editor from "@monaco-editor/react";
 import type { OnMount } from "@monaco-editor/react/";
-
-import { useRef } from "react";
 import * as monacoEditor from "monaco-editor";
 import githubDark from "monaco-themes/themes/GitHub Dark.json";
-
-import * as monaco from "monaco-editor";
+import { useRef, useEffect } from "react";
+import { createPythonLanguageClient } from "./lspClient";
+import { Parser, Language } from "web-tree-sitter";
 
 type MonacoEditorProps = {
   code: string;
@@ -24,11 +23,46 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     null
   );
 
+  // ✅ Tree-sitter setup: runs once after mount
+  useEffect(() => {
+    const setupTreeSitter = async () => {
+      // Init WASM runtime
+      await Parser.init({ locateFile: () => "/tree-sitter.wasm" });
+
+      // Load Python grammar
+      const parser = new Parser();
+      const lang = await Language.load("/tree-sitter-python.wasm");
+      parser.setLanguage(lang);
+
+      // Get editor content and parse
+      const model = editorRef.current?.getModel();
+      if (!model) return;
+
+      const code = model.getValue();
+      const tree = parser.parse(code);
+      const rootNode = tree?.rootNode;
+
+      // Example: log function definitions
+      rootNode?.namedChildren
+        .filter((node) => node?.type === "function_definition")
+        .forEach((node) => {
+          const nameNode = node?.namedChildren.find(
+            (n) => n?.type === "identifier"
+          );
+          console.log("Function:", nameNode?.text);
+        });
+    };
+
+    if (editorRef.current) {
+      setupTreeSitter().catch(console.error);
+    }
+  }, []);
+
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
-    // Register the Python language (basic tokenizer) - language server will provide rich features
     monaco.languages.register({ id: "python" });
+
     monaco.languages.setMonarchTokensProvider("python", {
       tokenizer: {
         root: [
@@ -44,49 +78,22 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       },
     });
 
-    // Register the GitHub Dark theme
     monaco.editor.defineTheme(
       "github-dark",
       githubDark as monacoEditor.editor.IStandaloneThemeData
     );
-    monaco.editor.setTheme("github-dark"); // Set the theme you defined
+    monaco.editor.setTheme("github-dark");
 
-    // Optional: You can keep this basic autocomplete if you want, but the LSP will offer more.
-    // Consider removing it if LSP provides all necessary completions to avoid conflicts/redundancy.
-    monaco.languages.registerCompletionItemProvider("python", {
-      provideCompletionItems: (model, position) => {
-        const word = model.getWordUntilPosition(position);
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        };
-        return {
-          suggestions: [
-            {
-              label: "print",
-              kind: monaco.languages.CompletionItemKind.Function,
-              insertText: "print()",
-              documentation: "Print to stdout",
-              range,
-            },
-            {
-              label: "def",
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: "def ",
-              range,
-            },
-            {
-              label: "class",
-              kind: monaco.languages.CompletionItemKind.Keyword,
-              insertText: "class ",
-              range,
-            },
-          ],
-        };
-      },
-    });
+    // ✅ Start LSP client
+    const ws = new WebSocket("ws://localhost:3001");
+
+    ws.onopen = () => {
+      const client = createPythonLanguageClient(); // assumes messageTransports setup inside
+      client.start();
+    };
+
+    const model = editor.getModel();
+    if (model) monaco.editor.setModelLanguage(model, "python");
 
     onMount?.(editor, monaco);
   };
@@ -96,10 +103,10 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       <Editor
         height="100%"
         defaultLanguage="python"
-        value={code}
+        defaultValue={code}
         onChange={onChange}
         onMount={handleMount}
-        theme="github-dark" // Use the theme name you defined and set
+        theme="github-dark"
         options={{
           lineNumbers: (lineNumber: number) =>
             errorLines?.includes(lineNumber) ? "❗" : String(lineNumber),

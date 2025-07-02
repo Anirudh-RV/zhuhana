@@ -31,6 +31,7 @@
     "monaco-languageclient": "^9.8.0",
     "monaco-themes": "^0.4.5",
     "mui-one-time-password-input": "^5.0.0",
+    "normalize-url": "^8.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
@@ -38,9 +39,12 @@
     "react-syntax-highlighter": "^15.6.1",
     "reconnecting-websocket": "^4.4.0",
     "rehype-highlight": "^7.0.2",
+    "tree-sitter": "^0.22.4",
+    "tree-sitter-python": "^0.23.6",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageclient": "^9.0.1",
-    "vscode-ws-jsonrpc": "^3.4.0"
+    "vscode-ws-jsonrpc": "^3.4.0",
+    "web-tree-sitter": "^0.25.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

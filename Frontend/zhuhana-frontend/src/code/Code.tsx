@@ -31,10 +31,21 @@ type Message = {
   content: string;
 };
 
-const defaultPythonCode = `def greet(name):
-    return f"Hello, {name}"
+const defaultPythonCode = `from algorithm.models import OrderInstruction
 
-print(greet("World"))`;
+class ZhuhanaStrategy:
+    def __init__(self, zhuhana_sdk):
+        self.zhuhana_sdk = zhuhana_sdk
+
+    def on_data(self, current_data):
+       pass
+
+    def condition_for_sell(self, current_data) -> OrderInstruction:
+        pass
+
+    def condition_for_buy(self, current_data) -> OrderInstruction:
+        pass
+`;
 
 export default function CodeEditorDashboard(props: {
   disableCustomTheme?: boolean;
