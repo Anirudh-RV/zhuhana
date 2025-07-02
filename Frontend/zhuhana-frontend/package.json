@@ -41,8 +41,11 @@
     "rehype-highlight": "^7.0.2",
     "tree-sitter": "^0.22.4",
     "tree-sitter-python": "^0.23.6",
+    "vite-plugin-monaco-editor": "^1.1.0",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageclient": "^9.0.1",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.2.0",
     "vscode-ws-jsonrpc": "^3.4.0",
     "web-tree-sitter": "^0.25.6"
   },

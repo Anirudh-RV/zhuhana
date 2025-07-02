@@ -1,10 +1,11 @@
 import Editor from "@monaco-editor/react";
-import type { OnMount } from "@monaco-editor/react/";
+import type { OnMount } from "@monaco-editor/react";
 import * as monacoEditor from "monaco-editor";
 import githubDark from "monaco-themes/themes/GitHub Dark.json";
 import { useRef, useEffect } from "react";
 import { createPythonLanguageClient } from "./lspClient";
 import { Parser, Language } from "web-tree-sitter";
+import { MonacoLanguageClient } from "monaco-languageclient";
 
 type MonacoEditorProps = {
   code: string;
@@ -22,19 +23,17 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   const editorRef = useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(
     null
   );
+  const lspClientRef = useRef<MonacoLanguageClient | null>(null);
 
-  // ✅ Tree-sitter setup: runs once after mount
+  // ✅ Tree-sitter setup (used for structural parsing)
   useEffect(() => {
     const setupTreeSitter = async () => {
-      // Init WASM runtime
       await Parser.init({ locateFile: () => "/tree-sitter.wasm" });
 
-      // Load Python grammar
       const parser = new Parser();
       const lang = await Language.load("/tree-sitter-python.wasm");
       parser.setLanguage(lang);
 
-      // Get editor content and parse
       const model = editorRef.current?.getModel();
       if (!model) return;
 
@@ -42,7 +41,6 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       const tree = parser.parse(code);
       const rootNode = tree?.rootNode;
 
-      // Example: log function definitions
       rootNode?.namedChildren
         .filter((node) => node?.type === "function_definition")
         .forEach((node) => {
@@ -58,9 +56,11 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     }
   }, []);
 
+  // ✅ Called when Monaco mounts
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
+    // Set language and theme
     monaco.languages.register({ id: "python" });
 
     monaco.languages.setMonarchTokensProvider("python", {
@@ -84,16 +84,18 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     );
     monaco.editor.setTheme("github-dark");
 
-    // ✅ Start LSP client
-    const ws = new WebSocket("ws://localhost:3001");
-
-    ws.onopen = () => {
-      const client = createPythonLanguageClient(); // assumes messageTransports setup inside
+    // ✅ Create LSP connection
+    const socket = new WebSocket("ws://localhost:3001");
+    socket.onopen = () => {
+      const client = createPythonLanguageClient();
       client.start();
+      lspClientRef.current = client;
     };
 
     const model = editor.getModel();
-    if (model) monaco.editor.setModelLanguage(model, "python");
+    if (model) {
+      monaco.editor.setModelLanguage(model, "python");
+    }
 
     onMount?.(editor, monaco);
   };
