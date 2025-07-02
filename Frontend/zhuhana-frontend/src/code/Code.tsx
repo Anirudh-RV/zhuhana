@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import AppTheme from "../shared-ui-theme/AppTheme";
-import MonacoEditor from "./components/MonacoEditor";
+import CodeMirrorEditor from "./components/CodeMirrorEditor";
 import CodeSideMenu from "./components/CodeSideMenu";
 import LLMPanel from "./components/LLMPanel";
 import Toolbar from "@mui/material/Toolbar";
@@ -11,8 +11,98 @@ import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { green } from "@mui/material/colors";
-import type { Monaco } from "@monaco-editor/react";
 
+// CodeMirror specific imports for LSP integration
+import { EditorView, hoverTooltip } from "@codemirror/view";
+import type { Extension } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
+import { autocompletion } from "@codemirror/autocomplete";
+import { linter, Diagnostic as CodeMirrorDiagnostic, lintGutter } from "@codemirror/lint";
+
+// Correct imports from codemirror-languageservice based on its API
+import {
+  createCompletionSource,
+  createHoverTooltipSource,
+} from "codemirror-languageservice";
+
+import {
+  InitializeParams,
+  InitializeResult,
+  Message,
+  RequestMessage,
+  PublishDiagnosticsParams,
+  CompletionParams,
+  HoverParams,
+  CompletionList,
+  Hover,
+  MarkupContent,
+  MarkupKind,
+  MarkedString,
+  TextDocumentIdentifier,
+  Position,
+  TextDocumentItem,
+  TextDocumentContentChangeEvent,
+  CompletionContext as LSPCompletionContext,
+  TextDocument,
+  Diagnostic as LSPDiagnostic,
+} from "vscode-languageserver-protocol";
+
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+
+import { TextDecoder } from 'text-encoding'; // Ensure this is imported if needed globally
+
+const md = MarkdownIt();
+
+// Utility to convert LSP MarkupContent/MarkedString to HTML
+function lspMarkupContentToHtml(content: string | MarkupContent | MarkedString | MarkedString[] | undefined): string {
+  if (!content) return '';
+
+  if (typeof content === 'string') {
+    return DOMPurify.sanitize(md.render(content));
+  } else if (Array.isArray(content)) {
+    return DOMPurify.sanitize(content.map(item => {
+      if (typeof item === 'string') {
+        return md.render(item);
+      } else { // MarkedString { language: string, value: string }
+        return item.language ? `<pre><code class="language-${item.language}">${item.value}</code></pre>` : md.render(item.value);
+      }
+    }).join('\n'));
+  } else if ('kind' in content) {
+    if (content.kind === MarkupKind.Markdown) {
+      return DOMPurify.sanitize(md.render(content.value));
+    } else { // MarkupKind.PlainText
+      return DOMPurify.sanitize(`<pre>${content.value}</pre>`);
+    }
+  } else if ('value' in content) {
+    if (content.language) {
+      return DOMPurify.sanitize(`<pre><code class="language-${content.language}">${content.value}</code></pre>`);
+    } else {
+      return DOMPurify.sanitize(md.render(content.value));
+    }
+  }
+  return '';
+}
+
+// Helper to convert LSP Diagnostic to CodeMirror Diagnostic
+function lspDiagnosticToCmDiagnostic(lspDiag: LSPDiagnostic, view: EditorView): CodeMirrorDiagnostic {
+  const lineStart = view.state.doc.line(lspDiag.range.start.line + 1);
+  const from = lineStart.from + lspDiag.range.start.character;
+
+  const lineEnd = view.state.doc.line(lspDiag.range.end.line + 1);
+  const to = lineEnd.from + lspDiag.range.end.character;
+
+  return {
+    from: from,
+    to: to,
+    severity: lspDiag.severity === 1 ? "error" : lspDiag.severity === 2 ? "warning" : "info",
+    message: lspDiag.message,
+    source: lspDiag.source,
+  };
+}
+
+// --- Pyodide setup ---
 declare global {
   interface Window {
     loadPyodide: (config: {
@@ -26,26 +116,48 @@ declare global {
 
 type TerminalLine = { text: string; type: "info" | "success" | "error" };
 
-type Message = {
+type LLMMessage = {
   role: "user" | "assistant" | "system";
   content: string;
 };
 
-const defaultPythonCode = `from algorithm.models import OrderInstruction
+const defaultPythonCode = `import zhuhana
+from zhuhana.types import OrderInstruction, OrderSide, OrderType, OrderMode, OrderTIF, OrderDomain, OHLCData
+
+
 
 class ZhuhanaStrategy:
-    def __init__(self, zhuhana_sdk):
-        self.zhuhana_sdk = zhuhana_sdk
+    def __init__(self, zhuhana_sdk: zhuhana.ZhuhanaClass):
+        self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
 
-    def on_data(self, current_data):
-       pass
-
-    def condition_for_sell(self, current_data) -> OrderInstruction:
+    def on_data(self, current_data: OHLCData):
         pass
 
-    def condition_for_buy(self, current_data) -> OrderInstruction:
-        pass
+    def condition_for_sell(self, current_data: OHLCData) -> OrderInstruction:
+        return OrderInstruction(
+            side=OrderSide.SELL,
+            type=OrderType.MARKET,
+            mode=OrderMode.INTRADAY,
+            tif=OrderTIF.DAY,
+            domain=OrderDomain.BACKTEST,
+            quantity=100
+        )
+
+    def condition_for_buy(self, current_data: OHLCData) -> OrderInstruction:
+        return OrderInstruction(
+            side=OrderSide.BUY,
+            type=OrderType.MARKET,
+            mode=OrderMode.INTRADAY,
+            tif=OrderTIF.DAY,
+            domain=OrderDomain.BACKTEST,
+            quantity=100
+        )
 `;
+
+// LSP Server URL
+const LSP_SERVER_URL = "ws://localhost:3001";
+const FILE_URI = "file:///main_editor_code.py"; // A fixed URI for your single editor file
+const LANGUAGE_ID = "python"; // LSP language ID for Python
 
 export default function CodeEditorDashboard(props: {
   disableCustomTheme?: boolean;
@@ -59,11 +171,19 @@ export default function CodeEditorDashboard(props: {
     { text: ">> Terminal ready...", type: "info" },
   ]);
   const pyodideInstanceRef = useRef<any>(null);
+  const editorViewRef = useRef<EditorView | null>(null);
   const [isLoadingPyodide, setIsLoadingPyodide] = useState(true);
+  const [diagnostics, setDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
+
+  // LSP WebSocket client
+  const lspSocketRef = useRef<ReconnectingWebSocket | null>(null);
+  const lspRequestIdCounter = useRef(0);
+  const lspPendingRequests = useRef(new Map<number, { resolve: Function, reject: Function }>());
+  const isLspInitialized = useRef(false);
+  const documentVersion = useRef(1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
-  const [errorLines, setErrorLines] = useState<number[]>([]);
   const [editorHeight, setEditorHeight] = useState(
     () => window.innerHeight * 0.6
   );
@@ -79,10 +199,48 @@ export default function CodeEditorDashboard(props: {
     ]);
   });
 
-  const editorRef = useRef<any>(null);
-  const monacoRef = useRef<Monaco | null>(null);
-  const [decorations, setDecorations] = useState<string[]>([]);
+  // --- LSP Communication Helpers ---
+  // IMPORTANT: Ensure this useCallback has an empty dependency array for stability
+  const sendLSPMessage = useCallback((message: Message) => {
+    if (lspSocketRef.current && lspSocketRef.current.readyState === WebSocket.OPEN) {
+      try {
+        lspSocketRef.current.send(JSON.stringify(message));
+      } catch (e) {
+        console.error("Failed to send LSP message:", e);
+      }
+    } else {
+      console.warn("LSP WebSocket not open, cannot send message:", message);
+    }
+  }, []); // <--- Empty dependency array
 
+  const sendLSPRequest = useCallback((method: string, params: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const id = lspRequestIdCounter.current++;
+      lspPendingRequests.current.set(id, { resolve, reject });
+
+      const request: RequestMessage = {
+        jsonrpc: "2.0",
+        id: id,
+        method: method,
+        params: params,
+      };
+      sendLSPMessage(request);
+    });
+  }, [sendLSPMessage]);
+
+  const sendLSPNotification = useCallback((method: string, params: any) => {
+    const id = lspRequestIdCounter.current++;
+    const notification: RequestMessage = {
+      jsonrpc: "2.0",
+      id: id,
+      method: method, // Notifications MUST have a method
+      params: params, // Notifications MUST have params (can be null if none)
+    };
+    sendLSPMessage(notification);
+  }, [sendLSPMessage]);
+
+
+  // --- Pyodide Initialization (runs once on mount) ---
   useEffect(() => {
     const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
     const script = document.createElement("script");
@@ -100,12 +258,28 @@ export default function CodeEditorDashboard(props: {
             stderr: appendStderr.current,
           });
           pyodideInstanceRef.current = pyodide;
+
           setTerminalOutput((prev) => [
             ...prev,
-            {
-              text: ">> Python runtime loaded. Run the script to test...",
-              type: "info",
-            },
+            { text: ">> Loading micropip...", type: "info" },
+          ]);
+          await pyodide.loadPackage("micropip");
+          setTerminalOutput((prev) => [
+            ...prev,
+            { text: `>> Installing zhuhana==0.1.0...`, type: "info" },
+          ]);
+          await pyodide.runPythonAsync(`
+            import micropip
+            await micropip.install(["https://test-files.pythonhosted.org/packages/0d/a6/9442d90a4f723583e7d625107129af7c61151f2c4c2749f04791edfeed96/zhuhana-0.1.0-py3-none-any.whl"])
+          `);
+          setTerminalOutput((prev) => [
+            ...prev,
+            { text: `>> Package 'zhuhana' installed successfully.`, type: "info" },
+          ]);
+
+          setTerminalOutput((prev) => [
+            ...prev,
+            { text: ">> Python runtime loaded.", type: "info" },
           ]);
         } else {
           throw new Error("window.loadPyodide is not a function.");
@@ -113,46 +287,233 @@ export default function CodeEditorDashboard(props: {
       } catch (err: any) {
         setTerminalOutput((prev) => [
           ...prev,
-          {
-            text: `>> Failed to initialize Pyodide: ${err.message || err}`,
-            type: "error",
-          },
+          { text: `>> Failed to initialize Pyodide: ${err.message || err}`, type: "error" },
         ]);
       } finally {
         setIsLoadingPyodide(false);
       }
     };
 
-    script.onerror = (err) => {
-      setTerminalOutput((prev) => [
-        ...prev,
-        { text: `>> Failed to load Pyodide: ${err}`, type: "error" },
-      ]);
-      setIsLoadingPyodide(false);
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!dragInfo.current) return;
-      const delta = e.clientY - dragInfo.current.startY;
-      const newHeight = Math.max(100, dragInfo.current.startHeight + delta);
-      setEditorHeight(newHeight);
-    };
-
-    const handleMouseUp = () => {
-      dragInfo.current = null;
-      document.body.style.cursor = "default";
-      document.body.style.userSelect = "auto";
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-
+    // Cleanup function for Pyodide script
     return () => {
-      document.head.removeChild(script);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
     };
+  }, []); // Empty dependency array for single run on mount
+
+
+  // --- LSP Client Logic (runs once on mount and handles updates via notifications) ---
+  // IMPORTANT: Ensure this useEffect has an empty dependency array for single run on mount
+  useEffect(() => {
+    console.log("Setting up LSP WebSocket...");
+    const ws = new ReconnectingWebSocket(LSP_SERVER_URL);
+    lspSocketRef.current = ws;
+
+    ws.onopen = async () => {
+      console.log("LSP WebSocket connected.");
+      setTerminalOutput((prev) => [...prev, { text: ">> LSP connected.", type: "info" }]);
+
+      const initializeParams: InitializeParams = {
+        processId: null,
+        clientInfo: { name: "CodeMirror React Client", version: "1.0" },
+        rootUri: "file:///",
+        capabilities: {
+          textDocument: {
+            completion: {
+              completionItem: {
+                documentationFormat: [MarkupKind.Markdown, MarkupKind.PlainText],
+                snippetSupport: true,
+                resolveSupport: { properties: ["documentation", "detail"] },
+              },
+              contextSupport: true,
+            },
+            hover: { contentFormat: [MarkupKind.Markdown, MarkupKind.PlainText] },
+            synchronization: {
+              didSave: true,
+              willSave: true,
+              willSaveWaitUntil: true,
+              dynamicRegistration: true,
+            },
+            publishDiagnostics: { relatedInformation: true, tagSupport: { valueSet: [1, 2] } },
+          },
+          workspace: {
+              workspaceFolders: true,
+              didChangeWatchedFiles: { dynamicRegistration: true }
+          }
+        },
+        workspaceFolders: [{ uri: "file:///", name: "Workspace" }],
+      };
+
+      try {
+        const response: InitializeResult = await sendLSPRequest("initialize", initializeParams);
+        console.log("LSP initialize response:", response);
+        isLspInitialized.current = true;
+        sendLSPNotification("initialized", {});
+
+        // After initialization, send didOpen for the current document
+        sendLSPNotification("textDocument/didOpen", {
+          textDocument: {
+            uri: FILE_URI,
+            languageId: LANGUAGE_ID,
+            version: documentVersion.current,
+            text: code, // Use the current 'code' state for initial didOpen
+          },
+        });
+
+      } catch (error: any) {
+        console.error("LSP initialization failed:", error);
+        setTerminalOutput((prev) => [...prev, { text: `>> LSP initialization failed: ${error.message || error}`, type: "error" }]);
+      }
+    };
+
+    ws.onmessage = async (event) => { // <-- Add `async` here
+      // console.log("WS ON MESSAGE"); // Keep this if you want to see every message trigger
+      // console.log("Received raw event.data:", event.data); // Keep this for debugging raw data type
+
+      let messageData: string;
+
+      if (typeof event.data === 'string') {
+        messageData = event.data;
+      } else if (event.data instanceof Blob) {
+        try {
+          messageData = await event.data.text();
+          // console.log("Converted Blob to text:", messageData); // Keep for debugging conversion
+        } catch (e) {
+          console.error("Failed to read Blob as text:", e);
+          return;
+        }
+      } else if (event.data instanceof ArrayBuffer) {
+        try {
+          messageData = new TextDecoder().decode(event.data);
+          // console.log("Decoded ArrayBuffer to text:", messageData); // Keep for debugging conversion
+        } catch (e) {
+          console.error("Failed to decode ArrayBuffer as text:", e);
+          return;
+        }
+      } else {
+        console.warn("Received unexpected WebSocket data type:", typeof event.data, event.data);
+        return;
+      }
+
+      try {
+        const message: RequestMessage = JSON.parse(messageData);
+        // console.log("LSP Message received:", message); // Uncomment for full parsed message logging
+
+        if ('id' in message && (message as any).id !== undefined && (message as any).id !== null) {
+            const pending = lspPendingRequests.current.get(message.id as number);
+            if (pending) {
+                lspPendingRequests.current.delete(message.id as number);
+                if ('error' in message) {
+                    pending.reject(message.error);
+                } else {
+                    pending.resolve((message as any).result);
+                }
+            }
+        } else if ('method' in message) {
+            if (message.method === "textDocument/publishDiagnostics") {
+                const params: PublishDiagnosticsParams = message.params as any;
+                if (editorViewRef.current) {
+                    const cmDiagnostics: CodeMirrorDiagnostic[] = params.diagnostics.map(diag =>
+                        lspDiagnosticToCmDiagnostic(diag as LSPDiagnostic, editorViewRef.current!)
+                    );
+                    setDiagnostics(cmDiagnostics);
+                }
+            }
+            // Handle other server-initiated notifications here if needed
+        }
+      } catch (parseError) {
+        console.error("Error parsing LSP message JSON:", parseError, "Attempted to parse:", messageData);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("LSP WebSocket error:", error);
+      setTerminalOutput((prev) => [...prev, { text: `>> LSP connection error. Make sure your Node.js LSP proxy is running on ${LSP_SERVER_URL}.`, type: "error" }]);
+    };
+
+    ws.onclose = (event) => {
+      console.log("LSP WebSocket closed:", event.code, event.reason);
+      setTerminalOutput((prev) => [...prev, { text: `>> LSP disconnected. Code: ${event.code}, Reason: ${event.reason}`, type: "info" }]);
+      isLspInitialized.current = false;
+      lspPendingRequests.current.forEach(req => req.reject(new Error("LSP connection closed")));
+      lspPendingRequests.current.clear();
+      setDiagnostics([]);
+    };
+
+    // Cleanup for LSP WebSocket - runs only once when component unmounts
+    return () => {
+      console.log("Cleaning up LSP WebSocket...");
+      if (lspSocketRef.current) {
+        // Only send shutdown/exit if it was actually initialized
+        if (isLspInitialized.current) {
+            const id = lspRequestIdCounter.current++;
+            // Note: LSP spec suggests sending shutdown and then exit.
+            // However, on a browser close/unmount, the server might disconnect first.
+            // Send as notifications, no need to await on unmount
+            const shutdownNotification: RequestMessage = { jsonrpc: "2.0", method: "shutdown", id: id };
+            const exitNotification: RequestMessage = { jsonrpc: "2.0", method: "exit", id: id };
+            try {
+                lspSocketRef.current.send(JSON.stringify(shutdownNotification));
+                lspSocketRef.current.send(JSON.stringify(exitNotification));
+            } catch (e) {
+                console.warn("Failed to send LSP shutdown/exit on cleanup:", e);
+            }
+        }
+        // Close the WebSocket. ReconnectingWebSocket might try to reconnect
+        // but the component is unmounting, so it will eventually be garbage collected.
+        lspSocketRef.current.close();
+      }
+      // REMOVED window.removeEventListener("mousemove", handleMouseMove);
+      // REMOVED window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []); // <--- THIS IS THE CRUCIAL CHANGE: Empty dependency array
+
+  // Callback to get the EditorView instance from CodeMirrorEditor
+  const handleEditorCreation = useCallback((view: EditorView) => {
+    editorViewRef.current = view;
   }, []);
+
+  // Update the code, and notify the LSP server of changes
+  const handleCodeChange = useCallback((newCode: string | undefined) => {
+    const currentCode = newCode ?? "";
+    setCode(currentCode);
+
+    documentVersion.current += 1;
+
+    if (isLspInitialized.current && lspSocketRef.current?.readyState === WebSocket.OPEN) {
+        sendLSPNotification("textDocument/didChange", {
+            textDocument: { uri: FILE_URI, version: documentVersion.current },
+            contentChanges: [{ text: currentCode }],
+        });
+    }
+  }, [sendLSPNotification]);
+
+
+  // --- Wrapper functions for createCompletionSource and createHoverTooltipSource ---
+
+  const doCompleteLSP = useCallback(async (
+    textDocument: TextDocument,
+    position: Position,
+    context: LSPCompletionContext
+  ): Promise<CompletionList | Iterable<CompletionList> | null | undefined> => {
+    if (!isLspInitialized.current || lspSocketRef.current?.readyState !== WebSocket.OPEN) {
+        return null;
+    }
+    const params: CompletionParams = {
+        textDocument: { uri: textDocument.uri },
+        position: position,
+        context: context,
+    };
+    try {
+        const result = await sendLSPRequest('textDocument/completion', params);
+        return result as CompletionList;
+    } catch (error) {
+        console.error("LSP Completion request failed:", error);
+        return null;
+    }
+  }, [sendLSPRequest]);
+
 
   const handleRunCode = async () => {
     if (!pyodideInstanceRef.current) {
@@ -168,15 +529,12 @@ export default function CodeEditorDashboard(props: {
       { text: ">> Executing Python code...", type: "info" },
     ]);
 
-    // Clear previous decorations
-    if (editorRef.current) {
-      setDecorations(editorRef.current.deltaDecorations(decorations, []));
-    }
-
     console.log("[Current Code]:\n" + code);
     console.log("[Code Lines]:", code.split("\n").length);
 
     try {
+      pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
+
       await pyodideInstanceRef.current.runPythonAsync(code);
       setTerminalOutput((prev) => [
         ...prev,
@@ -190,43 +548,15 @@ export default function CodeEditorDashboard(props: {
         ...prev,
         { text: `>> Error: ${message}`, type: "error" },
       ]);
-
-      const lineMatch = message.match(/File "<exec>", line (\d+)/);
-      console.log("[Parsed lineMatch]:", lineMatch);
-
-      if (lineMatch && editorRef.current && monacoRef.current) {
-        const lineNumber = parseInt(lineMatch[1], 10);
-        setErrorLines([lineNumber]);
-        const model = editorRef.current.getModel();
-        const lineText = model?.getLineContent(lineNumber);
-        console.log(`[Content at line ${lineNumber}]:`, lineText);
-
-        const range = new monacoRef.current.Range(lineNumber, 1, lineNumber, 1);
-        console.log("[Monaco Range]:", range);
-
-        const newDecorations = editorRef.current.deltaDecorations(decorations, [
-          {
-            range,
-            options: {
-              isWholeLine: true,
-              className: "errorLineHighlight",
-              glyphMarginClassName: "errorGlyphMargin",
-              hoverMessage: { value: `**SyntaxError**: ${message}` },
-            },
-          },
-        ]);
-        setDecorations(newDecorations);
-      }
     }
   };
 
   const handleSendToLLM = async (
-    messages: Message[],
+    messages: LLMMessage[],
     onChunk: (token: string) => void,
     signal: AbortSignal
   ) => {
     try {
-      // 👇 Format messages into a full prompt string
       const prompt = messages
         .map(
           (msg) =>
@@ -259,7 +589,7 @@ export default function CodeEditorDashboard(props: {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+        const lines = chunk.split("\n").filter((line: string) => line.trim() !== "");
 
         for (const line of lines) {
           try {
@@ -280,15 +610,23 @@ export default function CodeEditorDashboard(props: {
     }
   };
 
-  const handleCodeChange = (newCode: string | undefined) => {
-    setCode(newCode ?? "");
 
-    // Clear decorations and error lines on code change
-    if (editorRef.current) {
-      setDecorations(editorRef.current.deltaDecorations(decorations, []));
-    }
-    setErrorLines([]); // 👈 This resets the ❗ on next render
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!dragInfo.current) return;
+    const delta = e.clientY - dragInfo.current.startY;
+    const newHeight = Math.max(100, dragInfo.current.startHeight + delta);
+    setEditorHeight(newHeight);
   };
+
+  const handleMouseUp = () => {
+    dragInfo.current = null;
+    document.body.style.cursor = "default";
+    document.body.style.userSelect = "auto";
+    // These listeners are only added when drag starts, so they should be removed then too.
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  };
+
 
   return (
     <AppTheme {...props}>
@@ -313,14 +651,11 @@ export default function CodeEditorDashboard(props: {
               borderRadius: 1,
             }}
           >
-            <MonacoEditor
+            <CodeMirrorEditor
               code={code}
               onChange={handleCodeChange}
-              onMount={(editor, monaco) => {
-                editorRef.current = editor;
-                monacoRef.current = monaco;
-              }}
-              errorLines={errorLines}
+              onCreateEditor={handleEditorCreation}
+              extraExtensions={[]}
             />
           </Box>
 
@@ -338,6 +673,9 @@ export default function CodeEditorDashboard(props: {
               };
               document.body.style.cursor = "row-resize";
               document.body.style.userSelect = "none";
+              // Add listeners when drag starts
+              window.addEventListener("mousemove", handleMouseMove);
+              window.addEventListener("mouseup", handleMouseUp);
             }}
           />
 
