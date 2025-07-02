@@ -6,6 +6,7 @@ import Code from "./code/Code";
 import Dashboard from "./dashboard/Dashboard";
 import { AuthProvider } from "./AuthContext";
 import "./App.css";
+import "highlight.js/styles/github-dark.css";
 
 function App() {
   return (

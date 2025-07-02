@@ -26,6 +26,11 @@ declare global {
 
 type TerminalLine = { text: string; type: "info" | "success" | "error" };
 
+type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
+
 const defaultPythonCode = `def greet(name):
     return f"Hello, {name}"
 
@@ -205,14 +210,22 @@ export default function CodeEditorDashboard(props: {
   };
 
   const handleSendToLLM = async (
-    input: string,
+    messages: Message[],
     onChunk: (token: string) => void,
     signal: AbortSignal
   ) => {
     try {
+      // 👇 Format messages into a full prompt string
+      const prompt = messages
+        .map(
+          (msg) =>
+            `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+        )
+        .join("\n");
+
       const response = await fetch(
-        `http://localhost:3000/v1/ask?q=${encodeURIComponent(input)}`,
-        { signal } // ✅ tie fetch to AbortController
+        `http://localhost:3000/v1/ask?q=${encodeURIComponent(prompt)}`,
+        { signal }
       );
 
       const reader = response.body?.getReader();
@@ -224,7 +237,6 @@ export default function CodeEditorDashboard(props: {
       }
 
       while (true) {
-        // ✅ Check if aborted
         if (signal.aborted) {
           try {
             await reader.cancel();

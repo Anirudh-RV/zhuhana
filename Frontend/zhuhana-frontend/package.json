@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codingame/monaco-jsonrpc": "^0.4.1",
+    "@codingame/monaco-vscode-api": "^18.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@monaco-editor/react": "^4.7.0",
@@ -25,13 +27,20 @@
     "@react-spring/web": "^10.0.1",
     "dayjs": "^1.11.13",
     "highlight.js": "^11.11.1",
+    "monaco-editor": "^0.52.2",
+    "monaco-languageclient": "^9.8.0",
+    "monaco-themes": "^0.4.5",
     "mui-one-time-password-input": "^5.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.6.2",
     "react-syntax-highlighter": "^15.6.1",
-    "rehype-highlight": "^7.0.2"
+    "reconnecting-websocket": "^4.4.0",
+    "rehype-highlight": "^7.0.2",
+    "vscode-jsonrpc": "^8.2.1",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-ws-jsonrpc": "^3.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
@@ -39,6 +48,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/react-router-dom": "^5.3.3",
+    "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.4.1",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",

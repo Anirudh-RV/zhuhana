@@ -1,8 +1,11 @@
-// MonacoEditor.tsx
-import Editor, { useMonaco } from "@monaco-editor/react";
-import type { OnMount } from "@monaco-editor/react";
-import { useEffect, useRef } from "react";
+import Editor from "@monaco-editor/react";
+import type { OnMount } from "@monaco-editor/react/";
+
+import { useRef } from "react";
 import * as monacoEditor from "monaco-editor";
+import githubDark from "monaco-themes/themes/GitHub Dark.json";
+
+import * as monaco from "monaco-editor";
 
 type MonacoEditorProps = {
   code: string;
@@ -21,13 +24,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     null
   );
 
-  const handleMount: OnMount = (editor, monacoInstance) => {
+  const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
 
-    // Configure Python language and theme if needed
-    monacoInstance.languages.register({ id: "python" });
-
-    monacoInstance.languages.setMonarchTokensProvider("python", {
+    // Register the Python language (basic tokenizer) - language server will provide rich features
+    monaco.languages.register({ id: "python" });
+    monaco.languages.setMonarchTokensProvider("python", {
       tokenizer: {
         root: [
           [
@@ -42,20 +44,16 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       },
     });
 
-    monacoInstance.editor.defineTheme("python-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "keyword", foreground: "C586C0", fontStyle: "bold" },
-        { token: "string", foreground: "CE9178" },
-        { token: "number", foreground: "B5CEA8" },
-        { token: "comment", foreground: "6A9955" },
-        { token: "identifier", foreground: "9CDCFE" },
-      ],
-      colors: {},
-    });
+    // Register the GitHub Dark theme
+    monaco.editor.defineTheme(
+      "github-dark",
+      githubDark as monacoEditor.editor.IStandaloneThemeData
+    );
+    monaco.editor.setTheme("github-dark"); // Set the theme you defined
 
-    monacoInstance.languages.registerCompletionItemProvider("python", {
+    // Optional: You can keep this basic autocomplete if you want, but the LSP will offer more.
+    // Consider removing it if LSP provides all necessary completions to avoid conflicts/redundancy.
+    monaco.languages.registerCompletionItemProvider("python", {
       provideCompletionItems: (model, position) => {
         const word = model.getWordUntilPosition(position);
         const range = {
@@ -64,25 +62,24 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
           startColumn: word.startColumn,
           endColumn: word.endColumn,
         };
-
         return {
           suggestions: [
             {
               label: "print",
-              kind: monacoInstance.languages.CompletionItemKind.Function,
+              kind: monaco.languages.CompletionItemKind.Function,
               insertText: "print()",
               documentation: "Print to stdout",
               range,
             },
             {
               label: "def",
-              kind: monacoInstance.languages.CompletionItemKind.Keyword,
+              kind: monaco.languages.CompletionItemKind.Keyword,
               insertText: "def ",
               range,
             },
             {
               label: "class",
-              kind: monacoInstance.languages.CompletionItemKind.Keyword,
+              kind: monaco.languages.CompletionItemKind.Keyword,
               insertText: "class ",
               range,
             },
@@ -91,9 +88,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       },
     });
 
-    monacoInstance.editor.setTheme("python-dark");
-
-    onMount?.(editor, monacoInstance);
+    onMount?.(editor, monaco);
   };
 
   return (
@@ -104,7 +99,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
         value={code}
         onChange={onChange}
         onMount={handleMount}
-        theme="python-dark"
+        theme="github-dark" // Use the theme name you defined and set
         options={{
           lineNumbers: (lineNumber: number) =>
             errorLines?.includes(lineNumber) ? "❗" : String(lineNumber),

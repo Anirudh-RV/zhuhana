@@ -32,12 +32,12 @@ async fn handle_ask(
 
     match query_ollama_stream(prompt).await {
         Ok(stream) => {
-            let body = Body::from_stream(stream);
+            let body = Body::from_stream(StreamBody::new(stream));
             let response = Response::builder()
-                        .status(200)
-                        .header("content-type", "text/event-stream")
-                        .body(body)
-                        .unwrap();
+                .status(200)
+                .header("content-type", "text/event-stream")
+                .body(body)
+                .unwrap();
 
             Ok(response)
         }

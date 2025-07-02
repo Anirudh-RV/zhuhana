@@ -11,6 +11,9 @@ import SendIcon from "@mui/icons-material/Send";
 import StopIcon from "@mui/icons-material/Stop";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
+import hljs from "highlight.js/lib/core";
+import python from "highlight.js/lib/languages/python";
+hljs.registerLanguage("python", python);
 
 type Message = {
   role: "user" | "assistant" | "system";
@@ -19,7 +22,7 @@ type Message = {
 
 type LLMPanelProps = {
   onSend: (
-    input: string,
+    messages: Message[],
     onChunk: (token: string) => void,
     signal: AbortSignal
   ) => Promise<void>;
@@ -38,7 +41,8 @@ export default function LLMPanel({ onSend }: LLMPanelProps) {
     const userMessage: Message = { role: "user", content: input };
     const botMessage: Message = { role: "assistant", content: "" };
 
-    setMessages((prev) => [...prev, userMessage, botMessage]);
+    const updatedMessages = [...messages, userMessage, botMessage];
+    setMessages(updatedMessages);
 
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -47,7 +51,7 @@ export default function LLMPanel({ onSend }: LLMPanelProps) {
     let currentBotResponse = "";
 
     onSend(
-      input,
+      updatedMessages.slice(0, -1), // Send all messages before the blank assistant message
       (token: string) => {
         currentBotResponse += token;
         setMessages((prev) =>
@@ -75,7 +79,6 @@ export default function LLMPanel({ onSend }: LLMPanelProps) {
       .finally(() => {
         setIsStreaming(false);
         controllerRef.current = null;
-        // ✅ Always add a divider after assistant message
         setMessages((prev) => [...prev, { role: "system", content: "---" }]);
       });
 
@@ -158,7 +161,12 @@ export default function LLMPanel({ onSend }: LLMPanelProps) {
                   whiteSpace: "pre-wrap",
                 }}
               >
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
+                <ReactMarkdown
+                  rehypePlugins={[[rehypeHighlight, { detect: true }]]}
+                  components={{ code: CodeBlock }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
               </Box>
             ) : (
               <Box
