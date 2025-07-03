@@ -21,8 +21,8 @@ export default function CodeSideMenu() {
   return (
     <Box
       sx={{
-        width: "20%",
-        height: "100vh",
+        flex: 1,
+        height: "100%",
         p: 2,
         backgroundColor: "background.paper",
         display: "flex",
@@ -31,16 +31,6 @@ export default function CodeSideMenu() {
         borderColor: "divider",
       }}
     >
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-        <IconButton>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="subtitle1" fontWeight="bold">
-          Strategy - NewAlgorithm
-        </Typography>
-      </Stack>
-
       {/* Bottom Content */}
       <Box sx={{ overflowY: "auto", maxHeight: "100%", mt: 1 }}>
         <Typography variant="h6" gutterBottom>

@@ -29,7 +29,15 @@ const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
   ];
 
   return (
-    <div style={{ height: "100%", width: "100%", overflow: "hidden" }}>
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        overflow: "hidden",
+      }}
+    >
       <CodeMirror
         value={code}
         height="100%"
@@ -37,6 +45,10 @@ const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
         extensions={[...baseExtensions, ...extraExtensions]}
         onChange={onChange}
         onCreateEditor={onCreateEditor}
+        style={{ flex: 1, height: "100%" }} // ✅ Ensures the inner editor stretches
+        basicSetup={{
+          lineNumbers: false, // optional: disable if redundant
+        }}
       />
     </div>
   );

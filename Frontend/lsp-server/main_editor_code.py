@@ -1,6 +1,13 @@
 import zhuhana
-from zhuhana.types import OrderInstruction, OrderSide, OrderType, OrderMode, OrderTIF, OrderDomain, OHLCData
-
+from zhuhana.types import (
+    OHLCData,
+    OrderDomain,
+    OrderInstruction,
+    OrderMode,
+    OrderSide,
+    OrderTIF,
+    OrderType,
+)
 
 
 class ZhuhanaStrategy:
@@ -17,7 +24,7 @@ class ZhuhanaStrategy:
             mode=OrderMode.INTRADAY,
             tif=OrderTIF.DAY,
             domain=OrderDomain.BACKTEST,
-            quantity=100
+            quantity=100,
         )
 
     def condition_for_buy(self, current_data: OHLCData) -> OrderInstruction:
@@ -27,5 +34,5 @@ class ZhuhanaStrategy:
             mode=OrderMode.INTRADAY,
             tif=OrderTIF.DAY,
             domain=OrderDomain.BACKTEST,
-            quantity=100
+            quantity=100,
         )
