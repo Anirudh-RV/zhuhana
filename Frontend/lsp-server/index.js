@@ -43,7 +43,7 @@ wss.on("connection", (socket) => {
   });
 
   // WebSocket ↔ Pyright stream
-  const socketStream = createWebSocketStream(socket, { encoding: "utf8" });
+  const socketStream = createWebSocketStream(socket);
   const clientReader = new StreamMessageReader(socketStream);
   const clientWriter = new StreamMessageWriter(socketStream);
 
@@ -52,8 +52,8 @@ wss.on("connection", (socket) => {
 
   // Forward client → pyright
   clientReader.listen((message) => {
-    pyrightWriter.write(message);
     logMessage("Client → Pyright", message, connId);
+    pyrightWriter.write(message);
   });
 
   // Forward pyright → client

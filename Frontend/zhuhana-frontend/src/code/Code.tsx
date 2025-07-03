@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -18,6 +18,9 @@ import type { Extension } from "@codemirror/state";
 import { EditorState } from "@codemirror/state";
 import { autocompletion } from "@codemirror/autocomplete";
 import { linter, Diagnostic as CodeMirrorDiagnostic, lintGutter } from "@codemirror/lint";
+import { textDocument } from "codemirror-languageservice";
+
+
 
 // Correct imports from codemirror-languageservice based on its API
 import {
@@ -199,12 +202,21 @@ export default function CodeEditorDashboard(props: {
     ]);
   });
 
+
+
   // --- LSP Communication Helpers ---
   // IMPORTANT: Ensure this useCallback has an empty dependency array for stability
   const sendLSPMessage = useCallback((message: Message) => {
     if (lspSocketRef.current && lspSocketRef.current.readyState === WebSocket.OPEN) {
       try {
-        lspSocketRef.current.send(JSON.stringify(message));
+        console.log("🔌 Sending LSP request:", message);
+        const json = JSON.stringify(message);
+        const encoder = new TextEncoder();
+        const contentBytes = encoder.encode(json);
+        const header = `Content-Length: ${contentBytes.length}\r\n\r\n`;
+        const fullBytes = encoder.encode(header + json);
+        lspSocketRef.current.send(fullBytes);
+
       } catch (e) {
         console.error("Failed to send LSP message:", e);
       }
@@ -224,20 +236,71 @@ export default function CodeEditorDashboard(props: {
         method: method,
         params: params,
       };
+      console.log("🔌 Sending LSP request:", request);
       sendLSPMessage(request);
     });
   }, [sendLSPMessage]);
 
+  const markdownToDom = (markdown: string): DocumentFragment => {
+  const html = DOMPurify.sanitize(md.render(markdown));
+  const fragment = document.createDocumentFragment();
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  fragment.appendChild(wrapper);
+  return fragment;
+};
+
+
+  const completionSource = createCompletionSource({
+    markdownToDom,
+    doComplete: async (textDocument, position, context) => {
+      if (!isLspInitialized.current) return null;
+      return await sendLSPRequest("textDocument/completion", {
+        textDocument: { uri: textDocument.uri },
+        position,
+        context,
+      });
+    },
+});
+
+const doHover = async (textDocument: TextDocumentIdentifier, position: Position): Promise<Hover | null> => {
+  console.log("➡️ Hover triggered at:", position);
+  console.log("WebSocket readyState:", lspSocketRef.current?.readyState);
+  console.log("isLspInitialized.current:", isLspInitialized.current);
+
+  if (!isLspInitialized.current || lspSocketRef.current?.readyState !== 1) return null;
+
+  try {
+    const result = await sendLSPRequest("textDocument/hover", {
+      textDocument,
+      position,
+    });
+    return result as Hover;
+  } catch (err) {
+    console.error("Hover request failed:", err);
+    return null;
+  }
+};
+
+
+
+  const hoverSource = createHoverTooltipSource({
+    markdownToDom,
+    doHover,
+  });
+
+
+
+
   const sendLSPNotification = useCallback((method: string, params: any) => {
-    const id = lspRequestIdCounter.current++;
-    const notification: RequestMessage = {
-      jsonrpc: "2.0",
-      id: id,
-      method: method, // Notifications MUST have a method
-      params: params, // Notifications MUST have params (can be null if none)
-    };
-    sendLSPMessage(notification);
-  }, [sendLSPMessage]);
+  const notification = {
+    jsonrpc: "2.0",
+    method,        // ✅ required
+    params,        // ✅ required (can be null)
+  };
+  sendLSPMessage(notification);
+}, [sendLSPMessage]);
+
 
 
   // --- Pyodide Initialization (runs once on mount) ---
@@ -306,168 +369,169 @@ export default function CodeEditorDashboard(props: {
   // --- LSP Client Logic (runs once on mount and handles updates via notifications) ---
   // IMPORTANT: Ensure this useEffect has an empty dependency array for single run on mount
   useEffect(() => {
-    console.log("Setting up LSP WebSocket...");
-    const ws = new ReconnectingWebSocket(LSP_SERVER_URL);
-    lspSocketRef.current = ws;
+  console.log("Setting up LSP WebSocket...");
+  const ws = new ReconnectingWebSocket(LSP_SERVER_URL);
+  lspSocketRef.current = ws;
 
-    ws.onopen = async () => {
-      console.log("LSP WebSocket connected.");
-      setTerminalOutput((prev) => [...prev, { text: ">> LSP connected.", type: "info" }]);
+  let messageBuffer = "";
 
-      const initializeParams: InitializeParams = {
-        processId: null,
-        clientInfo: { name: "CodeMirror React Client", version: "1.0" },
-        rootUri: "file:///",
-        capabilities: {
-          textDocument: {
-            completion: {
-              completionItem: {
-                documentationFormat: [MarkupKind.Markdown, MarkupKind.PlainText],
-                snippetSupport: true,
-                resolveSupport: { properties: ["documentation", "detail"] },
-              },
-              contextSupport: true,
+  ws.onopen = async () => {
+    console.log("LSP WebSocket connected.");
+    setTerminalOutput((prev) => [...prev, { text: ">> LSP connected.", type: "info" }]);
+
+    const initializeParams: InitializeParams = {
+      processId: null,
+      clientInfo: { name: "CodeMirror React Client", version: "1.0" },
+      rootUri: "file:///",
+      capabilities: {
+        textDocument: {
+          completion: {
+            completionItem: {
+              documentationFormat: [MarkupKind.Markdown, MarkupKind.PlainText],
+              snippetSupport: true,
+              resolveSupport: { properties: ["documentation", "detail"] },
             },
-            hover: { contentFormat: [MarkupKind.Markdown, MarkupKind.PlainText] },
-            synchronization: {
-              didSave: true,
-              willSave: true,
-              willSaveWaitUntil: true,
-              dynamicRegistration: true,
-            },
-            publishDiagnostics: { relatedInformation: true, tagSupport: { valueSet: [1, 2] } },
+            contextSupport: true,
           },
-          workspace: {
-              workspaceFolders: true,
-              didChangeWatchedFiles: { dynamicRegistration: true }
-          }
+          hover: { contentFormat: [MarkupKind.Markdown, MarkupKind.PlainText] },
+          synchronization: {
+            didSave: true,
+            willSave: true,
+            willSaveWaitUntil: true,
+            dynamicRegistration: true,
+          },
+          publishDiagnostics: { relatedInformation: true, tagSupport: { valueSet: [1, 2] } },
         },
-        workspaceFolders: [{ uri: "file:///", name: "Workspace" }],
-      };
-
-      try {
-        const response: InitializeResult = await sendLSPRequest("initialize", initializeParams);
-        console.log("LSP initialize response:", response);
-        isLspInitialized.current = true;
-        sendLSPNotification("initialized", {});
-
-        // After initialization, send didOpen for the current document
-        sendLSPNotification("textDocument/didOpen", {
-          textDocument: {
-            uri: FILE_URI,
-            languageId: LANGUAGE_ID,
-            version: documentVersion.current,
-            text: code, // Use the current 'code' state for initial didOpen
-          },
-        });
-
-      } catch (error: any) {
-        console.error("LSP initialization failed:", error);
-        setTerminalOutput((prev) => [...prev, { text: `>> LSP initialization failed: ${error.message || error}`, type: "error" }]);
-      }
+        workspace: {
+          workspaceFolders: true,
+          didChangeWatchedFiles: { dynamicRegistration: true },
+        },
+      },
+      workspaceFolders: [{ uri: "file:///", name: "Workspace" }],
     };
 
-    ws.onmessage = async (event) => { // <-- Add `async` here
-      // console.log("WS ON MESSAGE"); // Keep this if you want to see every message trigger
-      // console.log("Received raw event.data:", event.data); // Keep this for debugging raw data type
+    try {
+      const response: InitializeResult = await sendLSPRequest("initialize", initializeParams);
+      console.log("LSP initialize response:", response);
+      isLspInitialized.current = true;
+      sendLSPNotification("initialized", {});
+      sendLSPNotification("textDocument/didOpen", {
+        textDocument: {
+          uri: FILE_URI,
+          languageId: LANGUAGE_ID,
+          version: documentVersion.current,
+          text: code,
+        },
+      });
+    } catch (error: any) {
+      console.error("LSP initialization failed:", error);
+      setTerminalOutput((prev) => [...prev, { text: `>> LSP initialization failed: ${error.message || error}`, type: "error" }]);
+    }
+  };
 
-      let messageData: string;
-
-      if (typeof event.data === 'string') {
-        messageData = event.data;
-      } else if (event.data instanceof Blob) {
-        try {
-          messageData = await event.data.text();
-          // console.log("Converted Blob to text:", messageData); // Keep for debugging conversion
-        } catch (e) {
-          console.error("Failed to read Blob as text:", e);
-          return;
-        }
-      } else if (event.data instanceof ArrayBuffer) {
-        try {
-          messageData = new TextDecoder().decode(event.data);
-          // console.log("Decoded ArrayBuffer to text:", messageData); // Keep for debugging conversion
-        } catch (e) {
-          console.error("Failed to decode ArrayBuffer as text:", e);
-          return;
-        }
+  function handleLspMessage(message: any) {
+  if ('id' in message && message.id !== undefined && message.id !== null) {
+    const pending = lspPendingRequests.current.get(message.id);
+    if (pending) {
+      lspPendingRequests.current.delete(message.id);
+      if ('error' in message) {
+        pending.reject(message.error);
       } else {
-        console.warn("Received unexpected WebSocket data type:", typeof event.data, event.data);
-        return;
+        pending.resolve(message.result);
       }
+    }
+  } else if ('method' in message) {
+    if (message.method === "textDocument/publishDiagnostics") {
+      const params: PublishDiagnosticsParams = message.params;
+      if (editorViewRef.current) {
+        const cmDiagnostics: CodeMirrorDiagnostic[] = params.diagnostics.map((diag: LSPDiagnostic) =>
+          lspDiagnosticToCmDiagnostic(diag, editorViewRef.current!)
+        );
+        setDiagnostics(cmDiagnostics);
+      }
+    }
+  }
+}
 
-      try {
-        const message: RequestMessage = JSON.parse(messageData);
-        // console.log("LSP Message received:", message); // Uncomment for full parsed message logging
 
-        if ('id' in message && (message as any).id !== undefined && (message as any).id !== null) {
-            const pending = lspPendingRequests.current.get(message.id as number);
-            if (pending) {
-                lspPendingRequests.current.delete(message.id as number);
-                if ('error' in message) {
-                    pending.reject(message.error);
-                } else {
-                    pending.resolve((message as any).result);
-                }
-            }
-        } else if ('method' in message) {
-            if (message.method === "textDocument/publishDiagnostics") {
-                const params: PublishDiagnosticsParams = message.params as any;
-                if (editorViewRef.current) {
-                    const cmDiagnostics: CodeMirrorDiagnostic[] = params.diagnostics.map(diag =>
-                        lspDiagnosticToCmDiagnostic(diag as LSPDiagnostic, editorViewRef.current!)
-                    );
-                    setDiagnostics(cmDiagnostics);
-                }
-            }
-            // Handle other server-initiated notifications here if needed
+  ws.onmessage = async (event) => {
+  let chunk: string;
+
+  if (typeof event.data === "string") {
+    chunk = event.data;
+  } else if (event.data instanceof Blob) {
+    chunk = await event.data.text(); // ✅ decode the Blob properly
+  } else {
+    const decoder = new TextDecoder("utf-8");
+    chunk = decoder.decode(event.data); // for ArrayBuffer (rare in browsers)
+  }
+
+  console.log("📥 Decoded chunk from WS:", chunk);
+
+  messageBuffer += chunk;
+
+  while (true) {
+    const headerEnd = messageBuffer.indexOf("\r\n\r\n");
+    if (headerEnd === -1) break;
+
+    const header = messageBuffer.substring(0, headerEnd);
+    const contentLengthMatch = header.match(/Content-Length: (\d+)/i);
+    if (!contentLengthMatch) {
+      console.error("❌ Invalid LSP header:", header);
+      break;
+    }
+
+    const contentLength = parseInt(contentLengthMatch[1], 10);
+    const fullLength = headerEnd + 4 + contentLength;
+
+    if (messageBuffer.length < fullLength) break;
+
+    const jsonPart = messageBuffer.substring(headerEnd + 4, fullLength);
+    messageBuffer = messageBuffer.substring(fullLength);
+
+    try {
+      const message = JSON.parse(jsonPart);
+      handleLspMessage(message);
+    } catch (err) {
+      console.error("❌ Failed to parse LSP JSON:", err, jsonPart);
+    }
+  }
+};
+
+
+
+  ws.onerror = (error) => {
+    console.error("LSP WebSocket error:", error);
+    setTerminalOutput((prev) => [...prev, { text: `>> LSP connection error. Make sure your Node.js LSP proxy is running on ${LSP_SERVER_URL}.`, type: "error" }]);
+  };
+
+  ws.onclose = (event) => {
+    console.log("LSP WebSocket closed:", event.code, event.reason);
+    setTerminalOutput((prev) => [...prev, { text: `>> LSP disconnected. Code: ${event.code}, Reason: ${event.reason}`, type: "info" }]);
+    isLspInitialized.current = false;
+    lspPendingRequests.current.forEach(req => req.reject(new Error("LSP connection closed")));
+    lspPendingRequests.current.clear();
+    setDiagnostics([]);
+  };
+
+  return () => {
+    console.log("Cleaning up LSP WebSocket...");
+    if (lspSocketRef.current) {
+      if (isLspInitialized.current) {
+        const id = lspRequestIdCounter.current++;
+        const shutdownNotification: RequestMessage = { jsonrpc: "2.0", method: "shutdown", id };
+        const exitNotification: RequestMessage = { jsonrpc: "2.0", method: "exit", id };
+        try {
+          lspSocketRef.current.send(JSON.stringify(shutdownNotification));
+          lspSocketRef.current.send(JSON.stringify(exitNotification));
+        } catch (e) {
+          console.warn("Failed to send LSP shutdown/exit on cleanup:", e);
         }
-      } catch (parseError) {
-        console.error("Error parsing LSP message JSON:", parseError, "Attempted to parse:", messageData);
       }
-    };
-
-    ws.onerror = (error) => {
-      console.error("LSP WebSocket error:", error);
-      setTerminalOutput((prev) => [...prev, { text: `>> LSP connection error. Make sure your Node.js LSP proxy is running on ${LSP_SERVER_URL}.`, type: "error" }]);
-    };
-
-    ws.onclose = (event) => {
-      console.log("LSP WebSocket closed:", event.code, event.reason);
-      setTerminalOutput((prev) => [...prev, { text: `>> LSP disconnected. Code: ${event.code}, Reason: ${event.reason}`, type: "info" }]);
-      isLspInitialized.current = false;
-      lspPendingRequests.current.forEach(req => req.reject(new Error("LSP connection closed")));
-      lspPendingRequests.current.clear();
-      setDiagnostics([]);
-    };
-
-    // Cleanup for LSP WebSocket - runs only once when component unmounts
-    return () => {
-      console.log("Cleaning up LSP WebSocket...");
-      if (lspSocketRef.current) {
-        // Only send shutdown/exit if it was actually initialized
-        if (isLspInitialized.current) {
-            const id = lspRequestIdCounter.current++;
-            // Note: LSP spec suggests sending shutdown and then exit.
-            // However, on a browser close/unmount, the server might disconnect first.
-            // Send as notifications, no need to await on unmount
-            const shutdownNotification: RequestMessage = { jsonrpc: "2.0", method: "shutdown", id: id };
-            const exitNotification: RequestMessage = { jsonrpc: "2.0", method: "exit", id: id };
-            try {
-                lspSocketRef.current.send(JSON.stringify(shutdownNotification));
-                lspSocketRef.current.send(JSON.stringify(exitNotification));
-            } catch (e) {
-                console.warn("Failed to send LSP shutdown/exit on cleanup:", e);
-            }
-        }
-        // Close the WebSocket. ReconnectingWebSocket might try to reconnect
-        // but the component is unmounting, so it will eventually be garbage collected.
-        lspSocketRef.current.close();
-      }
-      // REMOVED window.removeEventListener("mousemove", handleMouseMove);
-      // REMOVED window.removeEventListener("mouseup", handleMouseUp);
-    };
-  }, []); // <--- THIS IS THE CRUCIAL CHANGE: Empty dependency array
+      lspSocketRef.current.close();
+    }
+  };
+}, []);
 
   // Callback to get the EditorView instance from CodeMirrorEditor
   const handleEditorCreation = useCallback((view: EditorView) => {
@@ -652,13 +716,18 @@ export default function CodeEditorDashboard(props: {
             }}
           >
             <CodeMirrorEditor
-              code={code}
-              onChange={handleCodeChange}
-              onCreateEditor={handleEditorCreation}
-              extraExtensions={[]}
-            />
+            code={code}
+            onChange={handleCodeChange}
+            onCreateEditor={handleEditorCreation}
+            extraExtensions={[
+            textDocument(FILE_URI),
+            autocompletion({ override: [completionSource] }),
+            hoverTooltip(hoverSource),
+            linter(() => diagnostics),
+            lintGutter(),
+          ]}
+          />
           </Box>
-
           <Divider
             sx={{
               height: "6px",
