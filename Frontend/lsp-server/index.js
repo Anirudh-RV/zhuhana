@@ -3,6 +3,8 @@ const { createWebSocketStream } = require("ws");
 const { StreamMessageReader, StreamMessageWriter } = require("vscode-jsonrpc");
 const { TextDecoder } = require("util");
 const { spawn } = require("child_process");
+const fs = require("fs");
+const { URL } = require("url");
 
 const wss = new WebSocketServer({ port: 3001 });
 console.log("[Server] LSP WebSocket server listening on ws://localhost:3001");
@@ -15,18 +17,24 @@ wss.on("connection", (socket) => {
 
   console.log(`[Server ${connId}] Client connected.`);
 
-  // Start Pyright LSP server
-  const pyright = spawn("npx", ["pyright-langserver", "--stdio"]);
+  const pyright = spawn("npx", ["pyright-langserver", "--stdio"], {
+    cwd: __dirname,
+    env: {
+      ...process.env,
+      PYTHONPATH:
+        "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages",
+    },
+  });
+
   console.log(`[Server ${connId}] Spawned Pyright (PID: ${pyright.pid})`);
 
-  // Pyright diagnostic output
   pyright.stderr.on("data", (data) => {
     const msg = new TextDecoder().decode(data);
     console.error(`[Server ${connId}] [Pyright STDERR]: ${msg}`);
   });
 
   pyright.stdout.on("data", (data) => {
-    // Optional debug:
+    // Optional debug
     // console.log(`[Server ${connId}] [Pyright STDOUT]: ${data.toString()}`);
   });
 
@@ -42,27 +50,44 @@ wss.on("connection", (socket) => {
     socket.close();
   });
 
-  // WebSocket ↔ Pyright stream
   const socketStream = createWebSocketStream(socket);
   const clientReader = new StreamMessageReader(socketStream);
   const clientWriter = new StreamMessageWriter(socketStream);
-
   const pyrightReader = new StreamMessageReader(pyright.stdout);
   const pyrightWriter = new StreamMessageWriter(pyright.stdin);
 
-  // Forward client → pyright
-  clientReader.listen((message) => {
+  clientReader.listen(async (message) => {
     logMessage("Client → Pyright", message, connId);
+
+    if (
+      message.method === "textDocument/didOpen" ||
+      message.method === "textDocument/didChange"
+    ) {
+      try {
+        const uri = message.params.textDocument.uri;
+        const text =
+          message.method === "textDocument/didOpen"
+            ? message.params.textDocument.text
+            : message.params.contentChanges[0]?.text;
+
+        const filePath = new URL(uri).pathname;
+
+        await fs.promises.writeFile(filePath, text, "utf8");
+        console.log(`[Server ${connId}] Wrote file to disk: ${filePath}`);
+      } catch (err) {
+        console.error(`[Server ${connId}] Failed to write file:`, err);
+      }
+    }
+
     pyrightWriter.write(message);
   });
 
-  // Forward pyright → client
   pyrightReader.listen((message) => {
+    console.log("🟢 Response from Pyright:", message);
     clientWriter.write(message);
     logMessage("Pyright → Client", message, connId);
   });
 
-  // Handle WebSocket close
   socket.on("close", () => {
     console.log(`[Server ${connId}] WebSocket closed. Cleaning up...`);
     clientReader.dispose();
@@ -74,7 +99,6 @@ wss.on("connection", (socket) => {
     }
   });
 
-  // Handle WebSocket error
   socket.on("error", (err) => {
     console.error(`[Server ${connId}] WebSocket error: ${err.message}`);
     socket.destroy();
