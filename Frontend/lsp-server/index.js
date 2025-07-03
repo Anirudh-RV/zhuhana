@@ -1,184 +1,93 @@
-const { WebSocketServer, WebSocket } = require("ws");
+const { WebSocketServer } = require("ws");
 const { createWebSocketStream } = require("ws");
-const {
-  createMessageConnection,
-  StreamMessageReader,
-  StreamMessageWriter,
-  ConnectionError,
-  ConnectionErrors,
-} = require("vscode-jsonrpc");
+const { StreamMessageReader, StreamMessageWriter } = require("vscode-jsonrpc");
 const { TextDecoder } = require("util");
 const { spawn } = require("child_process");
 
 const wss = new WebSocketServer({ port: 3001 });
-console.log("LSP WebSocket server listening on ws://localhost:3001");
+console.log("[Server] LSP WebSocket server listening on ws://localhost:3001");
 
 let connectionCounter = 0;
 
 wss.on("connection", (socket) => {
   connectionCounter++;
-  const currentConnectionId = connectionCounter;
-  console.log(`[Server] New Client connected. ID: ${currentConnectionId}`);
-  console.log(
-    `[Server] Attempting to spawn pyright-langserver process. ID: ${currentConnectionId}`
-  );
+  const connId = connectionCounter;
 
+  console.log(`[Server ${connId}] Client connected.`);
+
+  // Start Pyright LSP server
   const pyright = spawn("npx", ["pyright-langserver", "--stdio"]);
-  console.log(
-    `[Server] Pyright process spawned (PID: ${pyright.pid}). ID: ${currentConnectionId}`
-  );
+  console.log(`[Server ${connId}] Spawned Pyright (PID: ${pyright.pid})`);
+
+  // Pyright diagnostic output
+  pyright.stderr.on("data", (data) => {
+    const msg = new TextDecoder().decode(data);
+    console.error(`[Server ${connId}] [Pyright STDERR]: ${msg}`);
+  });
 
   pyright.stdout.on("data", (data) => {
-    // console.log(`[Pyright RAW STDOUT - ID: ${currentConnectionId}]: ${data.toString()}`);
-  });
-
-  pyright.stderr.on("data", (data) => {
-    const stderrMessage = new TextDecoder().decode(data);
-    console.error(
-      `[Pyright STDERR - ID: ${currentConnectionId}]: ${stderrMessage}`
-    );
-  });
-
-  pyright.on("error", (err) => {
-    console.error(
-      `[Server] Failed to start/run Pyright process: ${err.message} (ID: ${currentConnectionId})`
-    );
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(
-        JSON.stringify({
-          jsonrpc: "2.0",
-          method: "window/showMessage",
-          params: {
-            type: 1,
-            message: `LSP Server Error: Pyright process failed: ${err.message}`,
-          },
-        })
-      );
-    }
-    console.log(
-      `[Server] Closing socket due to Pyright process error. ID: ${currentConnectionId}`
-    );
-    socket.close();
+    // Optional debug:
+    // console.log(`[Server ${connId}] [Pyright STDOUT]: ${data.toString()}`);
   });
 
   pyright.on("exit", (code, signal) => {
     console.log(
-      `[Server] Pyright process exited. Code: ${code}, Signal: ${signal} (ID: ${currentConnectionId})`
+      `[Server ${connId}] Pyright exited. Code=${code}, Signal=${signal}`
     );
-    if (socket.readyState === WebSocket.OPEN) {
-      console.log(
-        `[Server] Closing socket due to Pyright process exit. ID: ${currentConnectionId}`
-      );
-      socket.close();
-    }
+    socket.close();
   });
 
-  // --- WebSocket Stream for Client ---
-  const clientSocketStream = createWebSocketStream(socket);
+  pyright.on("error", (err) => {
+    console.error(`[Server ${connId}] Pyright error: ${err.message}`);
+    socket.close();
+  });
 
-  // --- LSP Message Connection for the Client WebSocket ---
-  const clientStreamReader = new StreamMessageReader(clientSocketStream);
-  const clientStreamWriter = new StreamMessageWriter(clientSocketStream);
+  // WebSocket ↔ Pyright stream
+  const socketStream = createWebSocketStream(socket, { encoding: "utf8" });
+  const clientReader = new StreamMessageReader(socketStream);
+  const clientWriter = new StreamMessageWriter(socketStream);
 
-  const clientLspConnection = createMessageConnection(
-    clientStreamReader,
-    clientStreamWriter
-  );
-
-  // --- LSP Message Reader/Writer for Pyright's stdio ---
   const pyrightReader = new StreamMessageReader(pyright.stdout);
   const pyrightWriter = new StreamMessageWriter(pyright.stdin);
 
-  // --- Bridge Logic ---
-
-  // 1. Messages from Pyright (stdio) -> Client (WebSocket)
-  pyrightReader.listen((message) => {
-    clientLspConnection.send(message);
-    if (message && typeof message === "object") {
-      const msgType =
-        "method" in message
-          ? `Method: ${message.method}`
-          : "id" in message
-          ? `Response to ID: ${message.id}`
-          : "Unknown";
-      console.log(
-        `[Server] Pyright -> Client (LSP Message - ${msgType} - ID: ${currentConnectionId}): ${JSON.stringify(
-          message
-        )}`
-      );
-    } else {
-      console.log(
-        `[Server] Pyright -> Client (Raw Message - ID: ${currentConnectionId}): ${JSON.stringify(
-          message
-        )}`
-      );
-    }
-  });
-  console.log(
-    `[Server] pyrightReader.listen() initialized. ID: ${currentConnectionId}`
-  );
-
-  // 2. Messages from Client (WebSocket) -> Pyright (stdio)
-  clientLspConnection.listen((message) => {
-    // This .listen() call is essential for client-to-server messages
+  // Forward client → pyright
+  clientReader.listen((message) => {
     pyrightWriter.write(message);
-    if (message && typeof message === "object") {
-      const msgType =
-        "method" in message
-          ? `Method: ${message.method}`
-          : "id" in message
-          ? `Request ID: ${message.id}`
-          : "Unknown";
-      console.log(
-        `[Server] Client -> Pyright (LSP Message - ${msgType} - ID: ${currentConnectionId}): ${JSON.stringify(
-          message
-        )}`
-      );
-    } else {
-      console.log(
-        `[Server] Client -> Pyright (Raw Message - ID: ${currentConnectionId}): ${JSON.stringify(
-          message
-        )}`
-      );
-    }
+    logMessage("Client → Pyright", message, connId);
   });
-  console.log(
-    `[Server] clientLspConnection.listen() initialized. ID: ${currentConnectionId}`
-  );
 
-  // --- REMOVED THE EXPLICIT clientLspConnection.listen() CALL HERE ---
-  // The two .listen() calls above (pyrightReader.listen and clientLspConnection.listen)
-  // are often sufficient to start the message processing for both directions.
-  // The "Connection is already listening" error suggests this explicit call is redundant or problematic.
+  // Forward pyright → client
+  pyrightReader.listen((message) => {
+    clientWriter.write(message);
+    logMessage("Pyright → Client", message, connId);
+  });
 
-  socket.on("close", (code, reason) => {
-    console.log(
-      `[Server] Client socket closed. Code: ${code}, Reason: ${
-        reason ? reason.toString() : "N/A"
-      } (ID: ${currentConnectionId}).`
-    );
-    console.log(
-      `[Server] Disposing LSP connections and killing Pyright process. ID: ${currentConnectionId}`
-    );
-    clientLspConnection.dispose();
-    clientStreamReader.dispose();
-    clientStreamWriter.dispose();
+  // Handle WebSocket close
+  socket.on("close", () => {
+    console.log(`[Server ${connId}] WebSocket closed. Cleaning up...`);
+    clientReader.dispose();
+    clientWriter.dispose();
     pyrightReader.dispose();
     pyrightWriter.dispose();
-    if (pyright.pid && !pyright.killed) {
+    if (!pyright.killed) {
       pyright.kill();
-      console.log(
-        `[Server] Pyright process (PID: ${pyright.pid}) killed. ID: ${currentConnectionId}`
-      );
     }
   });
 
+  // Handle WebSocket error
   socket.on("error", (err) => {
-    console.error(
-      `[Server] WebSocket error on client socket: ${err.message} (ID: ${currentConnectionId})`
-    );
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.close();
-    }
+    console.error(`[Server ${connId}] WebSocket error: ${err.message}`);
+    socket.destroy();
   });
 });
+
+function logMessage(direction, message, connId) {
+  const type = message.method
+    ? `Method: ${message.method}`
+    : message.id
+    ? `Response to ID: ${message.id}`
+    : "Other";
+  console.log(
+    `[Server ${connId}] ${direction} (${type}): ${JSON.stringify(message)}`
+  );
+}
