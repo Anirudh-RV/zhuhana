@@ -1,11 +1,12 @@
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
-import { githubDark } from "@uiw/codemirror-themes-all";
+import { githubDark, githubLight } from "@uiw/codemirror-themes-all";
 import { EditorView } from "@codemirror/view";
 import type { Extension } from "@codemirror/state";
 import { completionKeymap } from "@codemirror/autocomplete";
 import { keymap } from "@codemirror/view";
 import { lineNumbers, highlightActiveLineGutter } from "@codemirror/view";
+import { useColorScheme } from "@mui/material/styles";
 
 type CodeMirrorEditorProps = {
   code: string;
@@ -28,6 +29,9 @@ const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
     keymap.of(completionKeymap), // Standard keybindings for autocompletion
   ];
 
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+
   return (
     <div
       style={{
@@ -41,7 +45,7 @@ const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
       <CodeMirror
         value={code}
         height="100%"
-        theme={githubDark}
+        theme={resolvedMode === "dark" ? githubDark : githubLight}
         extensions={[...baseExtensions, ...extraExtensions]}
         onChange={onChange}
         onCreateEditor={onCreateEditor}

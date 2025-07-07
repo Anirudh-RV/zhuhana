@@ -2,16 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
-  TextField,
   IconButton,
-  Paper,
   Tooltip,
+  InputBase,
+  Snackbar,
 } from "@mui/material";
-import InputBase from "@mui/material/InputBase";
 import MenuIcon from "@mui/icons-material/Menu";
-
 import SendIcon from "@mui/icons-material/Send";
 import StopIcon from "@mui/icons-material/Stop";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { useColorScheme } from "@mui/material/styles";
+
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import hljs from "highlight.js/lib/core";
@@ -30,33 +31,47 @@ type LLMPanelProps = {
     signal: AbortSignal
   ) => Promise<void>;
   onClose?: () => void;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 };
 
-export default function LLMPanel({ onSend, onClose }: LLMPanelProps) {
+export default function LLMPanel({
+  onSend,
+  onClose,
+  messages,
+  setMessages,
+}: LLMPanelProps) {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
+  const [copied, setCopied] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+  const panelBgColor =
+    resolvedMode === "dark" ? "#161B26" : "background.default";
 
   const handleSend = () => {
     if (!input.trim() || isStreaming) return;
 
     const userMessage: Message = { role: "user", content: input };
     const botMessage: Message = { role: "assistant", content: "" };
-
     const updatedMessages = [...messages, userMessage, botMessage];
     setMessages(updatedMessages);
 
     const controller = new AbortController();
     controllerRef.current = controller;
     setIsStreaming(true);
+    setShowTypingIndicator(true);
 
     let currentBotResponse = "";
 
     onSend(
       updatedMessages.slice(0, -1),
       (token: string) => {
+        setShowTypingIndicator(false);
         currentBotResponse += token;
         setMessages((prev) =>
           prev.map((msg, i) =>
@@ -91,234 +106,239 @@ export default function LLMPanel({ onSend, onClose }: LLMPanelProps) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, showTypingIndicator]);
 
   const CodeBlock = ({ inline, className, children }: any) => {
-    return !inline ? (
-      <Box
-        component="pre"
-        sx={{
-          backgroundColor: "#1e1e1e",
-          color: "#f8f8f2",
-          borderRadius: 1,
-          padding: 2,
-          overflowX: "auto",
-          fontSize: "0.875rem",
-          fontFamily: "monospace",
-        }}
-      >
-        <Box component="code" className={className}>
+    const [copied, setCopied] = useState(false);
+
+    const codeRef = useRef<HTMLElement>(null);
+
+    const handleCopy = () => {
+      const text = codeRef.current?.innerText || "";
+      navigator.clipboard.writeText(text.trim()).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      });
+    };
+
+    if (inline) {
+      return (
+        <code
+          style={{
+            backgroundColor: "#e0e0e0",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            fontFamily: "monospace",
+          }}
+        >
           {children}
-        </Box>
+        </code>
+      );
+    }
+
+    return (
+      <Box sx={{ position: "relative" }}>
+        <IconButton
+          size="small"
+          onClick={handleCopy}
+          sx={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            zIndex: 1,
+            color: "text.secondary",
+          }}
+        >
+          <ContentCopyIcon fontSize="small" />
+        </IconButton>
+        <pre>
+          <code className={className} ref={codeRef}>
+            {children}
+          </code>
+        </pre>
       </Box>
-    ) : (
-      <code
-        style={{
-          backgroundColor: "#2e2e2e",
-          padding: "2px 4px",
-          borderRadius: "4px",
-          fontFamily: "monospace",
-        }}
-      >
-        {children}
-      </code>
     );
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Chat + Input Wrapper */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        backgroundColor: "background.default",
+        color: "text.primary",
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          px: 2,
+          py: 1,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "background.paper",
+        }}
+      >
+        {onClose && (
+          <IconButton size="small" onClick={onClose}>
+            <MenuIcon />
+          </IconButton>
+        )}
+        <Typography variant="h6" sx={{ ml: 1 }}>
+          Zhuhana AI
+        </Typography>
+      </Box>
+
+      {/* Chat Area */}
       <Box
         sx={{
           flexGrow: 1,
+          overflowY: "auto",
+          p: 2,
           display: "flex",
           flexDirection: "column",
-          minHeight: 0, // Critical: allows chat area to shrink when input grows
-          overflow: "hidden",
+          backgroundColor: panelBgColor,
+          gap: 2,
         }}
       >
-        {/* Scrollable Chat Area with Header */}
-        <Paper
-          elevation={1}
-          sx={{
-            flexGrow: 1,
-            overflow: "hidden",
-            backgroundColor: "#0A0F1A",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* Header Section inside Paper */}
+        {messages.map((msg, idx) => (
           <Box
+            key={idx}
             sx={{
               display: "flex",
-              alignItems: "center",
-              px: 2,
-              py: 1,
-              borderBottom: "1px solid #1f2937", // subtle bottom line
-              backgroundColor: "background.paper", // lighter navy tone
-              color: "#e5e7eb", // Tailwind gray-200-ish for light text
+              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+              width: "100%",
             }}
           >
-            {onClose && (
-              <IconButton size="small" onClick={onClose}>
-                <MenuIcon />
-              </IconButton>
-            )}
-            <Typography variant="h6" sx={{ ml: 1, color: "#ddd" }}>
-              Zhuhana AI
-            </Typography>
-          </Box>
-
-          {/* Messages */}
-          <Box
-            sx={{
-              flexGrow: 1,
-              overflowY: "auto",
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-            }}
-          >
-            {messages.map((msg, idx) => (
-              <Box key={idx}>
-                {msg.role === "system" && msg.content.trim() === "---" ? (
-                  <Box
-                    sx={{ width: "100%", borderTop: "1px solid #333", my: 1 }}
-                  />
-                ) : msg.role === "system" ? (
-                  <Box
-                    sx={{
-                      textAlign: "center",
-                      color: "#888",
-                      fontSize: "0.8rem",
-                      py: 1,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    <ReactMarkdown
-                      rehypePlugins={[[rehypeHighlight, { detect: true }]]}
-                      components={{ code: CodeBlock }}
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      alignSelf:
-                        msg.role === "user" ? "flex-end" : "flex-start",
-                      maxWidth: "100%",
-                      width: "100%",
-                      display: "flex",
-                      justifyContent:
-                        msg.role === "user" ? "flex-end" : "flex-start",
-                    }}
-                  >
-                    {msg.role === "user" ? (
-                      <Box
-                        sx={{
-                          backgroundColor: "#0C1018",
-                          color: "#ffffff",
-                          px: 2,
-                          py: 1,
-                          borderRadius: 2,
-                          maxWidth: "75%",
-                          boxShadow: "0 0 4px rgba(255, 255, 255, 0.05)",
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: "bold", color: "#888" }}
-                        >
-                          You
-                        </Typography>
-                        <Typography variant="body1">{msg.content}</Typography>
-                      </Box>
-                    ) : (
-                      <Box
-                        sx={{
-                          backgroundColor: "transparent",
-                          color: "#ddd",
-                          fontSize: "0.95rem",
-                          maxWidth: "100%",
-                          px: 1,
-                        }}
-                      >
-                        <ReactMarkdown
-                          rehypePlugins={[rehypeHighlight]}
-                          components={{ code: CodeBlock }}
-                        >
-                          {msg.content}
-                        </ReactMarkdown>
-                      </Box>
-                    )}
-                  </Box>
-                )}
-              </Box>
-            ))}
-            <div ref={bottomRef} />
-          </Box>
-        </Paper>
-
-        {/* Input Section */}
-        <Box
-          component="form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          sx={{
-            px: 1,
-            py: 1,
-            backgroundColor: "#0A0F1A",
-            display: "flex",
-            alignItems: "flex-end",
-            gap: 1,
-          }}
-        >
-          <InputBase
-            fullWidth
-            multiline
-            minRows={1}
-            maxRows={6}
-            placeholder="Ask the LLM..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isStreaming}
-            sx={{
-              px: 2,
-              py: 1.5,
-              borderRadius: 2,
-              bgcolor: "#000000",
-              color: "#fff",
-              fontSize: "0.95rem",
-              fontFamily: "monospace",
-              lineHeight: 1.6,
-              "& textarea": {
-                resize: "none",
-                overflow: "hidden",
-              },
-            }}
-          />
-          <Tooltip title={isStreaming ? "Stop" : "Send"}>
-            <IconButton
-              color={isStreaming ? "secondary" : "primary"}
-              onClick={() => {
-                if (isStreaming) {
-                  controllerRef.current?.abort();
-                  setIsStreaming(false);
-                } else {
-                  handleSend();
-                }
+            <Box
+              sx={{
+                width: msg.role === "user" ? "75%" : "100%", // user gets bubble, assistant spans full
+                backgroundColor:
+                  msg.role === "user" ? "action.selected" : "transparent",
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                fontSize: "0.95rem",
+                whiteSpace: "pre-wrap",
+                overflowWrap: "anywhere",
+                textAlign: "left", // ensures left justification
               }}
             >
-              {isStreaming ? <StopIcon /> : <SendIcon />}
-            </IconButton>
-          </Tooltip>
-        </Box>
+              <ReactMarkdown
+                rehypePlugins={[rehypeHighlight]}
+                components={{ code: CodeBlock }}
+              >
+                {msg.content}
+              </ReactMarkdown>
+            </Box>
+          </Box>
+        ))}
+
+        {isStreaming && showTypingIndicator && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+              px: 2,
+              mt: 1,
+            }}
+          >
+            {[0, 1, 2].map((i) => (
+              <Box
+                key={i}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: "text.secondary",
+                  animation: "typing 1.2s infinite ease-in-out both",
+                  animationDelay: `${i * 0.2}s`,
+                  "@keyframes typing": {
+                    "0%, 80%, 100%": { opacity: 0 },
+                    "40%": { opacity: 1 },
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        )}
+
+        <div ref={bottomRef} />
       </Box>
+
+      {/* Input Section */}
+      <Box
+        component="form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+        sx={{
+          px: 1,
+          py: 1,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          backgroundColor: "background.paper",
+          display: "flex",
+          alignItems: "flex-end",
+          gap: 1,
+        }}
+      >
+        <InputBase
+          fullWidth
+          multiline
+          minRows={1}
+          maxRows={6}
+          placeholder="Ask the LLM..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault(); // prevent newline
+              handleSend(); // trigger send
+            }
+          }}
+          disabled={isStreaming}
+          sx={{
+            px: 2,
+            py: 1.5,
+            borderRadius: 2,
+            backgroundColor: "background.default",
+            color: "text.primary",
+            fontSize: "0.95rem",
+            fontFamily: "monospace",
+            lineHeight: 1.6,
+          }}
+        />
+
+        <Tooltip title={isStreaming ? "Stop" : "Send"}>
+          <IconButton
+            color={isStreaming ? "secondary" : "primary"}
+            onClick={() => {
+              if (isStreaming) {
+                controllerRef.current?.abort();
+                setIsStreaming(false);
+              } else {
+                handleSend();
+              }
+            }}
+          >
+            {isStreaming ? <StopIcon /> : <SendIcon />}
+          </IconButton>
+        </Tooltip>
+      </Box>
+
+      {/* Copy Snackbar */}
+      <Snackbar
+        open={copied}
+        message="Copied"
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        autoHideDuration={1000}
+      />
     </Box>
   );
 }

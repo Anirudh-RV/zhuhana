@@ -3,9 +3,10 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import {
-  Stack,
-} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { useColorScheme } from "@mui/material/styles";
+import TerminalPanel, { TerminalLine } from "./components/TerminalPanel";
+
 import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppTheme from "../shared-ui-theme/AppTheme";
@@ -41,6 +42,10 @@ import { initializeLspClient } from "./components/lspClient";
 const md = new MarkdownIt();
 const FILE_URI = "file:///Users/anirudhrv/Desktop/zhuana-trading/Frontend/lsp-server/main_editor_code.py";
 const LANGUAGE_ID = "python";
+type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
 const markdownToDom = (markdown: string): DocumentFragment => {
   const html = DOMPurify.sanitize(md.render(markdown));
@@ -107,7 +112,6 @@ declare global {
   }
 }
 
-type TerminalLine = { text: string; type: "info" | "success" | "error" };
 type LLMMessage = { role: "user" | "assistant" | "system"; content: string };
 const defaultPythonCode = `import zhuhana
 from zhuhana.types import (
@@ -169,7 +173,7 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   const [filename, setFilename] = useState("NewAlgorithm");
   const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
   const [lspDiagnostics, setLspDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
-
+  const [llmMessages, setLlmMessages] = useState<Message[]>([]);
 
 
   const appendStdout = useRef((msg: string) => {
@@ -186,6 +190,8 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
 
 
   useEffect(() => {
+
+
     const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
     const script = document.createElement("script");
     script.src = PYODIDE_BASE_URL + "pyodide.js";
@@ -543,80 +549,14 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
               }}
             />
 
-            <Box
-              sx={{
-                flexGrow: 1,
-                display: "flex",
-                flexDirection: "column",
-                border: "1px solid #333",
-                borderRadius: 1,
-                backgroundColor: "#000000",
-                minHeight: "60px",
-                overflow: "hidden",
-              }}
-            >
-              <Toolbar
-                variant="dense"
-                sx={{
-                  backgroundColor: "#222",
-                  borderBottom: "1px solid #444",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  px: 1,
-                }}
-              >
-                <Typography variant="subtitle2" sx={{ color: "#bbb" }}>
-                  Terminal
-                </Typography>
+            <TerminalPanel
+              terminalOutput={terminalOutput}
+              isLoadingPyodide={isLoadingPyodide}
+              onRunCode={handleRunCode}
+              onCopyTerminal={handleCopyTerminal}
+            />
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <IconButton onClick={handleCopyTerminal} size="small" sx={{ color: "#ccc" }}>
-                    <ContentCopyIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    onClick={handleRunCode}
-                    size="small"
-                    disabled={isLoadingPyodide}
-                    sx={{
-                      color: isLoadingPyodide ? "grey" : green[500],
-                      "&:hover": {
-                        backgroundColor: isLoadingPyodide ? "transparent" : green[900],
-                      },
-                    }}
-                  >
-                    <PlayArrowIcon />
-                  </IconButton>
-                </Box>
-              </Toolbar>
 
-              <Box
-                sx={{
-                  flexGrow: 1,
-                  p: 1,
-                  overflowY: "auto",
-                  overflowX: "auto",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  maxWidth: "100%",
-                }}
-              >
-                {terminalOutput.map((line, index) => (
-                  <Typography
-                    key={index}
-                    sx={{
-                      color:
-                        line.type === "success" ? "#0f0" :
-                        line.type === "error" ? "#f55" : "#aaa",
-                      fontFamily: "monospace",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    {line.text}
-                  </Typography>
-                ))}
-              </Box>
-            </Box>
           </Box>
 
           {/* Right LLM Panel */}
@@ -632,7 +572,11 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
                 backgroundColor: "background.paper",
               }}
             >
-              <LLMPanel onSend={handleSendToLLM} onClose={() => setIsLLMOpen(false)} />
+              <LLMPanel
+                onSend={handleSendToLLM}
+                onClose={() => setIsLLMOpen(false)}
+                messages={llmMessages}
+                setMessages={setLlmMessages} />
             </Box>
           ) : (
             <Box
