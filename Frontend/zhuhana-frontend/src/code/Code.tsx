@@ -24,6 +24,8 @@ import { linter, lintGutter, Diagnostic as CodeMirrorDiagnostic } from "@codemir
 import { textDocument } from "codemirror-languageservice";
 import { createCompletionSource, createHoverTooltipSource } from "codemirror-languageservice";
 
+import EditableFileName from "./components/EditableFileName";
+
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
 
@@ -31,6 +33,7 @@ import { Decoration, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
 
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 
 
 import { initializeLspClient } from "./components/lspClient";
@@ -161,9 +164,9 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   const [diagnostics, setDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
-  const [editorHeight, setEditorHeight] = useState(() => window.innerHeight * 0.85);
+  const [editorHeight, setEditorHeight] = useState(() => window.innerHeight * 0.82);
   const lspClientRef = useRef<any>(null);
-  const [highlightRuntimeErrors, setHighlightRuntimeErrors] = useState(false);
+  const [filename, setFilename] = useState("NewAlgorithm");
   const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
   const [lspDiagnostics, setLspDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
 
@@ -259,6 +262,9 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
     console.error("❌ Failed to copy:", err);
   });
 };
+
+const [isLLMOpen, setIsLLMOpen] = useState(true);
+
 
 
   const handleSendToLLM = async (
@@ -410,218 +416,247 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
 
   return (
   <AppTheme {...props}>
-    <CssBaseline enableColorScheme />
-    <Box sx={{ display: "flex", height: "100vh" }}>
-      {/* Left Sidebar */}
-      {isSidebarOpen ? (
-        <Box
+      <CssBaseline enableColorScheme />
+      <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+        {/* Top Toolbar */}
+        <Toolbar
+          variant="dense"
           sx={{
-            width: "20%",
-            transition: "width 0.3s ease",
-            overflow: "hidden",
             backgroundColor: "background.paper",
-            borderRight: "1px solid",
+            borderBottom: "1px solid",
             borderColor: "divider",
+            px: 2,
             display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Box sx={{ px: 1, pt: 1 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              {/* Back button */}
-              <IconButton size="small" onClick={() => console.log("Go Back")}>
-                <ArrowBackIcon fontSize="small" />
-              </IconButton>
-
-              {/* Title */}
-              <Typography variant="subtitle1" fontWeight="bold" noWrap sx={{ flexGrow: 1 }}>
-                Strategy - NewAlgorithm
-              </Typography>
-
-              {/* Collapse button */}
-              <IconButton size="small" onClick={() => setIsSidebarOpen(false)}>
-                <MenuIcon fontSize="small" />
-              </IconButton>
-            </Stack>
-          </Box>
-          <CodeSideMenu />
-        </Box>
-      ) : (
-        <Box
-          sx={{
-            width: "60px", // ChatGPT-style collapsed bar
-            display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            pt: 1,
-            gap: 1,
-            borderRight: "1px solid",
-            borderColor: "divider",
-            backgroundColor: "background.paper",
+            justifyContent: "space-between",
           }}
         >
-          <IconButton size="small" onClick={() => setIsSidebarOpen(true)}>
-            <MenuIcon fontSize="small" />
-          </IconButton>
-          {/* Add icons or vertical nav here if needed */}
-        </Box>
-      )}
+          {/* Left: Back button */}
+          <Box sx={{ display: "flex", alignItems: "center", minWidth: "60px" }}>
+            <IconButton size="small" onClick={() => console.log("Go Back")}>
+              <ArrowBackIcon fontSize="small" />
+            </IconButton>
+          </Box>
 
-      {/* Center Editor + Terminal */}
-      <Box
-        ref={containerRef}
-        sx={{
-          flexGrow: 9,
-          px: 0.5,
-          display: "flex",
-          flexDirection: "column",
-          minWidth: 0,
-        }}
-      >
-        <Box
-          sx={{
-            height: `${editorHeight}px`,
-            border: "1px solid #ccc",
-            borderRadius: 1,
-          }}
-        >
-          <CodeMirrorEditor
-            code={code}
-            onChange={handleCodeChange}
-            onCreateEditor={handleEditorCreation}
-            extraExtensions={[
-              textDocument(FILE_URI),
-              autocompletion({ override: [completionSource] }),
-              hoverTooltip(hoverSource),
-              linter(() => [...lspDiagnostics, ...runtimeDiagnostics]),
-              lintGutter(),
-              ...(runtimeDiagnostics.length > 0 ? highlightErrorLines(runtimeDiagnostics) : []),
-            ]}
-          />
-        </Box>
-        <Divider
-          sx={{
-            height: "6px",
-            backgroundColor: "divider",
-            my: 0.5,
-            cursor: "row-resize",
-          }}
-          onMouseDown={(e) => {
-            dragInfo.current = {
-              startY: e.clientY,
-              startHeight: editorHeight,
-            };
-            document.body.style.cursor = "row-resize";
-            document.body.style.userSelect = "none";
-            window.addEventListener("mousemove", handleMouseMove);
-            window.addEventListener("mouseup", handleMouseUp);
-          }}
-        />
-        <Box
-          sx={{
-            flexGrow: 1,
-            display: "flex",
-            flexDirection: "column",
-            border: "1px solid #333",
-            borderRadius: 1,
-            backgroundColor: "#000000",
-            minHeight: "60px",
-            overflow: "hidden",
-          }}
-        >
-          <Toolbar
-            variant="dense"
-            sx={{
-              backgroundColor: "#222",
-              borderBottom: "1px solid #444",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              px: 1,
-            }}
-          >
-            <Typography variant="subtitle2" sx={{ color: "#bbb" }}>
-              Terminal
+          {/* Center: Title */}
+          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              <EditableFileName name={filename} onRename={setFilename} />
             </Typography>
+          </Box>
 
-            {/* Button group aligned right */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <IconButton
-                onClick={handleCopyTerminal}
-                size="small"
-                sx={{
-                  color: "#ccc",
-                  "&:hover": {
-                    backgroundColor: "#333",
-                  },
-                }}
-              >
-                <ContentCopyIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                onClick={handleRunCode}
-                size="small"
-                disabled={isLoadingPyodide}
-                sx={{
-                  color: isLoadingPyodide ? "grey" : green[500],
-                  "&:hover": {
-                    backgroundColor: isLoadingPyodide
-                      ? "transparent"
-                      : green[900],
-                  },
-                }}
-              >
-                <PlayArrowIcon />
-              </IconButton>
-            </Box>
-          </Toolbar>
-          <Box
+          {/* Right: Empty space to balance layout */}
+          <Box sx={{ display: "flex", alignItems: "center", pr: 1 }}>
+          <ColorModeIconDropdown />
+        </Box>
+
+        </Toolbar>
+
+
+        {/* Three-Panel Layout */}
+        <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
+          {/* Left Sidebar */}
+          {isSidebarOpen ? (
+            <Box
               sx={{
-                flexGrow: 1,
-                p: 1,
-                overflowY: "auto",
-                overflowX: "auto",          // ✅ horizontal scroll if needed
-                whiteSpace: "pre-wrap",     // ✅ wrap long lines if you prefer
-                wordBreak: "break-word",    // ✅ break long words/URLs
-                maxWidth: "100%",           // ✅ don't overflow parent
+                width: "20%",
+                transition: "width 0.3s ease",
+                overflow: "hidden",
+                backgroundColor: "background.paper",
+                borderRight: "1px solid",
+                borderColor: "divider",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-            {terminalOutput.map((line, index) => (
-              <Typography
-                key={index}
+              <CodeSideMenu onClose={() => setIsSidebarOpen(false)} />
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                width: "60px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                pt: 1,
+                gap: 1,
+                borderRight: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.paper",
+              }}
+            >
+              <IconButton size="small" onClick={() => setIsSidebarOpen(true)}>
+                <MenuIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+
+          {/* Center Code + Terminal */}
+          <Box
+            ref={containerRef}
+            sx={{
+              flexGrow: 1,
+              px: 0.5,
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
+            }}
+          >
+            <Box
+              sx={{
+                height: `${editorHeight}px`,
+                border: "1px solid #ccc",
+                borderRadius: 1,
+              }}
+            >
+              <CodeMirrorEditor
+                code={code}
+                onChange={handleCodeChange}
+                onCreateEditor={handleEditorCreation}
+                extraExtensions={[
+                  textDocument(FILE_URI),
+                  autocompletion({ override: [completionSource] }),
+                  hoverTooltip(hoverSource),
+                  linter(() => [...lspDiagnostics, ...runtimeDiagnostics]),
+                  lintGutter(),
+                  ...(runtimeDiagnostics.length > 0 ? highlightErrorLines(runtimeDiagnostics) : []),
+                ]}
+              />
+            </Box>
+
+            <Divider
+              sx={{
+                height: "6px",
+                backgroundColor: "divider",
+                my: 0.5,
+                cursor: "row-resize",
+              }}
+              onMouseDown={(e) => {
+                dragInfo.current = {
+                  startY: e.clientY,
+                  startHeight: editorHeight,
+                };
+                document.body.style.cursor = "row-resize";
+                document.body.style.userSelect = "none";
+                window.addEventListener("mousemove", handleMouseMove);
+                window.addEventListener("mouseup", handleMouseUp);
+              }}
+            />
+
+            <Box
+              sx={{
+                flexGrow: 1,
+                display: "flex",
+                flexDirection: "column",
+                border: "1px solid #333",
+                borderRadius: 1,
+                backgroundColor: "#000000",
+                minHeight: "60px",
+                overflow: "hidden",
+              }}
+            >
+              <Toolbar
+                variant="dense"
                 sx={{
-                  color:
-                    line.type === "success"
-                      ? "#0f0"
-                      : line.type === "error"
-                      ? "#f55"
-                      : "#aaa",
-                  fontFamily: "monospace",
-                  fontSize: "0.875rem",
+                  backgroundColor: "#222",
+                  borderBottom: "1px solid #444",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  px: 1,
                 }}
               >
-                {line.text}
-              </Typography>
-            ))}
+                <Typography variant="subtitle2" sx={{ color: "#bbb" }}>
+                  Terminal
+                </Typography>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <IconButton onClick={handleCopyTerminal} size="small" sx={{ color: "#ccc" }}>
+                    <ContentCopyIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    onClick={handleRunCode}
+                    size="small"
+                    disabled={isLoadingPyodide}
+                    sx={{
+                      color: isLoadingPyodide ? "grey" : green[500],
+                      "&:hover": {
+                        backgroundColor: isLoadingPyodide ? "transparent" : green[900],
+                      },
+                    }}
+                  >
+                    <PlayArrowIcon />
+                  </IconButton>
+                </Box>
+              </Toolbar>
+
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  p: 1,
+                  overflowY: "auto",
+                  overflowX: "auto",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  maxWidth: "100%",
+                }}
+              >
+                {terminalOutput.map((line, index) => (
+                  <Typography
+                    key={index}
+                    sx={{
+                      color:
+                        line.type === "success" ? "#0f0" :
+                        line.type === "error" ? "#f55" : "#aaa",
+                      fontFamily: "monospace",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {line.text}
+                  </Typography>
+                ))}
+              </Box>
+            </Box>
           </Box>
+
+          {/* Right LLM Panel */}
+          {isLLMOpen ? (
+            <Box
+              sx={{
+                width: "25%",
+                minWidth: "280px",
+                display: "flex",
+                flexDirection: "column",
+                borderLeft: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.paper",
+              }}
+            >
+              <LLMPanel onSend={handleSendToLLM} onClose={() => setIsLLMOpen(false)} />
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                width: "60px", // Collapsed width
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                pt: 1,
+                gap: 1,
+                borderLeft: "1px solid",
+                borderColor: "divider",
+                backgroundColor: "background.paper",
+              }}
+            >
+              <IconButton size="small" onClick={() => setIsLLMOpen(true)}>
+                <MenuIcon fontSize="small" />
+              </IconButton>
+              {/* Optional: vertical icons or label */}
+            </Box>
+          )}
+
         </Box>
       </Box>
-
-      {/* Right LLM Panel */}
-      <Box
-        sx={{
-          width: "25%",
-          display: "flex",
-          flexDirection: "column",
-          borderLeft: "1px solid",
-          borderColor: "divider",
-          backgroundColor: "background.paper",
-          p: 2,
-        }}
-      >
-        <LLMPanel onSend={handleSendToLLM} />
-      </Box>
-    </Box>
-  </AppTheme>
+    </AppTheme>
 );
 }

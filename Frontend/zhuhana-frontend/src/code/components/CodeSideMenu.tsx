@@ -8,14 +8,14 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BacktestConfig from "./BacktestConfig";
 import PaperTradeConfig from "./PaperTradingConfig";
 import LiveTradeConfig from "./LiveTradingConfig";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const executionModes = ["Backtest", "Paper Trade", "Live Trade"];
 
-export default function CodeSideMenu() {
+export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
   const [mode, setMode] = React.useState("Backtest");
 
   return (
@@ -33,6 +33,22 @@ export default function CodeSideMenu() {
     >
       {/* Bottom Content */}
       <Box sx={{ overflowY: "auto", maxHeight: "100%", mt: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h5">Execution Configuration</Typography>
+          {onClose && (
+            <IconButton size="small" onClick={onClose}>
+              <MenuIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+
         <Typography variant="h6" gutterBottom>
           Select Execution Mode
         </Typography>

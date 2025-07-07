@@ -15,10 +15,6 @@ export default function BacktestConfig() {
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Typography variant="h5" gutterBottom>
-        Backtest Configuration
-      </Typography>
-
       {/* Instrument Selection */}
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
         Select Instrument
