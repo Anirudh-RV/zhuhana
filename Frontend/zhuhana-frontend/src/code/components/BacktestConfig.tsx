@@ -10,8 +10,8 @@ import {
 } from "@mui/material";
 
 export default function BacktestConfig() {
-  const [timeDuration, setTimeDuration] = useState("Custom");
-  const [frequency, setFrequency] = useState("15");
+  const [timeDuration, setTimeDuration] = useState("1Y");
+  const [frequency, setFrequency] = useState("1D");
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -48,8 +48,8 @@ export default function BacktestConfig() {
         fullWidth
         sx={{ mb: 2 }}
       >
-        <ToggleButton value="1D">1D</ToggleButton>
-        <ToggleButton value="1W">1W</ToggleButton>
+        <ToggleButton value="1W">1D</ToggleButton>
+        <ToggleButton value="1M">1M</ToggleButton>
         <ToggleButton value="1Y">1Y</ToggleButton>
         <ToggleButton value="Custom">Custom</ToggleButton>
       </ToggleButtonGroup>
@@ -83,7 +83,7 @@ export default function BacktestConfig() {
 
       {/* Frequency */}
       <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-        Select Frequency (Minute)
+        Select Frequency (Day)
       </Typography>
       <ToggleButtonGroup
         value={frequency}
@@ -91,9 +91,9 @@ export default function BacktestConfig() {
         onChange={(_e, val) => val && setFrequency(val)}
         sx={{ mb: 2 }}
       >
-        <ToggleButton value="15">15</ToggleButton>
-        <ToggleButton value="30">30</ToggleButton>
-        <ToggleButton value="60">60</ToggleButton>
+        <ToggleButton value="1D">1D</ToggleButton>
+        <ToggleButton value="1W">1W</ToggleButton>
+        <ToggleButton value="1M">1M</ToggleButton>
         <ToggleButton value="Custom">Custom</ToggleButton>
       </ToggleButtonGroup>
 
@@ -119,13 +119,6 @@ export default function BacktestConfig() {
           type="number"
           size="small"
           defaultValue="100000"
-        />
-        <TextField
-          fullWidth
-          label="Risk Appetite"
-          type="number"
-          size="small"
-          defaultValue="1000"
         />
       </Stack>
     </Box>

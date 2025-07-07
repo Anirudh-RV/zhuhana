@@ -34,19 +34,20 @@
   color: #888;
 }
 
-.errorLineHighlight {
-  background-color: rgba(255, 0, 0, 0.2);
+.cm-error-line {
+  background-color: rgba(
+    255,
+    0,
+    0,
+    0.12
+  ) !important; /* or stronger if you want */
 }
 
-.errorLineHighlight {
-  background-color: rgba(255, 0, 0, 0.2);
-}
-
-/* Highlight the entire error line */
-.monaco-editor .errorLineHighlight {
-  background-color: rgba(255, 0, 0, 0.1);
-}
-
-.monaco-editor .margin .line-numbers:contains("❗") {
-  color: #f55;
+.cm-error-line:hover {
+  background-color: rgba(
+    255,
+    0,
+    0,
+    0.12
+  ) !important; /* or stronger if you want */
 }

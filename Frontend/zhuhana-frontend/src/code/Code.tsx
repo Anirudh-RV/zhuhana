@@ -4,12 +4,10 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
 import {
-  Button,
   Stack,
 } from "@mui/material";
+import MenuIcon from '@mui/icons-material/Menu';
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import CodeMirrorEditor from "./components/CodeMirrorEditor";
 import CodeSideMenu from "./components/CodeSideMenu";
@@ -29,6 +27,12 @@ import { createCompletionSource, createHoverTooltipSource } from "codemirror-lan
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
 
+import { Decoration, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { RangeSetBuilder } from "@codemirror/state";
+
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+
+
 import { initializeLspClient } from "./components/lspClient";
 
 const md = new MarkdownIt();
@@ -43,6 +47,51 @@ const markdownToDom = (markdown: string): DocumentFragment => {
   fragment.appendChild(wrapper);
   return fragment;
 };
+
+function highlightErrorLines(diagnostics: CodeMirrorDiagnostic[]) {
+  const plugin = ViewPlugin.fromClass(
+    class {
+      decorations;
+
+      constructor(view: EditorView) {
+        this.decorations = this.buildDecorations(view);
+      }
+
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = this.buildDecorations(update.view);
+        }
+      }
+
+      buildDecorations(view: EditorView) {
+        const builder = new RangeSetBuilder<Decoration>();
+
+        // Sort diagnostics by position before adding
+        for (const d of diagnostics.sort((a, b) => a.from - b.from)) {
+          const line = view.state.doc.lineAt(d.from);
+          builder.add(
+            line.from,
+            line.from,
+            Decoration.line({
+              attributes: { class: "cm-error-line" },
+            })
+          );
+        }
+
+        return builder.finish();
+      }
+
+      destroy() {}
+    },
+    {
+      decorations: (v) => v.decorations,
+    }
+  );
+
+  return [plugin]; // Extension[]
+}
+
+
 
 declare global {
   interface Window {
@@ -114,17 +163,24 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
   const [editorHeight, setEditorHeight] = useState(() => window.innerHeight * 0.85);
   const lspClientRef = useRef<any>(null);
+  const [highlightRuntimeErrors, setHighlightRuntimeErrors] = useState(false);
+  const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
+  const [lspDiagnostics, setLspDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
+
+
 
   const appendStdout = useRef((msg: string) => {
     setTerminalOutput((prev) => [...prev, { text: msg, type: "success" }]);
   });
 
   const appendStderr = useRef((msg: string) => {
-    setTerminalOutput((prev) => [
-      ...prev,
-      { text: `[Python Error]: ${msg}`, type: "error" },
-    ]);
-  });
+  console.error("[Pyodide stderr]", msg); // Debug log
+  setTerminalOutput((prev) => [
+    ...prev,
+    { text: `[Python Error]: ${msg}`, type: "error" },
+  ]);
+});
+
 
   useEffect(() => {
     const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
@@ -161,7 +217,7 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
       uri: FILE_URI,
       languageId: LANGUAGE_ID,
       code,
-      onDiagnostics: setDiagnostics,
+      onDiagnostics: setLspDiagnostics,
       getEditorView: () => editorViewRef.current,
       onInitialized: () => console.log("✅ LSP ready"),
     });
@@ -173,10 +229,12 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   }, []);
 
   const handleCodeChange = useCallback((newCode: string | undefined) => {
-    const currentCode = newCode ?? "";
-    setCode(currentCode);
-    lspClientRef.current?.sendDidChange(currentCode);
-  }, []);
+  const currentCode = newCode ?? "";
+  setCode(currentCode);
+  setRuntimeDiagnostics([]); // ✅ clear runtime errors on edit
+  lspClientRef.current?.sendDidChange(currentCode);
+}, []);
+
 
   const completionSource = createCompletionSource({
     markdownToDom,
@@ -191,6 +249,17 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
       return await lspClientRef.current?.hover(position);
     },
   });
+
+
+  const handleCopyTerminal = () => {
+  const textToCopy = terminalOutput.map((line) => line.text).join("\n");
+  navigator.clipboard.writeText(textToCopy).then(() => {
+    console.log("✅ Terminal output copied to clipboard");
+  }).catch((err) => {
+    console.error("❌ Failed to copy:", err);
+  });
+};
+
 
   const handleSendToLLM = async (
     messages: LLMMessage[],
@@ -252,19 +321,54 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   };
 
   const handleRunCode = async () => {
-    if (!pyodideInstanceRef.current) return;
-    setTerminalOutput([
-      { text: ">> Terminal ready...", type: "info" },
-      { text: ">> Executing Python code...", type: "info" },
+  if (!pyodideInstanceRef.current) return;
+
+  // Clear previous runtime errors
+  setRuntimeDiagnostics([]);
+
+  setTerminalOutput([
+    { text: ">> Terminal ready...", type: "info" },
+    { text: ">> Executing Python code...", type: "info" },
+  ]);
+
+  try {
+    pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
+    await pyodideInstanceRef.current.runPythonAsync(code);
+
+    setRuntimeDiagnostics([]); // ✅ no error
+    setTerminalOutput((prev) => [
+      ...prev,
+      { text: ">> Code execution finished.", type: "success" },
     ]);
-    try {
-      pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
-      await pyodideInstanceRef.current.runPythonAsync(code);
-      setTerminalOutput((prev) => [...prev, { text: ">> Code execution finished.", type: "success" }]);
-    } catch (error: any) {
-      setTerminalOutput((prev) => [...prev, { text: `>> Error: ${error.message || error}`, type: "error" }]);
+  } catch (error: any) {
+    const message = error.message || String(error);
+    const execLineMatch = message.match(/File "<exec>", line (\d+)/);
+    const line = execLineMatch ? parseInt(execLineMatch[1], 10) - 1 : undefined;
+
+    if (line !== undefined && editorViewRef.current) {
+      const from = editorViewRef.current.state.doc.line(line + 1).from;
+      const to = editorViewRef.current.state.doc.line(line + 1).to;
+
+      setRuntimeDiagnostics([
+        {
+          from,
+          to,
+          severity: "error",
+          message,
+          source: "Pyodide Runtime",
+        },
+      ]);
     }
-  };
+
+    setTerminalOutput((prev) => [
+      ...prev,
+      { text: `>> Error: ${message}`, type: "error" },
+    ]);
+  }
+};
+
+
+
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragInfo.current) return;
@@ -336,7 +440,7 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
 
               {/* Collapse button */}
               <IconButton size="small" onClick={() => setIsSidebarOpen(false)}>
-                <ChevronLeftIcon fontSize="small" />
+                <MenuIcon fontSize="small" />
               </IconButton>
             </Stack>
           </Box>
@@ -357,7 +461,7 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
           }}
         >
           <IconButton size="small" onClick={() => setIsSidebarOpen(true)}>
-            <ChevronRightIcon fontSize="small" />
+            <MenuIcon fontSize="small" />
           </IconButton>
           {/* Add icons or vertical nav here if needed */}
         </Box>
@@ -389,8 +493,9 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
               textDocument(FILE_URI),
               autocompletion({ override: [completionSource] }),
               hoverTooltip(hoverSource),
-              linter(() => diagnostics),
+              linter(() => [...lspDiagnostics, ...runtimeDiagnostics]),
               lintGutter(),
+              ...(runtimeDiagnostics.length > 0 ? highlightErrorLines(runtimeDiagnostics) : []),
             ]}
           />
         </Box>
@@ -419,7 +524,7 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
             flexDirection: "column",
             border: "1px solid #333",
             borderRadius: 1,
-            backgroundColor: "background.paper",
+            backgroundColor: "#000000",
             minHeight: "60px",
             overflow: "hidden",
           }}
@@ -438,21 +543,37 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
             <Typography variant="subtitle2" sx={{ color: "#bbb" }}>
               Terminal
             </Typography>
-            <IconButton
-              onClick={handleRunCode}
-              size="small"
-              disabled={isLoadingPyodide}
-              sx={{
-                color: isLoadingPyodide ? "grey" : green[500],
-                "&:hover": {
-                  backgroundColor: isLoadingPyodide
-                    ? "transparent"
-                    : green[900],
-                },
-              }}
-            >
-              <PlayArrowIcon />
-            </IconButton>
+
+            {/* Button group aligned right */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <IconButton
+                onClick={handleCopyTerminal}
+                size="small"
+                sx={{
+                  color: "#ccc",
+                  "&:hover": {
+                    backgroundColor: "#333",
+                  },
+                }}
+              >
+                <ContentCopyIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                onClick={handleRunCode}
+                size="small"
+                disabled={isLoadingPyodide}
+                sx={{
+                  color: isLoadingPyodide ? "grey" : green[500],
+                  "&:hover": {
+                    backgroundColor: isLoadingPyodide
+                      ? "transparent"
+                      : green[900],
+                  },
+                }}
+              >
+                <PlayArrowIcon />
+              </IconButton>
+            </Box>
           </Toolbar>
           <Box
               sx={{
