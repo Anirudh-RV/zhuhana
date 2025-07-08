@@ -127,13 +127,13 @@ from zhuhana.types import (
 
 class ZhuhanaStrategy:
     def __init__(self, zhuhana_sdk: zhuhana.ZhuhanaClass):
-        self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
+      self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
 
     def on_data(self, current_data: OHLCData):
-        pass
+      pass
 
     def condition_for_sell(self, current_data: OHLCData) -> OrderInstruction:
-        return OrderInstruction(
+      return OrderInstruction(
             side=OrderSide.SELL,
             type=OrderType.MARKET,
             mode=OrderMode.INTRADAY,
@@ -143,7 +143,7 @@ class ZhuhanaStrategy:
         )
 
     def condition_for_buy(self, current_data: OHLCData) -> OrderInstruction:
-        return OrderInstruction(
+      return OrderInstruction(
             side=OrderSide.BUY,
             type=OrderType.MARKET,
             mode=OrderMode.INTRADAY,
@@ -451,9 +451,10 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
 
           {/* Center: Title */}
           <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-            <Typography variant="subtitle1" fontWeight="bold">
+            <Typography variant="subtitle1" fontWeight="bold" component="div">
               <EditableFileName name={filename} onRename={setFilename} />
             </Typography>
+
           </Box>
 
           {/* Right: Empty space to balance layout */}
