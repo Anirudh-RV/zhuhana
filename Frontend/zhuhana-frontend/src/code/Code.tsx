@@ -261,13 +261,18 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
 
 
   const handleCopyTerminal = () => {
-  const textToCopy = terminalOutput.map((line) => line.text).join("\n");
-  navigator.clipboard.writeText(textToCopy).then(() => {
-    console.log("✅ Terminal output copied to clipboard");
-  }).catch((err) => {
-    console.error("❌ Failed to copy:", err);
-  });
-};
+    const filtered = terminalOutput
+      .filter((line) => line.type === "success" || line.type === "error")
+      .map((line) => line.text)
+      .join("\n");
+
+    navigator.clipboard.writeText(filtered).then(() => {
+      console.log("✅ Filtered terminal output copied to clipboard");
+    }).catch((err) => {
+      console.error("❌ Failed to copy:", err);
+    });
+  };
+
 
 const [isLLMOpen, setIsLLMOpen] = useState(true);
 
@@ -555,8 +560,6 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
               onRunCode={handleRunCode}
               onCopyTerminal={handleCopyTerminal}
             />
-
-
           </Box>
 
           {/* Right LLM Panel */}

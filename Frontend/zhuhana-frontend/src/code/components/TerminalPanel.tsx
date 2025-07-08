@@ -1,6 +1,7 @@
-// components/TerminalPanel.tsx
+import { useState } from "react";
 import { Box, IconButton, Toolbar, Typography } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CheckIcon from "@mui/icons-material/Check";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { useTheme, useColorScheme } from "@mui/material/styles";
 
@@ -20,7 +21,19 @@ export default function TerminalPanel({
   const theme = useTheme();
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
-  console.log("resolvedMode: " + resolvedMode);
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    onCopyTerminal();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500); // reset after 1.5s
+  };
+
+  const lineCount = terminalOutput.length;
+  const maxLines = 20; // cap height if too many lines
+
+  const height = Math.min(lineCount * 22 + 40, 400);
 
   return (
     <Box
@@ -54,14 +67,44 @@ export default function TerminalPanel({
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton
-            onClick={onCopyTerminal}
-            size="small"
-            sx={{ color: resolvedMode === "dark" ? "#ccc" : "#333" }}
+          {/* Copy Button with background */}
+          <Box
+            onClick={handleCopy}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1,
+              py: 0.5,
+              borderRadius: 1,
+              cursor: "pointer",
+              backgroundColor:
+                resolvedMode === "dark" ? "background.paper" : "#ddd",
+              color: resolvedMode === "dark" ? "#fff" : "#000",
+              transition: "background-color 0.2s",
+              "&:hover": {
+                backgroundColor: resolvedMode === "dark" ? "#444" : "#ccc",
+              },
+            }}
           >
-            <ContentCopyIcon fontSize="small" />
-          </IconButton>
+            {copied ? (
+              <>
+                <CheckIcon fontSize="small" />
+                <Typography variant="body2" fontSize="0.8rem">
+                  Copied
+                </Typography>
+              </>
+            ) : (
+              <>
+                <ContentCopyIcon fontSize="small" />
+                <Typography variant="body2" fontSize="0.8rem">
+                  Copy
+                </Typography>
+              </>
+            )}
+          </Box>
 
+          {/* Run Button */}
           <IconButton
             onClick={onRunCode}
             size="small"
@@ -91,6 +134,7 @@ export default function TerminalPanel({
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
           maxWidth: "100%",
+          maxHeight: "30vh",
         }}
       >
         {terminalOutput.map((line, index) => (

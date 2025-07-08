@@ -12,7 +12,7 @@ import SendIcon from "@mui/icons-material/Send";
 import StopIcon from "@mui/icons-material/Stop";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useColorScheme } from "@mui/material/styles";
-
+import CheckIcon from "@mui/icons-material/Check";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import hljs from "highlight.js/lib/core";
@@ -110,8 +110,10 @@ export default function LLMPanel({
 
   const CodeBlock = ({ inline, className, children }: any) => {
     const [copied, setCopied] = useState(false);
-
     const codeRef = useRef<HTMLElement>(null);
+
+    const { mode, systemMode } = useColorScheme();
+    const resolvedMode = mode === "system" ? systemMode : mode;
 
     const handleCopy = () => {
       const text = codeRef.current?.innerText || "";
@@ -137,21 +139,56 @@ export default function LLMPanel({
     }
 
     return (
-      <Box sx={{ position: "relative" }}>
-        <IconButton
-          size="small"
+      <Box
+        sx={{
+          position: "relative",
+          borderRadius: 1,
+          overflow: "hidden",
+          border: "1px solid",
+          borderColor: "divider",
+          mb: 2,
+        }}
+      >
+        <Box
           onClick={handleCopy}
           sx={{
             position: "absolute",
             top: 8,
             right: 8,
-            zIndex: 1,
-            color: "text.secondary",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            px: 1,
+            py: 0.25,
+            borderRadius: 1,
+            cursor: "pointer",
+            backgroundColor:
+              resolvedMode === "dark" ? "background.paper" : "#ddd",
+            color: resolvedMode === "dark" ? "#fff" : "#000",
+            transition: "background-color 0.2s",
+            "&:hover": {
+              backgroundColor: resolvedMode === "dark" ? "#444" : "#ccc",
+            },
           }}
         >
-          <ContentCopyIcon fontSize="small" />
-        </IconButton>
-        <pre>
+          {copied ? (
+            <>
+              <CheckIcon fontSize="small" />
+              <Typography variant="body2" fontSize="0.75rem">
+                Copied
+              </Typography>
+            </>
+          ) : (
+            <>
+              <ContentCopyIcon fontSize="small" />
+              <Typography variant="body2" fontSize="0.75rem">
+                Copy
+              </Typography>
+            </>
+          )}
+        </Box>
+
+        <pre style={{ margin: 0, padding: "1rem" }}>
           <code className={className} ref={codeRef}>
             {children}
           </code>

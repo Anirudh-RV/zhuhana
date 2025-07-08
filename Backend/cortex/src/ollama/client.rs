@@ -10,7 +10,7 @@ When showing code, use triple backticks and specify the language, like:
 ```python
 def greet(name):
     print(f"Hello, {name}!")
-"#;
+```"#;
 
 pub async fn query_ollama_stream(
     user_prompt: String,
