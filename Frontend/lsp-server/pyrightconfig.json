@@ -1,0 +1,7 @@
+{
+  "include": ["main_editor_code.py"],
+  "extraPaths": [
+    "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages"
+  ],
+  "typeCheckingMode": "basic"
+}

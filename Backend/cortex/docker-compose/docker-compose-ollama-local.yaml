@@ -1,0 +1,14 @@
+services:
+  ollama:
+    build:
+      context: ../
+      dockerfile: dockerfiles/OllamaDockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    tty: true
+    stdin_open: true
+
+volumes:
+  ollama-models:

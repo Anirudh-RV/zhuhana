@@ -8,21 +8,27 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import BacktestConfig from "./BacktestConfig";
 import PaperTradeConfig from "./PaperTradingConfig";
 import LiveTradeConfig from "./LiveTradingConfig";
+import MenuIcon from "@mui/icons-material/Menu";
+import Tooltip from "@mui/material/Tooltip";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { useColorScheme } from "@mui/material/styles";
 
 const executionModes = ["Backtest", "Paper Trade", "Live Trade"];
 
-export default function CodeSideMenu() {
+export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
   const [mode, setMode] = React.useState("Backtest");
+  const { mode: themeMode, systemMode: themeSystemMode } = useColorScheme();
+  const resolvedThemeMode =
+    themeMode === "system" ? themeSystemMode : themeMode;
 
   return (
     <Box
       sx={{
-        width: "20%",
-        height: "100vh",
+        flex: 1,
+        height: "100%",
         p: 2,
         backgroundColor: "background.paper",
         display: "flex",
@@ -31,21 +37,49 @@ export default function CodeSideMenu() {
         borderColor: "divider",
       }}
     >
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-        <IconButton>
-          <ArrowBackIcon />
-        </IconButton>
-        <Typography variant="subtitle1" fontWeight="bold">
-          Strategy - NewAlgorithm
-        </Typography>
-      </Stack>
-
       {/* Bottom Content */}
       <Box sx={{ overflowY: "auto", maxHeight: "100%", mt: 1 }}>
-        <Typography variant="h6" gutterBottom>
-          Select Execution Mode
-        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h5">Configuration</Typography>
+          {onClose && (
+            <IconButton size="small" onClick={onClose}>
+              <MenuIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          <Typography variant="h6" sx={{ mr: 0.5 }}>
+            Select Execution Mode
+          </Typography>
+          <Tooltip
+            title="⚠️ Live Trading and Paper Trading coming soon!"
+            placement="bottom"
+            slotProps={{
+              tooltip: {
+                sx: {
+                  backgroundColor:
+                    resolvedThemeMode === "dark" ? "#333" : "#eee",
+                  color: resolvedThemeMode === "dark" ? "#fff" : "#000",
+                  boxShadow: 3,
+                  opacity: 1, // Ensures it's fully opaque
+                },
+              },
+            }}
+          >
+            <InfoOutlinedIcon
+              sx={{ fontSize: 18, color: "text.secondary", cursor: "default" }}
+            />
+          </Tooltip>
+        </Box>
+
         <ToggleButtonGroup
           value={mode}
           exclusive
