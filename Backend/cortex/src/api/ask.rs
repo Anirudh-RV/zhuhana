@@ -126,8 +126,6 @@ pub async fn handle_ask(
 
     tokio::spawn(async move {
         let mut total_tokens = 0;
-        let mut prompt_tokens = 0;
-        let mut completion_tokens = 0;
         let mut model_name = String::new();
         let mut collected = String::new();
 
@@ -145,10 +143,10 @@ pub async fn handle_ask(
                     }
 
                     if json.get("done") == Some(&serde_json::Value::Bool(true)) {
-                        prompt_tokens = json.get("prompt_eval_count")
+                        let prompt_tokens = json.get("prompt_eval_count")
                             .and_then(|v| v.as_u64())
                             .unwrap_or(0);
-                        completion_tokens = json.get("eval_count")
+                        let completion_tokens = json.get("eval_count")
                             .and_then(|v| v.as_u64())
                             .unwrap_or(0);
                         total_tokens = (prompt_tokens + completion_tokens) as i32;
