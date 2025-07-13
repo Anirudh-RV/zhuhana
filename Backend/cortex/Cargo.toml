@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7"
+axum = { version = "0.7", features = ["macros", "tokio", "http1", "json"] } # Explicitly re-add "tokio", "http1", "json" features for axum 0.7 for completeness and to ensure necessary components are available.
 tokio = { version = "1", features = ["full"] }
 dotenvy = "0.15"
-hyper = { version = "1.0", features = ["http1", "server"] }
-hyper-util = { version = "0.1", features = ["tokio"] }
-http-body-util = "0.1"
+# REMOVE these lines:
+# hyper = { version = "1.0", features = ["http1", "server"] }
+# hyper-util = { version = "0.1", features = ["tokio"] }
+http-body-util = "0.1" # Keep this, as it's a general utility crate often used with Hyper's body types.
 reqwest = { version = "0.12", features = ["json", "stream"] }
 futures-util = "0.3"
 tokio-stream = "0.1"
@@ -21,8 +22,10 @@ serde_json = "1"
 serde = { version = "1.0", features = ["derive"] }
 uuid = { version = "1.7", features = ["serde", "v4"] }
 chrono = { version = "0.4", features = ["serde"] }
-
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "macros"] }
 
 # Logging & Tracing
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+base64ct = "=1.7.3"
+async-stream = "0.3"

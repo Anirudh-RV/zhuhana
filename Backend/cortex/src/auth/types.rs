@@ -24,7 +24,8 @@ pub struct UserObject {
 #[derive(Debug, Deserialize)]
 pub struct UserAuthenticateResponse {
     pub status: i32,
-    pub statusDescription: String,
+    #[serde(rename = "statusDescription")]
+    pub status_description: String,
     pub user: Option<UserObject>,
 }
 
@@ -32,5 +33,6 @@ pub struct UserAuthenticateResponse {
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     pub status: i32,
-    pub statusDescription: String,
+    #[serde(rename = "statusDescription")]
+    pub status_description: String,
 }
