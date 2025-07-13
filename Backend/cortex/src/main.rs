@@ -1,21 +1,29 @@
 use std::net::SocketAddr;
-use std::time::Duration;
+use std::sync::Arc;
 
-use axum::Router;
+use axum::Extension;
 use dotenvy::dotenv;
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper_util::rt::tokio::TokioIo;
 use reqwest::Client;
-use serde_json::json;
 use tokio::net::TcpListener;
 use tower_service::Service;
+use tower::ServiceBuilder;
 use tracing::{error, info};
 use tracing_subscriber::FmtSubscriber;
 use tower_http::cors::{CorsLayer, Any};
 
+
 mod api;
 mod ollama;
+mod auth;
+mod consts;
+
+
+use crate::auth::middleware::{user_auth_middleware, AuthConfig};
+use crate::consts::user_authentication_endpoint;
+
 
 #[tokio::main]
 async fn main() {
@@ -27,7 +35,17 @@ async fn main() {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    let app = api::routes().layer(cors);
+    let auth_config = Arc::new(AuthConfig {
+        auth_service_url: user_authentication_endpoint(),
+        http_client: Client::new(),
+    });
+
+    let app = api::routes().layer(
+        ServiceBuilder::new()
+            .layer(Extension(auth_config))
+            .layer(axum::middleware::from_fn(user_auth_middleware))
+            .layer(cors),
+    );
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     info!("🚀 Running on http://{addr}");
