@@ -14,7 +14,7 @@ pub struct Session {
 }
 
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Message {
     pub id: Uuid,
     pub session_id: Uuid,
