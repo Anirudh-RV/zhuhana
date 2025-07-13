@@ -3,7 +3,7 @@ use axum::{
     response::Response,
     body::Body,
 };
-use futures_util::{StreamExt, TryStreamExt};
+use futures_util::{StreamExt};
 use http_body_util::StreamBody;
 use uuid::Uuid;
 use std::{convert::Infallible};
@@ -14,7 +14,7 @@ use tokio::sync::mpsc;
 use crate::{
     auth::types::UserObject,
     ollama::client::query_ollama_stream,
-    tables::Message,
+    tables::{Message, Session},
     state::AppState,
 };
 
@@ -26,7 +26,7 @@ pub struct AskParams {
 
 pub async fn handle_ask(
     Query(params): Query<AskParams>,
-    Extension(_user): Extension<UserObject>,
+    Extension(user): Extension<UserObject>,
     State(state): State<AppState>,
 ) -> Result<Response, Infallible> {
     let pool = &state.db;
@@ -42,6 +42,39 @@ pub async fn handle_ask(
                 .unwrap());
         }
     };
+
+    let session_result = sqlx::query_as::<_, Session>(
+        r#"
+        SELECT id, created_at, user_id, algorithm_id, title
+        FROM sessions
+        WHERE id = $1 AND user_id = $2
+        "#,
+    )
+    .bind(session_id)
+    .bind(user.id)
+    .fetch_optional(pool)
+    .await;
+
+    match session_result {
+        Ok(Some(_)) => {
+            // ✅ Session found and belongs to user — continue
+        }
+        Ok(None) => {
+            return Ok(Response::builder()
+                .status(403)
+                .header("content-type", "text/plain")
+                .body("❌ Invalid session or unauthorized".into())
+                .unwrap());
+        }
+        Err(e) => {
+            tracing::error!("❌ DB error checking session: {}", e);
+            return Ok(Response::builder()
+                .status(500)
+                .header("content-type", "text/plain")
+                .body("❌ Internal server error".into())
+                .unwrap());
+        }
+    }
 
     // Start LLM stream
     let llm_stream = match query_ollama_stream(prompt.clone()).await {
@@ -103,9 +136,6 @@ pub async fn handle_ask(
                 }
             }
         }
-
-
-        tracing::info!("✅ Final system message: {}", collected);
 
         if let Err(e) = sqlx::query_as::<_, Message>(
             r#"
