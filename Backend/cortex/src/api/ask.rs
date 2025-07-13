@@ -125,28 +125,51 @@ pub async fn handle_ask(
     let prompt_clone = prompt.clone();
 
     tokio::spawn(async move {
+        let mut total_tokens = 0;
+        let mut prompt_tokens = 0;
+        let mut completion_tokens = 0;
+        let mut model_name = String::new();
         let mut collected = String::new();
 
         while let Some(chunk) = buffer_rx.recv().await {
             if let Ok(text) = std::str::from_utf8(&chunk) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(text) {
+                    if model_name.is_empty() {
+                        if let Some(m) = json.get("model").and_then(|m| m.as_str()) {
+                            model_name = m.to_string();
+                        }
+                    }
+
                     if let Some(resp) = json.get("response").and_then(|r| r.as_str()) {
                         collected.push_str(resp);
+                    }
+
+                    if json.get("done") == Some(&serde_json::Value::Bool(true)) {
+                        prompt_tokens = json.get("prompt_eval_count")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
+                        completion_tokens = json.get("eval_count")
+                            .and_then(|v| v.as_u64())
+                            .unwrap_or(0);
+                        total_tokens = (prompt_tokens + completion_tokens) as i32;
                     }
                 }
             }
         }
 
+
         if let Err(e) = sqlx::query_as::<_, Message>(
             r#"
-            INSERT INTO messages (session_id, user_message, system_message)
-            VALUES ($1, $2, $3)
-            RETURNING id, created_at, session_id, user_message, system_message
+            INSERT INTO messages (session_id, user_message, system_message, model, tokens)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, session_id, created_at, user_message, system_message, model, tokens
             "#,
         )
         .bind(session_id)
         .bind(prompt_clone)
         .bind(collected)
+        .bind(model_name)
+        .bind(total_tokens)
         .fetch_one(&pool)
         .await
         {

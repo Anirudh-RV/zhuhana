@@ -21,4 +21,6 @@ pub struct Message {
     pub created_at: NaiveDateTime,
     pub user_message: String,
     pub system_message: String,
+    pub model: String,
+    pub tokens: i32,
 }
