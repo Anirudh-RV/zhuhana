@@ -1,16 +1,18 @@
 use bytes::Bytes;
-use futures_util::{Stream, StreamExt, TryStreamExt};
+use futures_util::{Stream, TryStreamExt};
 use reqwest::Client;
 use std::io;
 
 /// System prompt that tells the model to format code in Markdown with Python fences
 const SYSTEM_PROMPT: &str = r#"You are a helpful assistant. Always respond in Markdown.
-When showing code, use triple backticks and specify the language, like:
+When showing code, use triple backticks and specify the language, for example, for python, you would write:
 
 ```python
 def greet(name):
     print(f"Hello, {name}!")
-```"#;
+```
+
+"#;
 
 pub async fn query_ollama_stream(
     user_prompt: String,

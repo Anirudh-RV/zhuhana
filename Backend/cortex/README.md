@@ -10,3 +10,13 @@
 # To run Ollama
 
 > docker compose -f docker-compose/docker-compose-ollama-local.yaml up -d --build
+
+# To Migrate
+
+DATABASE_URL=postgres://cortex:password@localhost:5433/cortex sqlx migrate run
+
+export DATABASE_URL=postgres://cortex:password@localhost:5425/cortex
+cargo sqlx prepare --check
+
+export DATABASE_URL=postgres://cortex:password@localhost:5425/cortex
+cargo build

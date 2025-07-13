@@ -1,53 +1,16 @@
-use axum::{
-    extract::Query,
-    response::Response,
-    routing::get,
-    Router,
-};
-use axum::body::Body;
-use http_body_util::StreamBody;
-use std::{collections::HashMap, convert::Infallible};
+use axum::{Router, routing::{get, post}};
+use crate::{api::{get_messages::handle_get_messages, get_sessions::handle_get_sessions}, state::AppState}; // ✅ import your AppState
+mod ask;
+mod session;
+mod get_sessions;
+mod get_messages;
 
-use crate::ollama::client::query_ollama_stream;
-use bytes::Bytes;
+use self::{ask::handle_ask, session::handle_create_session};
 
-pub fn routes() -> Router {
-    Router::new().route("/v1/ask", get(handle_ask))
-}
-
-async fn handle_ask(
-    Query(params): Query<HashMap<String, String>>,
-) -> Result<Response, Infallible> {
-    let prompt = match params.get("q") {
-        Some(p) => p.clone(),
-        None => {
-            let msg = "Missing `q` parameter\n";
-            return Ok(Response::builder()
-                .status(400)
-                .header("content-type", "text/plain")
-                .body(msg.into())
-                .unwrap());
-        }
-    };
-
-    match query_ollama_stream(prompt).await {
-        Ok(stream) => {
-            let body = Body::from_stream(StreamBody::new(stream));
-            let response = Response::builder()
-                .status(200)
-                .header("content-type", "text/event-stream")
-                .body(body)
-                .unwrap();
-
-            Ok(response)
-        }
-        Err(e) => {
-            let msg = format!("Error: {}\n", e);
-            Ok(Response::builder()
-                .status(500)
-                .header("content-type", "text/plain")
-                .body(msg.into())
-                .unwrap())
-        }
-    }
+pub fn routes() -> Router<AppState> {
+    Router::new()
+        .route("/v1/ask/", get(handle_ask))
+        .route("/v1/session/", post(handle_create_session))
+        .route("/v1/session/", get(handle_get_sessions))
+        .route("/v1/messages/", get(handle_get_messages))
 }
