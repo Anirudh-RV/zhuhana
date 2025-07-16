@@ -8,8 +8,8 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 
-import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
-import EdgesensorHighRoundedIcon from "@mui/icons-material/EdgesensorHighRounded";
+import CodeIcon from "@mui/icons-material/Code";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ViewQuiltRoundedIcon from "@mui/icons-material/ViewQuiltRounded";
 
 const TEMPLATE_IMAGE_URL =
@@ -26,11 +26,11 @@ const items = [
       "Get a high level overview of all your backtests and trading activity.",
       "Monitor your portfolio and algorithmic trading sessions in real time.",
     ],
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/dash-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/dash-dark.png")`,
+    imageLight: `url("/images/light-dashboard.png")`,
+    imageDark: `url("/images/dark-dashboard.png")`,
   },
   {
-    icon: <EdgesensorHighRoundedIcon />,
+    icon: <CodeIcon />,
     title: "Cloud Coding Environment",
     description:
       "A cloud environment for you to code in Python with all the features you'd expect from an IDE without having to download a thing.",
@@ -39,11 +39,11 @@ const items = [
       "Use Zhuhana AI to generate code by describing your strategy in plain English.",
       "Review, edit, and fully customize the generated code with a full featured IDE.",
     ],
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/mobile-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/mobile-dark.png")`,
+    imageLight: `url("/images/light-code.png")`,
+    imageDark: `url("/images/dark-code.png")`,
   },
   {
-    icon: <DevicesRoundedIcon />,
+    icon: <AccountBalanceIcon />,
     title: "Trading & Execution",
     description:
       "Backtest, simulate, and execute your strategies seamlessly using your preferred broker.",
@@ -266,14 +266,21 @@ export default function Features() {
             ))}
           </Box>
 
-          {/* Mobile layout */}
-          <MobileLayout
-            selectedItemIndex={selectedItemIndex}
-            handleItemClick={handleItemClick}
-            selectedFeature={selectedFeature}
-          />
+          <Box
+            sx={{
+              display: { xs: "flex", sm: "none" },
+              flexDirection: "column",
+              width: "100%",
+            }}
+          >
+            {/* Mobile layout */}
+            <MobileLayout
+              selectedItemIndex={selectedItemIndex}
+              handleItemClick={handleItemClick}
+              selectedFeature={selectedFeature}
+            />
+          </Box>
         </div>
-
         {/* Image Preview Card */}
         <Box
           sx={{

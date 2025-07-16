@@ -4,6 +4,8 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
 import { useColorScheme } from "@mui/material/styles";
+import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
 
 const StyledBox = styled("div")(({ theme }) => ({
   alignSelf: "center",
@@ -29,6 +31,7 @@ const StyledBox = styled("div")(({ theme }) => ({
 export default function Hero() {
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -106,6 +109,24 @@ export default function Hero() {
             Python code, ready for backtesting and live trading using your
             preferred broker.
           </Typography>
+          <Button
+            color="primary"
+            variant="contained"
+            size="large"
+            onClick={() => navigate("/signup")}
+            sx={{
+              fontSize: "1.125rem",
+              px: 4,
+              py: 1.5,
+              boxShadow: "0 0 12px 4px hsla(210, 100%, 70%, 0.7) !important",
+              backgroundColor: "primary.main",
+              "&:focus-visible": {
+                boxShadow: "0 0 24px 8px hsla(210, 100%, 70%, 0.9) !important",
+              },
+            }}
+          >
+            Sign up
+          </Button>
         </Stack>
 
         {/* ✅ Styled container + image */}
