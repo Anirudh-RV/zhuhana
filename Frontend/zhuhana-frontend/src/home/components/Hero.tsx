@@ -125,7 +125,7 @@ export default function Hero() {
               },
             }}
           >
-            Sign up
+            Sign Up
           </Button>
         </Stack>
 

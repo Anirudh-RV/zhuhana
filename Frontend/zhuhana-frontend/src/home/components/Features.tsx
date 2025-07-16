@@ -7,13 +7,10 @@ import MuiChip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-
 import CodeIcon from "@mui/icons-material/Code";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ViewQuiltRoundedIcon from "@mui/icons-material/ViewQuiltRounded";
-
-const TEMPLATE_IMAGE_URL =
-  import.meta.env.VITE_TEMPLATE_IMAGE_URL || "https://mui.com";
+import { useColorScheme } from "@mui/material/styles";
 
 const items = [
   {
@@ -52,8 +49,8 @@ const items = [
       "Simulate trades with paper trading in live market conditions without any risk.",
       "Connect to supported brokers and deploy your algorithms live from Zhuhana.",
     ],
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/devices-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/devices-dark.png")`,
+    imageLight: `url("/images/light-dashboard.png")`,
+    imageDark: `url("/images/dark-dashboard.png")`,
   },
 ];
 
@@ -87,6 +84,10 @@ interface MobileLayoutProps {
   selectedFeature: (typeof items)[0];
 }
 
+function extractUrl(cssUrl: string): string {
+  return cssUrl.replace(/^url\(["']?/, "").replace(/["']?\)$/, "");
+}
+
 export function MobileLayout({
   selectedItemIndex,
   handleItemClick,
@@ -117,7 +118,8 @@ export function MobileLayout({
         <Box
           sx={(theme) => ({
             mb: 2,
-            backgroundSize: "cover",
+            display: { xs: "block", md: "none" }, // ✅ FIXED LINE
+            backgroundSize: "contain",
             backgroundPosition: "center",
             minHeight: 280,
             backgroundImage: "var(--items-imageLight)",
@@ -134,6 +136,7 @@ export function MobileLayout({
               : {}
           }
         />
+
         <Box sx={{ px: 2, pb: 2 }}>
           <Typography
             gutterBottom
@@ -165,6 +168,9 @@ export function MobileLayout({
 }
 
 export default function Features() {
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+
   const [selectedItemIndex, setSelectedItemIndex] = React.useState(0);
 
   const handleItemClick = (index: number) => {
@@ -172,6 +178,12 @@ export default function Features() {
   };
 
   const selectedFeature = items[selectedItemIndex];
+
+  const imageUrl = extractUrl(
+    resolvedMode === "dark"
+      ? selectedFeature.imageDark
+      : selectedFeature.imageLight
+  );
 
   return (
     <Container id="features" sx={{ py: { xs: 8, sm: 16 } }}>
@@ -299,25 +311,25 @@ export default function Features() {
             }}
           >
             <Box
-              sx={(theme) => ({
+              sx={{
                 m: "auto",
-                width: 420,
-                height: 500,
-                backgroundSize: "contain",
-                backgroundImage: "var(--items-imageLight)",
-                ...theme.applyStyles?.("dark", {
-                  backgroundImage: "var(--items-imageDark)",
-                }),
-              })}
-              style={
-                selectedFeature
-                  ? ({
-                      "--items-imageLight": selectedFeature.imageLight,
-                      "--items-imageDark": selectedFeature.imageDark,
-                    } as any)
-                  : {}
-              }
-            />
+                width: "100%",
+                maxWidth: 480,
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt={selectedFeature.title}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                  objectFit: "contain",
+                }}
+              />
+            </Box>
           </Card>
         </Box>
       </Box>
