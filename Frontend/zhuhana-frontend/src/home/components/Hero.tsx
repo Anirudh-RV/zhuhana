@@ -3,15 +3,11 @@ import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-
-// ✅ Use Vite's import.meta.env
-const TEMPLATE_IMAGE_URL =
-  import.meta.env.VITE_TEMPLATE_IMAGE_URL || "https://mui.com";
+import { useColorScheme } from "@mui/material/styles";
 
 const StyledBox = styled("div")(({ theme }) => ({
   alignSelf: "center",
   width: "100%",
-  height: 400,
   marginTop: theme.spacing(8),
   borderRadius: (theme.vars || theme).shape.borderRadius,
   outline: "6px solid",
@@ -19,21 +15,21 @@ const StyledBox = styled("div")(({ theme }) => ({
   border: "1px solid",
   borderColor: (theme.vars || theme).palette.grey[200],
   boxShadow: "0 0 12px 8px hsla(220, 25%, 80%, 0.2)",
-  backgroundImage: `url(${TEMPLATE_IMAGE_URL}/static/screenshots/material-ui/getting-started/templates/dashboard.jpg)`,
-  backgroundSize: "cover",
+  overflow: "hidden",
   [theme.breakpoints.up("sm")]: {
     marginTop: theme.spacing(10),
-    height: 700,
   },
   ...(theme.applyStyles?.("dark", {
     boxShadow: "0 0 24px 12px hsla(210, 100%, 25%, 0.2)",
-    backgroundImage: `url(${TEMPLATE_IMAGE_URL}/static/screenshots/material-ui/getting-started/templates/dashboard-dark.jpg)`,
     outlineColor: "hsla(220, 20%, 42%, 0.1)",
     borderColor: (theme.vars || theme).palette.grey[700],
   }) || {}),
 }));
 
 export default function Hero() {
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+
   return (
     <Box
       id="hero"
@@ -87,18 +83,47 @@ export default function Hero() {
             </Typography>
           </Typography>
           <Typography
+            variant="h5"
+            sx={{
+              textAlign: "center",
+              fontWeight: 500,
+              color: "text.primary",
+              fontSize: "clamp(1.25rem, 5vw, 2rem)",
+            }}
+          >
+            Turn Your Trading Ideas Into Algorithms.
+          </Typography>
+
+          <Typography
             sx={{
               textAlign: "center",
               color: "text.secondary",
               width: { sm: "100%", md: "80%" },
+              fontSize: "1rem",
             }}
           >
-            Explore our cutting-edge dashboard, delivering high-quality
-            solutions tailored to your needs. Elevate your experience with
-            top-tier features and services.
+            Just describe your strategy, and let Zhuhana AI help you write the
+            Python code, ready for backtesting and live trading using your
+            preferred broker.
           </Typography>
         </Stack>
-        <StyledBox id="image" />
+
+        {/* ✅ Styled container + image */}
+        <StyledBox id="image">
+          <img
+            src={
+              resolvedMode == "dark"
+                ? "/images/dark-code.png"
+                : "/images/light-code.png"
+            }
+            alt="Dashboard Screenshot"
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+          />
+        </StyledBox>
       </Container>
     </Box>
   );

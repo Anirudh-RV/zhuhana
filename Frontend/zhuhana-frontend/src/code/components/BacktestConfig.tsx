@@ -79,7 +79,7 @@ export default function BacktestConfig() {
 
       {/* Frequency */}
       <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-        Select Frequency (Day)
+        Select Frequency
       </Typography>
       <ToggleButtonGroup
         value={frequency}

@@ -1,49 +1,45 @@
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import { Box, Card, Container, Grid, Stack, Typography } from "@mui/material";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
+import { useColorScheme } from "@mui/material/styles";
 
 const items = [
   {
-    icon: <SettingsSuggestRoundedIcon />,
+    icon: <SettingsSuggestRoundedIcon fontSize="large" />,
     title: "Adaptable performance",
     description:
       "Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks.",
   },
   {
-    icon: <ConstructionRoundedIcon />,
+    icon: <ConstructionRoundedIcon fontSize="large" />,
     title: "Built to last",
     description:
       "Experience unmatched durability that goes above and beyond with lasting investment.",
   },
   {
-    icon: <ThumbUpAltRoundedIcon />,
+    icon: <ThumbUpAltRoundedIcon fontSize="large" />,
     title: "Great user experience",
     description:
       "Integrate our product into your routine with an intuitive and easy-to-use interface.",
   },
   {
-    icon: <AutoFixHighRoundedIcon />,
+    icon: <AutoFixHighRoundedIcon fontSize="large" />,
     title: "Innovative functionality",
     description:
       "Stay ahead with features that set new standards, addressing your evolving needs better than the rest.",
   },
   {
-    icon: <SupportAgentRoundedIcon />,
+    icon: <SupportAgentRoundedIcon fontSize="large" />,
     title: "Reliable support",
     description:
       "Count on our responsive customer support, offering assistance that goes beyond the purchase.",
   },
   {
-    icon: <QueryStatsRoundedIcon />,
+    icon: <QueryStatsRoundedIcon fontSize="large" />,
     title: "Precision in every detail",
     description:
       "Enjoy a meticulously crafted product where small touches make a significant impact on your overall experience.",
@@ -51,14 +47,19 @@ const items = [
 ];
 
 export default function Highlights() {
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+
+  const isDark = resolvedMode === "dark";
+
   return (
     <Box
       id="highlights"
       sx={{
         pt: { xs: 4, sm: 12 },
         pb: { xs: 8, sm: 16 },
-        color: "white",
-        bgcolor: "grey.900",
+        color: isDark ? "grey.100" : "grey.900",
+        bgcolor: "background.default",
       }}
     >
       <Container
@@ -79,15 +80,24 @@ export default function Highlights() {
           <Typography component="h2" variant="h4" gutterBottom>
             Highlights
           </Typography>
-          <Typography variant="body1" sx={{ color: "grey.400" }}>
+          <Typography
+            variant="body1"
+            sx={{ color: isDark ? "grey.400" : "grey.600" }}
+          >
             Explore why our product stands out: adaptability, durability,
             user-friendly design, and innovation. Enjoy reliable customer
             support and precision in every detail.
           </Typography>
         </Box>
-        <Grid container spacing={2}>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)", // 3 columns always
+            gap: 2, // spacing between cards
+          }}
+        >
           {items.map((item, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
+            <Box key={index}>
               <Stack
                 direction="column"
                 component={Card}
@@ -97,23 +107,33 @@ export default function Highlights() {
                   color: "inherit",
                   p: 3,
                   height: "100%",
-                  borderColor: "hsla(220, 25%, 25%, 0.3)",
-                  backgroundColor: "grey.800",
+                  borderColor: isDark ? "hsla(220, 25%, 25%, 0.3)" : "grey.200",
+                  backgroundColor: isDark ? "grey.800" : "grey.100",
                 }}
               >
-                <Box sx={{ opacity: "50%" }}>{item.icon}</Box>
+                <Box
+                  sx={{
+                    opacity: 0.6,
+                    color: isDark ? "grey.300" : "primary.main",
+                  }}
+                >
+                  {item.icon}
+                </Box>
                 <div>
                   <Typography gutterBottom sx={{ fontWeight: "medium" }}>
                     {item.title}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "grey.400" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: isDark ? "grey.400" : "grey.700" }}
+                  >
                     {item.description}
                   </Typography>
                 </div>
               </Stack>
-            </Grid>
+            </Box>
           ))}
-        </Grid>
+        </Box>
       </Container>
     </Box>
   );

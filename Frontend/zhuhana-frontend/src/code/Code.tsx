@@ -7,7 +7,7 @@ import { useTheme } from "@mui/material/styles";
 import { useColorScheme } from "@mui/material/styles";
 import TerminalPanel, { TerminalLine } from "./components/TerminalPanel";
 
-import MenuIcon from '@mui/icons-material/Menu';
+import MenuIcon from "@mui/icons-material/Menu";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import CodeMirrorEditor from "./components/CodeMirrorEditor";
@@ -21,9 +21,16 @@ import { green } from "@mui/material/colors";
 
 import { EditorView, hoverTooltip } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { linter, lintGutter, Diagnostic as CodeMirrorDiagnostic } from "@codemirror/lint";
+import {
+  linter,
+  lintGutter,
+  Diagnostic as CodeMirrorDiagnostic,
+} from "@codemirror/lint";
 import { textDocument } from "codemirror-languageservice";
-import { createCompletionSource, createHoverTooltipSource } from "codemirror-languageservice";
+import {
+  createCompletionSource,
+  createHoverTooltipSource,
+} from "codemirror-languageservice";
 
 import EditableFileName from "./components/EditableFileName";
 
@@ -36,11 +43,11 @@ import { RangeSetBuilder } from "@codemirror/state";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 
-
 import { initializeLspClient } from "./components/lspClient";
 
 const md = new MarkdownIt();
-const FILE_URI = "file:///Users/anirudhrv/Desktop/zhuana-trading/Frontend/lsp-server/main_editor_code.py";
+const FILE_URI =
+  "file:///Users/anirudhrv/Desktop/zhuana-trading/Frontend/lsp-server/main_editor_code.py";
 const LANGUAGE_ID = "python";
 type Message = {
   role: "user" | "assistant" | "system";
@@ -99,8 +106,6 @@ function highlightErrorLines(diagnostics: CodeMirrorDiagnostic[]) {
   return [plugin]; // Extension[]
 }
 
-
-
 declare global {
   interface Window {
     loadPyodide: (config: {
@@ -152,7 +157,9 @@ class ZhuhanaStrategy:
             quantity=100,
         )`;
 
-export default function CodeEditorDashboard(props: { disableCustomTheme?: boolean }) {
+export default function CodeEditorDashboard(props: {
+  disableCustomTheme?: boolean;
+}) {
   useEffect(() => {
     document.title = "Zhuhana - Algorithm IDE";
   }, []);
@@ -168,30 +175,32 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   const [diagnostics, setDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
-  const [editorHeight, setEditorHeight] = useState(() => window.innerHeight * 0.82);
+  const [editorHeight, setEditorHeight] = useState(
+    () => window.innerHeight * 0.82
+  );
   const lspClientRef = useRef<any>(null);
   const [filename, setFilename] = useState("NewAlgorithm");
-  const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
-  const [lspDiagnostics, setLspDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
+  const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<
+    CodeMirrorDiagnostic[]
+  >([]);
+  const [lspDiagnostics, setLspDiagnostics] = useState<CodeMirrorDiagnostic[]>(
+    []
+  );
   const [llmMessages, setLlmMessages] = useState<Message[]>([]);
-
 
   const appendStdout = useRef((msg: string) => {
     setTerminalOutput((prev) => [...prev, { text: msg, type: "success" }]);
   });
 
   const appendStderr = useRef((msg: string) => {
-  console.error("[Pyodide stderr]", msg); // Debug log
-  setTerminalOutput((prev) => [
-    ...prev,
-    { text: `[Python Error]: ${msg}`, type: "error" },
-  ]);
-});
-
+    console.error("[Pyodide stderr]", msg); // Debug log
+    setTerminalOutput((prev) => [
+      ...prev,
+      { text: `[Python Error]: ${msg}`, type: "error" },
+    ]);
+  });
 
   useEffect(() => {
-
-
     const PYODIDE_BASE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.1/full/";
     const script = document.createElement("script");
     script.src = PYODIDE_BASE_URL + "pyodide.js";
@@ -238,12 +247,11 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
   }, []);
 
   const handleCodeChange = useCallback((newCode: string | undefined) => {
-  const currentCode = newCode ?? "";
-  setCode(currentCode);
-  setRuntimeDiagnostics([]); // ✅ clear runtime errors on edit
-  lspClientRef.current?.sendDidChange(currentCode);
-}, []);
-
+    const currentCode = newCode ?? "";
+    setCode(currentCode);
+    setRuntimeDiagnostics([]); // ✅ clear runtime errors on edit
+    lspClientRef.current?.sendDidChange(currentCode);
+  }, []);
 
   const completionSource = createCompletionSource({
     markdownToDom,
@@ -259,24 +267,23 @@ export default function CodeEditorDashboard(props: { disableCustomTheme?: boolea
     },
   });
 
-
   const handleCopyTerminal = () => {
     const filtered = terminalOutput
       .filter((line) => line.type === "success" || line.type === "error")
       .map((line) => line.text)
       .join("\n");
 
-    navigator.clipboard.writeText(filtered).then(() => {
-      console.log("✅ Filtered terminal output copied to clipboard");
-    }).catch((err) => {
-      console.error("❌ Failed to copy:", err);
-    });
+    navigator.clipboard
+      .writeText(filtered)
+      .then(() => {
+        console.log("✅ Filtered terminal output copied to clipboard");
+      })
+      .catch((err) => {
+        console.error("❌ Failed to copy:", err);
+      });
   };
 
-
-const [isLLMOpen, setIsLLMOpen] = useState(true);
-
-
+  const [isLLMOpen, setIsLLMOpen] = useState(true);
 
   const handleSendToLLM = async (
     messages: LLMMessage[],
@@ -291,9 +298,22 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
         )
         .join("\n");
 
+      const sessionId = "e3268d6d-c776-42d8-a04b-c45dc87dc86b";
+      const userToken =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQ5ODUxNzAsImlhdCI6MTc1MjM5MzE3MCwidXNlcl9pZCI6IjdlNWEwOTQ0LTM3ODAtNGI3Ni04NWE1LWQ3ZmY1YWUyYTJhOSIsInVzZXJfdHlwZSI6InVzZXIifQ.nkq9c0rGJv2H92MyJc93vo05-XPLTYabVEXTRrTeJb0";
+
       const response = await fetch(
-        `http://localhost:3000/v1/ask?q=${encodeURIComponent(prompt)}`,
-        { signal }
+        `http://localhost:3000/v1/ask/?q=${encodeURIComponent(
+          prompt
+        )}&session_id=${sessionId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            USER_TOKEN: userToken,
+          },
+          signal, // if you have an AbortSignal for cancellation
+        }
       );
 
       const reader = response.body?.getReader();
@@ -316,7 +336,9 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
         if (done) break;
 
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\n").filter((line: string) => line.trim() !== "");
+        const lines = chunk
+          .split("\n")
+          .filter((line: string) => line.trim() !== "");
 
         for (const line of lines) {
           try {
@@ -338,54 +360,53 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
   };
 
   const handleRunCode = async () => {
-  if (!pyodideInstanceRef.current) return;
+    if (!pyodideInstanceRef.current) return;
 
-  // Clear previous runtime errors
-  setRuntimeDiagnostics([]);
+    // Clear previous runtime errors
+    setRuntimeDiagnostics([]);
 
-  setTerminalOutput([
-    { text: ">> Terminal ready...", type: "info" },
-    { text: ">> Executing Python code...", type: "info" },
-  ]);
-
-  try {
-    pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
-    await pyodideInstanceRef.current.runPythonAsync(code);
-
-    setRuntimeDiagnostics([]); // ✅ no error
-    setTerminalOutput((prev) => [
-      ...prev,
-      { text: ">> Code execution finished.", type: "success" },
+    setTerminalOutput([
+      { text: ">> Terminal ready...", type: "info" },
+      { text: ">> Executing Python code...", type: "info" },
     ]);
-  } catch (error: any) {
-    const message = error.message || String(error);
-    const execLineMatch = message.match(/File "<exec>", line (\d+)/);
-    const line = execLineMatch ? parseInt(execLineMatch[1], 10) - 1 : undefined;
 
-    if (line !== undefined && editorViewRef.current) {
-      const from = editorViewRef.current.state.doc.line(line + 1).from;
-      const to = editorViewRef.current.state.doc.line(line + 1).to;
+    try {
+      pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
+      await pyodideInstanceRef.current.runPythonAsync(code);
 
-      setRuntimeDiagnostics([
-        {
-          from,
-          to,
-          severity: "error",
-          message,
-          source: "Pyodide Runtime",
-        },
+      setRuntimeDiagnostics([]); // ✅ no error
+      setTerminalOutput((prev) => [
+        ...prev,
+        { text: ">> Code execution finished.", type: "success" },
+      ]);
+    } catch (error: any) {
+      const message = error.message || String(error);
+      const execLineMatch = message.match(/File "<exec>", line (\d+)/);
+      const line = execLineMatch
+        ? parseInt(execLineMatch[1], 10) - 1
+        : undefined;
+
+      if (line !== undefined && editorViewRef.current) {
+        const from = editorViewRef.current.state.doc.line(line + 1).from;
+        const to = editorViewRef.current.state.doc.line(line + 1).to;
+
+        setRuntimeDiagnostics([
+          {
+            from,
+            to,
+            severity: "error",
+            message,
+            source: "Pyodide Runtime",
+          },
+        ]);
+      }
+
+      setTerminalOutput((prev) => [
+        ...prev,
+        { text: `>> Error: ${message}`, type: "error" },
       ]);
     }
-
-    setTerminalOutput((prev) => [
-      ...prev,
-      { text: `>> Error: ${message}`, type: "error" },
-    ]);
-  }
-};
-
-
-
+  };
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!dragInfo.current) return;
@@ -422,11 +443,8 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
-
-
   return (
-  <AppTheme {...props}>
+    <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
         {/* Top Toolbar */}
@@ -454,16 +472,13 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
             <Typography variant="subtitle1" fontWeight="bold" component="div">
               <EditableFileName name={filename} onRename={setFilename} />
             </Typography>
-
           </Box>
 
           {/* Right: Empty space to balance layout */}
           <Box sx={{ display: "flex", alignItems: "center", pr: 1 }}>
-          <ColorModeIconDropdown />
-        </Box>
-
+            <ColorModeIconDropdown />
+          </Box>
         </Toolbar>
-
 
         {/* Three-Panel Layout */}
         <Box sx={{ display: "flex", flexGrow: 1, minHeight: 0 }}>
@@ -531,7 +546,9 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
                   hoverTooltip(hoverSource),
                   linter(() => [...lspDiagnostics, ...runtimeDiagnostics]),
                   lintGutter(),
-                  ...(runtimeDiagnostics.length > 0 ? highlightErrorLines(runtimeDiagnostics) : []),
+                  ...(runtimeDiagnostics.length > 0
+                    ? highlightErrorLines(runtimeDiagnostics)
+                    : []),
                 ]}
               />
             </Box>
@@ -580,7 +597,8 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
                 onSend={handleSendToLLM}
                 onClose={() => setIsLLMOpen(false)}
                 messages={llmMessages}
-                setMessages={setLlmMessages} />
+                setMessages={setLlmMessages}
+              />
             </Box>
           ) : (
             <Box
@@ -602,9 +620,8 @@ const [isLLMOpen, setIsLLMOpen] = useState(true);
               {/* Optional: vertical icons or label */}
             </Box>
           )}
-
         </Box>
       </Box>
     </AppTheme>
-);
+  );
 }

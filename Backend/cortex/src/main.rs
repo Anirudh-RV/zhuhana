@@ -44,12 +44,13 @@ async fn main() {
     };
 
     let app = api::routes()
-        .layer(cors)
         .layer(axum::middleware::from_fn_with_state(
             shared_state.clone(),
             user_auth_middleware,
         ))
-        .with_state(shared_state); // ✅ this is the key
+        .layer(cors) // 🔁 move this layer AFTER auth
+        .with_state(shared_state);
+
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     info!("🚀 Server running at http://{addr}");
