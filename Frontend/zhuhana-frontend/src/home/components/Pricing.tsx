@@ -24,7 +24,7 @@ const tiers = [
     ],
     buttonText: "Sign up for free",
     buttonVariant: "outlined",
-    buttonColor: "primary",
+    buttonColor: "secondary",
   },
   {
     title: "Standard",
@@ -58,7 +58,7 @@ const tiers = [
     ],
     buttonText: "Contact us",
     buttonVariant: "outlined",
-    buttonColor: "primary",
+    buttonColor: "secondary",
   },
 ];
 
@@ -112,6 +112,8 @@ export default function Pricing() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 4,
+                  width: "100%",
+                  minHeight: 560,
                 },
                 tier.title === "Standard" &&
                   ((theme) => ({
@@ -202,7 +204,7 @@ export default function Pricing() {
                   </Box>
                 ))}
               </CardContent>
-              <CardActions>
+              <CardActions sx={{ mt: "auto" }}>
                 <Button
                   fullWidth
                   variant={tier.buttonVariant as "outlined" | "contained"}

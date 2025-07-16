@@ -77,9 +77,6 @@ export default function Hero() {
               sx={(theme) => ({
                 fontSize: "inherit",
                 color: "primary.main",
-                ...theme.applyStyles?.("dark", {
-                  color: "primary.light",
-                }),
               })}
             >
               HANA
