@@ -2,47 +2,48 @@ import { Box, Card, Container, Grid, Stack, Typography } from "@mui/material";
 import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
-import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
+import PsychologyIcon from "@mui/icons-material/Psychology";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
 import { useColorScheme } from "@mui/material/styles";
+import AssuredWorkloadIcon from "@mui/icons-material/AssuredWorkload";
+import TerminalIcon from "@mui/icons-material/Terminal";
 
 const items = [
   {
-    icon: <SettingsSuggestRoundedIcon fontSize="large" />,
-    title: "Adaptable performance",
+    icon: <ConstructionRoundedIcon fontSize="large" />,
+    title: "Automated deployments",
     description:
-      "Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks.",
+      "Write your algorithm on our IDE and Zhuhana takes care of all the deployments automatically on the cloud.",
   },
   {
-    icon: <ConstructionRoundedIcon fontSize="large" />,
-    title: "Built to last",
+    icon: <PsychologyIcon fontSize="large" />,
+    title: "Zhuhana AI",
     description:
-      "Experience unmatched durability that goes above and beyond with lasting investment.",
+      "Let Zhuhana AI help you write your algorithms by just describing it in words.",
   },
   {
     icon: <ThumbUpAltRoundedIcon fontSize="large" />,
     title: "Great user experience",
     description:
-      "Integrate our product into your routine with an intuitive and easy-to-use interface.",
+      "Find all that you need for backtesting, paper trading and live trading on one platform.",
   },
   {
-    icon: <AutoFixHighRoundedIcon fontSize="large" />,
-    title: "Innovative functionality",
+    icon: <TerminalIcon fontSize="large" />,
+    title: "Cloud IDE",
     description:
-      "Stay ahead with features that set new standards, addressing your evolving needs better than the rest.",
+      "Write, run and test your python code on the browser with ease. No installation required.",
   },
   {
-    icon: <SupportAgentRoundedIcon fontSize="large" />,
-    title: "Reliable support",
-    description:
-      "Count on our responsive customer support, offering assistance that goes beyond the purchase.",
+    icon: <AssuredWorkloadIcon fontSize="large" />,
+    title: "Broker support",
+    description: "Connect with your preffered broker for your trades.",
   },
   {
     icon: <QueryStatsRoundedIcon fontSize="large" />,
-    title: "Precision in every detail",
+    title: "Gain deeper insights",
     description:
-      "Enjoy a meticulously crafted product where small touches make a significant impact on your overall experience.",
+      "Backtest and Paper trade your algorithm to battle test it before deploying it on Live trades",
   },
 ];
 
@@ -84,9 +85,8 @@ export default function Highlights() {
             variant="body1"
             sx={{ color: isDark ? "grey.400" : "grey.600" }}
           >
-            Explore why our product stands out: adaptability, durability,
-            user-friendly design, and innovation. Enjoy reliable customer
-            support and precision in every detail.
+            Discover what makes Zhuhana the ultimate platform for algorithmic
+            trading for everyone.
           </Typography>
         </Box>
         <Box

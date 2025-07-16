@@ -106,7 +106,7 @@ export default function Hero() {
             }}
           >
             Just describe your strategy, and let Zhuhana AI help you write the
-            Python code, ready for backtesting and live trading using your
+            Python code, ready for backtesting, and live trading using your
             preferred broker.
           </Typography>
           <Button
