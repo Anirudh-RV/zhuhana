@@ -93,11 +93,28 @@ export default function SignInCard() {
 
     const data = new FormData(event.currentTarget);
 
+    const fullName = data.get("name")?.toString().trim() || "";
+    const nameParts = fullName.split(/\s+/); // Split by any whitespace
+
+    let firstName = "";
+    let middleName = "";
+    let lastName = "";
+
+    if (nameParts.length === 1) {
+      firstName = nameParts[0];
+    } else if (nameParts.length === 2) {
+      [firstName, lastName] = nameParts;
+    } else if (nameParts.length >= 3) {
+      firstName = nameParts[0];
+      lastName = nameParts[nameParts.length - 1];
+      middleName = nameParts.slice(1, -1).join(" ");
+    }
+
     const payload = {
       emailId: data.get("email"),
-      firstName: data.get("name"),
-      lastName: "", // fill if you have it
-      middleName: "",
+      firstName,
+      middleName,
+      lastName,
       password: data.get("password"),
     };
 
