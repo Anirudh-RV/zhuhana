@@ -61,7 +61,7 @@ export default function Footer() {
               Join the newsletter
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-              Subscribe for weekly updates. No spams ever!
+              Subscribe for weekly updates.
             </Typography>
             <InputLabel htmlFor="email-newsletter">Email</InputLabel>
             <Stack direction="row" spacing={1} useFlexGap>
@@ -106,9 +106,6 @@ export default function Footer() {
             Features
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Testimonials
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
             Highlights
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
@@ -132,10 +129,7 @@ export default function Footer() {
             About us
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Careers
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Press
+            Blog
           </Link>
         </Box>
         <Box

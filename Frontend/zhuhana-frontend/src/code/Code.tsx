@@ -3,10 +3,9 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import { useTheme } from "@mui/material/styles";
-import { useColorScheme } from "@mui/material/styles";
+import * as React from "react";
 import TerminalPanel, { TerminalLine } from "./components/TerminalPanel";
-
+import Avatar from "@mui/material/Avatar";
 import MenuIcon from "@mui/icons-material/Menu";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppTheme from "../shared-ui-theme/AppTheme";
@@ -16,9 +15,9 @@ import LLMPanel from "./components/LLMPanel";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { green } from "@mui/material/colors";
-
+import { useAuth } from "../AuthContext";
+import OptionsMenu from "../dashboard/components/OptionsMenu";
+import Stack from "@mui/material/Stack";
 import { EditorView, hoverTooltip } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import {
@@ -163,6 +162,19 @@ export default function CodeEditorDashboard(props: {
   useEffect(() => {
     document.title = "Zhuhana - Algorithm IDE";
   }, []);
+
+  const { user } = useAuth();
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
 
   const [code, setCode] = useState(defaultPythonCode);
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([
@@ -475,9 +487,17 @@ export default function CodeEditorDashboard(props: {
           </Box>
 
           {/* Right: Empty space to balance layout */}
-          <Box sx={{ display: "flex", alignItems: "center", pr: 1 }}>
+          <Stack direction="row" sx={{ gap: 1 }}>
             <ColorModeIconDropdown />
-          </Box>
+            <Avatar
+              alt={user?.FirstName}
+              src="/static/images/avatar/7.jpg"
+              sx={{ width: 36, height: 36, cursor: "pointer" }}
+              onClick={handleAvatarClick}
+            />
+
+            <OptionsMenu anchorEl={menuAnchorEl} onClose={handleMenuClose} />
+          </Stack>
         </Toolbar>
 
         {/* Three-Panel Layout */}

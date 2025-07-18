@@ -1,35 +1,35 @@
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
-import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
-import SettingsSuggestRoundedIcon from "@mui/icons-material/SettingsSuggestRounded";
 import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
+import PsychologyIcon from "@mui/icons-material/Psychology";
+import AssuredWorkloadIcon from "@mui/icons-material/AssuredWorkload";
+import TerminalIcon from "@mui/icons-material/Terminal";
+import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 
 const items = [
   {
-    icon: <SettingsSuggestRoundedIcon sx={{ color: "text.secondary" }} />,
-    title: "Adaptable performance",
+    icon: <PsychologyIcon fontSize="large" />,
+    title: "Zhuhana AI",
     description:
-      "Our product effortlessly adjusts to your needs, boosting efficiency and simplifying your tasks.",
+      "Let Zhuhana AI help you write your algorithms by just describing it in words.",
   },
   {
-    icon: <ConstructionRoundedIcon sx={{ color: "text.secondary" }} />,
-    title: "Built to last",
-    description:
-      "Experience unmatched durability that goes above and beyond with lasting investment.",
-  },
-  {
-    icon: <ThumbUpAltRoundedIcon sx={{ color: "text.secondary" }} />,
+    icon: <ThumbUpAltRoundedIcon fontSize="large" />,
     title: "Great user experience",
     description:
-      "Integrate our product into your routine with an intuitive and easy-to-use interface.",
+      "Find all that you need for backtesting, paper trading and live trading on one platform.",
   },
   {
-    icon: <AutoFixHighRoundedIcon sx={{ color: "text.secondary" }} />,
-    title: "Innovative functionality",
+    icon: <TerminalIcon fontSize="large" />,
+    title: "Cloud IDE",
     description:
-      "Stay ahead with features that set new standards, addressing your evolving needs better than the rest.",
+      "Write, run and test your python code on the browser with ease. No installation required.",
+  },
+  {
+    icon: <AssuredWorkloadIcon fontSize="large" />,
+    title: "Broker support",
+    description: "Connect with your preffered broker for your trades.",
   },
 ];
 

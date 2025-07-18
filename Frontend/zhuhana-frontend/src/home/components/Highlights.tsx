@@ -1,9 +1,7 @@
 import { Box, Card, Container, Grid, Stack, Typography } from "@mui/material";
-import AutoFixHighRoundedIcon from "@mui/icons-material/AutoFixHighRounded";
 import ConstructionRoundedIcon from "@mui/icons-material/ConstructionRounded";
 import QueryStatsRoundedIcon from "@mui/icons-material/QueryStatsRounded";
 import PsychologyIcon from "@mui/icons-material/Psychology";
-import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
 import ThumbUpAltRoundedIcon from "@mui/icons-material/ThumbUpAltRounded";
 import { useColorScheme } from "@mui/material/styles";
 import AssuredWorkloadIcon from "@mui/icons-material/AssuredWorkload";

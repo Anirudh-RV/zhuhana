@@ -40,12 +40,35 @@ export default function SideMenu() {
       <Box
         sx={{
           display: "flex",
+          alignItems: "center", // vertically center
+          justifyContent: "center", // horizontally center
           mt: "calc(var(--template-frame-height, 0px) + 4px)",
           p: 1.5,
         }}
       >
-        <SelectContent />
+        <Typography
+          variant="body2"
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            fontSize: "clamp(1rem, 5vw, 2.5rem)",
+          }}
+        >
+          ZHU
+          <Typography
+            component="span"
+            variant="body2"
+            sx={{
+              fontSize: "inherit",
+              color: "primary.main",
+            }}
+          >
+            HANA
+          </Typography>
+        </Typography>
       </Box>
+
       <Divider />
       <Box
         sx={{
@@ -56,38 +79,7 @@ export default function SideMenu() {
         }}
       >
         <MenuContent />
-        <CardAlert />
       </Box>
-      <Stack
-        direction="row"
-        sx={{
-          p: 2,
-          gap: 1,
-          alignItems: "center",
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Avatar
-          sizes="small"
-          alt={user?.FirstName}
-          src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36 }}
-        />
-        <Box sx={{ mr: "auto" }}>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 500, lineHeight: "16px" }}
-          >
-            {user?.FirstName} {user?.MiddleName}
-            {user?.LastName}
-          </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {user?.EmailID}
-          </Typography>
-        </Box>
-        <OptionsMenu />
-      </Stack>
     </Drawer>
   );
 }

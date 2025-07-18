@@ -204,7 +204,7 @@ export default function SignInCard() {
                 mx: 0.5,
                 input: {
                   color: "text.primary", // Make text visible
-                  backgroundColor: "background.paper", // Ensure good contrast
+                  backgroundColor: "background.default", // Ensure good contrast
                 },
               },
             }}
