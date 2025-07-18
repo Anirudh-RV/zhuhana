@@ -168,6 +168,32 @@ export default function CodeEditorDashboard(props: {
     null
   );
 
+  const [llmPanelWidth, setLlmPanelWidth] = useState(25); // in percentage
+  const dragLlmInfo = useRef<{ startX: number; startWidth: number } | null>(
+    null
+  );
+
+  const handleLlmMouseMove = (e: MouseEvent) => {
+    if (!dragLlmInfo.current) return;
+    const delta = dragLlmInfo.current.startX - e.clientX;
+    const newWidth = Math.min(
+      60,
+      Math.max(
+        10,
+        dragLlmInfo.current.startWidth + (delta / window.innerWidth) * 100
+      )
+    );
+    setLlmPanelWidth(newWidth);
+  };
+
+  const handleLlmMouseUp = () => {
+    dragLlmInfo.current = null;
+    document.body.style.cursor = "default";
+    document.body.style.userSelect = "auto";
+    window.removeEventListener("mousemove", handleLlmMouseMove);
+    window.removeEventListener("mouseup", handleLlmMouseUp);
+  };
+
   const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
     setMenuAnchorEl(event.currentTarget);
   };
@@ -602,24 +628,43 @@ export default function CodeEditorDashboard(props: {
 
           {/* Right LLM Panel */}
           {isLLMOpen ? (
-            <Box
-              sx={{
-                width: "25%",
-                minWidth: "280px",
-                display: "flex",
-                flexDirection: "column",
-                borderLeft: "1px solid",
-                borderColor: "divider",
-                backgroundColor: "background.paper",
-              }}
-            >
-              <LLMPanel
-                onSend={handleSendToLLM}
-                onClose={() => setIsLLMOpen(false)}
-                messages={llmMessages}
-                setMessages={setLlmMessages}
+            <>
+              <Divider
+                sx={{
+                  width: "6px",
+                  cursor: "col-resize",
+                  backgroundColor: "divider",
+                }}
+                onMouseDown={(e) => {
+                  dragLlmInfo.current = {
+                    startX: e.clientX,
+                    startWidth: llmPanelWidth,
+                  };
+                  document.body.style.cursor = "col-resize";
+                  document.body.style.userSelect = "none";
+                  window.addEventListener("mousemove", handleLlmMouseMove);
+                  window.addEventListener("mouseup", handleLlmMouseUp);
+                }}
               />
-            </Box>
+              <Box
+                sx={{
+                  width: `${llmPanelWidth}%`,
+                  minWidth: "280px",
+                  display: "flex",
+                  flexDirection: "column",
+                  borderLeft: "1px solid",
+                  borderColor: "divider",
+                  backgroundColor: "background.paper",
+                }}
+              >
+                <LLMPanel
+                  onSend={handleSendToLLM}
+                  onClose={() => setIsLLMOpen(false)}
+                  messages={llmMessages}
+                  setMessages={setLlmMessages}
+                />
+              </Box>
+            </>
           ) : (
             <Box
               sx={{
