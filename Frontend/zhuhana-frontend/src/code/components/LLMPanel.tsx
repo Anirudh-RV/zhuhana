@@ -214,49 +214,54 @@ export default function LLMPanel({
       <Box
         sx={{
           display: "flex",
+          justifyContent: "space-between", // 👈 separates left and right sections
           alignItems: "center",
           px: 2,
           py: 1,
           borderBottom: "1px solid",
           borderColor: "divider",
-          backgroundColor: "background.paper",
+          backgroundColor: "background.default",
         }}
       >
-        <Tooltip title="New Chat">
-          <IconButton
-            aria-label="new chat"
-            disableRipple
-            sx={{
-              border: "none",
-              backgroundColor: "transparent",
-              p: 1, // padding to keep the click area large enough
-              "&:hover": {
-                backgroundColor: "action.hover", // optional: subtle hover effect
-              },
-            }}
-          >
-            <ChatBubbleOutlineIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Chat History">
-          <IconButton
-            aria-label="new chat"
-            disableRipple
-            sx={{
-              border: "none",
-              backgroundColor: "transparent",
-              p: 1, // padding to keep the click area large enough
-              "&:hover": {
-                backgroundColor: "action.hover", // optional: subtle hover effect
-              },
-            }}
-          >
-            <HistoryIcon />
-          </IconButton>
-        </Tooltip>
-        <Typography variant="h6" sx={{ ml: 1 }}>
-          Zhuhana AI
-        </Typography>
+        {/* Left side: Title */}
+        <Typography variant="h6">Zhuhana AI</Typography>
+
+        {/* Right side: Buttons */}
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Tooltip title="New Chat">
+            <IconButton
+              aria-label="new chat"
+              disableRipple
+              sx={{
+                border: "none",
+                backgroundColor: "background.default",
+                p: 1,
+                mr: 0.5,
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
+            >
+              <ChatBubbleOutlineIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Chat History">
+            <IconButton
+              aria-label="chat history"
+              disableRipple
+              sx={{
+                border: "none",
+                backgroundColor: "background.default",
+                p: 1,
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
+            >
+              <HistoryIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       {/* Chat Area */}
@@ -349,7 +354,7 @@ export default function LLMPanel({
           py: 1,
           borderTop: "1px solid",
           borderColor: "divider",
-          backgroundColor: "background.paper",
+          backgroundColor: "background.default",
           display: "flex",
           alignItems: "flex-end",
           gap: 1,
@@ -374,7 +379,7 @@ export default function LLMPanel({
             px: 2,
             py: 1.5,
             borderRadius: 2,
-            backgroundColor: "background.default",
+            backgroundColor: "background.paper",
             color: "text.primary",
             fontSize: "0.95rem",
             fontFamily: "monospace",
