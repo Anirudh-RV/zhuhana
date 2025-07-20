@@ -627,64 +627,43 @@ export default function CodeEditorDashboard(props: {
           </Box>
 
           {/* Right LLM Panel */}
-          {isLLMOpen ? (
-            <>
-              <Divider
-                sx={{
-                  width: "6px",
-                  cursor: "col-resize",
-                  backgroundColor: "divider",
-                }}
-                onMouseDown={(e) => {
-                  dragLlmInfo.current = {
-                    startX: e.clientX,
-                    startWidth: llmPanelWidth,
-                  };
-                  document.body.style.cursor = "col-resize";
-                  document.body.style.userSelect = "none";
-                  window.addEventListener("mousemove", handleLlmMouseMove);
-                  window.addEventListener("mouseup", handleLlmMouseUp);
-                }}
-              />
-              <Box
-                sx={{
-                  width: `${llmPanelWidth}%`,
-                  minWidth: "280px",
-                  display: "flex",
-                  flexDirection: "column",
-                  borderLeft: "1px solid",
-                  borderColor: "divider",
-                  backgroundColor: "background.paper",
-                }}
-              >
-                <LLMPanel
-                  onSend={handleSendToLLM}
-                  onClose={() => setIsLLMOpen(false)}
-                  messages={llmMessages}
-                  setMessages={setLlmMessages}
-                />
-              </Box>
-            </>
-          ) : (
+          <>
+            <Divider
+              sx={{
+                width: "6px",
+                cursor: "col-resize",
+                backgroundColor: "divider",
+              }}
+              onMouseDown={(e) => {
+                dragLlmInfo.current = {
+                  startX: e.clientX,
+                  startWidth: llmPanelWidth,
+                };
+                document.body.style.cursor = "col-resize";
+                document.body.style.userSelect = "none";
+                window.addEventListener("mousemove", handleLlmMouseMove);
+                window.addEventListener("mouseup", handleLlmMouseUp);
+              }}
+            />
             <Box
               sx={{
-                width: "60px", // Collapsed width
+                width: `${llmPanelWidth}%`,
+                minWidth: "280px",
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                pt: 1,
-                gap: 1,
                 borderLeft: "1px solid",
                 borderColor: "divider",
                 backgroundColor: "background.paper",
               }}
             >
-              <IconButton size="small" onClick={() => setIsLLMOpen(true)}>
-                <MenuIcon fontSize="small" />
-              </IconButton>
-              {/* Optional: vertical icons or label */}
+              <LLMPanel
+                onSend={handleSendToLLM}
+                onClose={() => setIsLLMOpen(false)}
+                messages={llmMessages}
+                setMessages={setLlmMessages}
+              />
             </Box>
-          )}
+          </>
         </Box>
       </Box>
     </AppTheme>

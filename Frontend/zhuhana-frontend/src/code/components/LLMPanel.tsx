@@ -7,7 +7,7 @@ import {
   InputBase,
   Snackbar,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+
 import SendIcon from "@mui/icons-material/Send";
 import StopIcon from "@mui/icons-material/Stop";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
@@ -17,6 +17,9 @@ import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import hljs from "highlight.js/lib/core";
 import python from "highlight.js/lib/languages/python";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import HistoryIcon from "@mui/icons-material/History";
+
 hljs.registerLanguage("python", python);
 
 type Message = {
@@ -219,11 +222,38 @@ export default function LLMPanel({
           backgroundColor: "background.paper",
         }}
       >
-        {onClose && (
-          <IconButton size="small" onClick={onClose}>
-            <MenuIcon />
+        <Tooltip title="New Chat">
+          <IconButton
+            aria-label="new chat"
+            disableRipple
+            sx={{
+              border: "none",
+              backgroundColor: "transparent",
+              p: 1, // padding to keep the click area large enough
+              "&:hover": {
+                backgroundColor: "action.hover", // optional: subtle hover effect
+              },
+            }}
+          >
+            <ChatBubbleOutlineIcon />
           </IconButton>
-        )}
+        </Tooltip>
+        <Tooltip title="Chat History">
+          <IconButton
+            aria-label="new chat"
+            disableRipple
+            sx={{
+              border: "none",
+              backgroundColor: "transparent",
+              p: 1, // padding to keep the click area large enough
+              "&:hover": {
+                backgroundColor: "action.hover", // optional: subtle hover effect
+              },
+            }}
+          >
+            <HistoryIcon />
+          </IconButton>
+        </Tooltip>
         <Typography variant="h6" sx={{ ml: 1 }}>
           Zhuhana AI
         </Typography>

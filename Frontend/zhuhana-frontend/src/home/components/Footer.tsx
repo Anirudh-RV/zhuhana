@@ -106,7 +106,7 @@ export default function Footer() {
             Features
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
-            Highlights
+            Demo
           </Link>
           <Link color="text.secondary" variant="body2" href="#">
             Pricing

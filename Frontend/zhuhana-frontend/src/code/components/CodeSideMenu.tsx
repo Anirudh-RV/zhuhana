@@ -15,6 +15,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useColorScheme } from "@mui/material/styles";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 
 const executionModes = ["Backtest", "Paper Trade", "Live Trade"];
 
