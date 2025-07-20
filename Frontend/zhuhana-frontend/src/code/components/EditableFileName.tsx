@@ -53,6 +53,10 @@ const EditableFileName = forwardRef<
     focusEditMode: () => setIsEditing(true),
   }));
 
+  useEffect(() => {
+    setDraftName(name);
+  }, [name]);
+
   return isEditing ? (
     <Tooltip
       title="Save the algorithm with a new name"

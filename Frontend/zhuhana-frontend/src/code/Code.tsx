@@ -184,6 +184,7 @@ export default function CodeEditorDashboard(props: {
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
 
   const fileNameRef = useRef<EditableFileNameHandle>(null);
+
   useEffect(() => {
     if (!initialAlgorithmId) {
       fileNameRef.current?.focusEditMode();
@@ -194,17 +195,20 @@ export default function CodeEditorDashboard(props: {
 
   const handleRename = async (newName: string) => {
     setFilename(newName);
-    await handleSaveAlgorithm(); // Pass the new name to save
+    await handleSaveAlgorithm(newName); // Pass the new name to save
   };
 
-  const handleSaveAlgorithm = async () => {
+  const handleSaveAlgorithm = async (nameOverride?: string) => {
     if (!user || !accessToken) {
       console.error("User not authenticated");
       return;
     }
 
+    const nameToUse = nameOverride || filename;
+
+    console.log("NAME TO USE: ", nameToUse);
     const formData = new FormData();
-    formData.append("scriptName", filename);
+    formData.append("scriptName", nameToUse);
     formData.append(
       "script",
       new Blob([code], { type: "text/plain" }),
@@ -219,7 +223,6 @@ export default function CodeEditorDashboard(props: {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           ...(accessToken ? { USER_TOKEN: accessToken } : {}),
         },
         body: formData,
