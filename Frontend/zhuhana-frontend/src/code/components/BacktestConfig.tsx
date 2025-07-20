@@ -1,17 +1,28 @@
 import { useState } from "react";
-import {
-  Typography,
-  TextField,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  MenuItem,
-  Box,
-} from "@mui/material";
+import { Typography, TextField, Stack, Box, Button } from "@mui/material";
+import { Autocomplete } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
+import { DatePicker } from "@mui/x-date-pickers";
+import InputAdornment from "@mui/material/InputAdornment";
+import { useColorScheme } from "@mui/material/styles";
 
 export default function BacktestConfig() {
+  const timeDurations = ["1D", "1M", "1Y", "Custom"];
   const [timeDuration, setTimeDuration] = useState("1Y");
+
+  const frequencies = ["1D", "1W", "1M", "Custom"];
   const [frequency, setFrequency] = useState("1D");
+
+  const instruments = ["SPY", "AAPL", "GOOGL", "MSFT", "AMZN"];
+  const [instrument, setInstrument] = useState("SPY");
+  const [startDate, setStartDate] = useState(dayjs().subtract(1, "year"));
+  const [endDate, setEndDate] = useState(dayjs());
+
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+  const selectedColor = resolvedMode === "dark" ? "grey.700" : "grey.300";
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -19,88 +30,187 @@ export default function BacktestConfig() {
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
         Select Instrument
       </Typography>
-      <TextField
+      <Autocomplete
         fullWidth
-        select
-        defaultValue="AAPL"
         size="small"
-        sx={{ mb: 1 }}
-      >
-        <MenuItem value="AAPL">AAPL</MenuItem>
-        <MenuItem value="GOOGL">GOOGL</MenuItem>
-        <MenuItem value="TSLA">TSLA</MenuItem>
-        <MenuItem value="MSFT">MSFT</MenuItem>
-        <MenuItem value="AMZN">AMZN</MenuItem>
-      </TextField>
+        options={instruments}
+        value={instrument}
+        onChange={(_, newValue) => {
+          if (newValue) setInstrument(newValue);
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            size="small"
+            sx={{
+              // Match the container height
+              "& .MuiInputBase-root": {
+                height: 48,
+                backgroundColor: "background.default", // matches theme background
+              },
+              // Match text input padding
+              "& .MuiInputBase-input": {
+                padding: "12px 14px",
+              },
+              // Optional: match label size
+              "& .MuiInputLabel-root": {
+                top: -5,
+              },
+            }}
+          />
+        )}
+        sx={{
+          mb: 2,
+          "& .MuiAutocomplete-endAdornment": {
+            backgroundColor: "background.default", // match input background
+            borderRadius: 0,
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+          },
+        }}
+      />
 
       {/* Time Duration */}
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
         Time Duration
       </Typography>
-      <ToggleButtonGroup
-        value={timeDuration}
-        exclusive
-        onChange={(_e, val) => val && setTimeDuration(val)}
-        fullWidth
-        sx={{ mb: 2 }}
+      <Box
+        sx={{
+          display: "flex",
+          mb: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: "8px",
+          overflow: "hidden",
+          width: "100%",
+        }}
       >
-        <ToggleButton value="1W">1D</ToggleButton>
-        <ToggleButton value="1M">1M</ToggleButton>
-        <ToggleButton value="1Y">1Y</ToggleButton>
-        <ToggleButton value="Custom">Custom</ToggleButton>
-      </ToggleButtonGroup>
+        {timeDurations.map((val, index) => {
+          const isSelected = timeDuration === val;
+          return (
+            <Button
+              key={val}
+              onClick={() => setTimeDuration(val)}
+              variant="text"
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                borderRadius: 0,
+                py: 3,
+                fontWeight: isSelected ? 600 : 400,
+                backgroundColor: isSelected
+                  ? selectedColor
+                  : "background.paper",
+                color: "text.primary",
+                borderRight:
+                  index < timeDurations.length - 1 ? "1px solid" : "none",
+                borderColor: "divider",
+                "&:hover": {
+                  backgroundColor: isSelected ? "grey.400" : "action.hover",
+                },
+              }}
+            >
+              {val}
+            </Button>
+          );
+        })}
+      </Box>
 
       {timeDuration === "Custom" && (
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <TextField
-            fullWidth
-            label="Start Date"
-            type="date"
-            size="small"
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-          />
-          <TextField
-            fullWidth
-            label="End Date"
-            type="date"
-            size="small"
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-          />
-        </Stack>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+            <DatePicker
+              label="Start Date"
+              value={startDate}
+              onChange={(newValue) => newValue && setStartDate(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                },
+              }}
+            />
+            <DatePicker
+              label="End Date"
+              value={endDate}
+              onChange={(newValue) => newValue && setEndDate(newValue)}
+              slotProps={{
+                textField: {
+                  fullWidth: true,
+                  size: "small",
+                },
+              }}
+            />
+          </Stack>
+        </LocalizationProvider>
       )}
 
       {/* Frequency */}
       <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
         Select Frequency
       </Typography>
-      <ToggleButtonGroup
-        value={frequency}
-        exclusive
-        onChange={(_e, val) => val && setFrequency(val)}
-        sx={{ mb: 2 }}
+      <Box
+        sx={{
+          display: "flex",
+          mb: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          borderRadius: "8px",
+          overflow: "hidden",
+          width: "100%",
+        }}
       >
-        <ToggleButton value="1D">1D</ToggleButton>
-        <ToggleButton value="1W">1W</ToggleButton>
-        <ToggleButton value="1M">1M</ToggleButton>
-        <ToggleButton value="Custom">Custom</ToggleButton>
-      </ToggleButtonGroup>
+        {frequencies.map((val, index) => {
+          const isSelected = frequency === val;
+          return (
+            <Button
+              key={val}
+              onClick={() => setFrequency(val)}
+              variant="text"
+              sx={{
+                flex: 1,
+                textTransform: "none",
+                borderRadius: 0,
+                py: 3,
+                fontWeight: isSelected ? 600 : 400,
+                backgroundColor: isSelected
+                  ? selectedColor
+                  : "background.paper",
+                color: "text.primary",
+                borderRight:
+                  index < frequencies.length - 1 ? "1px solid" : "none",
+                borderColor: "divider",
+                "&:hover": {
+                  backgroundColor: isSelected ? "grey.400" : "action.hover",
+                },
+              }}
+            >
+              {val}
+            </Button>
+          );
+        })}
+      </Box>
 
       {frequency === "Custom" && (
         <TextField
           fullWidth
-          label="Frequency (seconds)"
+          label="Frequency (Days)"
           type="number"
           size="small"
-          defaultValue="60"
-          sx={{ mb: 1 }}
+          defaultValue={60}
+          sx={{
+            mb: 2,
+            "& .MuiInputBase-root": {
+              height: 48, // You can adjust this
+            },
+            "& .MuiInputLabel-root": {
+              color: "text.secondary",
+            },
+            "& .MuiInputLabel-root.Mui-focused": {
+              color: "text.secondary", // Prevents label from turning blue
+            },
+          }}
         />
       )}
 
@@ -108,13 +218,36 @@ export default function BacktestConfig() {
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
         Portfolio Details
       </Typography>
+
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         <TextField
           fullWidth
           label="Portfolio Size"
           type="number"
           size="small"
-          defaultValue="100000"
+          defaultValue={10000}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">$</InputAdornment>
+              ),
+              inputProps: {
+                min: 0,
+                step: 100,
+              },
+            },
+          }}
+          sx={{
+            "& .MuiInputBase-root": {
+              height: 48,
+            },
+            "& .MuiInputLabel-root": {
+              color: "text.secondary",
+            },
+            "& .MuiInputLabel-root.Mui-focused": {
+              color: "text.secondary",
+            },
+          }}
         />
       </Stack>
     </Box>

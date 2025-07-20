@@ -14,6 +14,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
   const { mode: themeMode, systemMode: themeSystemMode } = useColorScheme();
   const resolvedThemeMode =
     themeMode === "system" ? themeSystemMode : themeMode;
+  const selectedColor = resolvedThemeMode === "dark" ? "grey.700" : "grey.300";
 
   return (
     <Box
@@ -52,7 +53,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
             Select Execution Mode
           </Typography>
           <Tooltip
-            title="⚠️ Live Trading and Paper Trading coming soon!"
+            title="⚠️ Paper Trading and Live Trading coming soon!"
             placement="bottom"
             slotProps={{
               tooltip: {
@@ -101,9 +102,9 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
                   py: 4,
                   fontWeight: isSelected ? 600 : 400,
                   backgroundColor: isSelected
-                    ? "primary.main"
+                    ? selectedColor
                     : "background.paper",
-                  color: isSelected ? "#fff" : "text.primary",
+                  color: isSelected ? "text.primary" : "text.primary",
                   borderRight:
                     index < executionModes.length - 1 ? "1px solid" : "none",
                   borderColor: "divider",

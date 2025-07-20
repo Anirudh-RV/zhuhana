@@ -30,7 +30,6 @@ import {
   createCompletionSource,
   createHoverTooltipSource,
 } from "codemirror-languageservice";
-
 import EditableFileName from "./components/EditableFileName";
 
 import MarkdownIt from "markdown-it";
@@ -39,7 +38,7 @@ import DOMPurify from "dompurify";
 import { Decoration, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { RangeSetBuilder } from "@codemirror/state";
 
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { useNavigate } from "react-router-dom";
 import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 
 import { initializeLspClient } from "./components/lspClient";
@@ -164,6 +163,7 @@ export default function CodeEditorDashboard(props: {
   }, []);
 
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
     null
   );
@@ -217,7 +217,7 @@ export default function CodeEditorDashboard(props: {
     () => window.innerHeight * 0.82
   );
   const lspClientRef = useRef<any>(null);
-  const [filename, setFilename] = useState("NewAlgorithm");
+  const [filename, setFilename] = useState("New Algorithm");
   const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<
     CodeMirrorDiagnostic[]
   >([]);
@@ -500,7 +500,15 @@ export default function CodeEditorDashboard(props: {
         >
           {/* Left: Back button */}
           <Box sx={{ display: "flex", alignItems: "center", minWidth: "60px" }}>
-            <IconButton size="small" onClick={() => console.log("Go Back")}>
+            <IconButton
+              size="small"
+              onClick={() => navigate("/dashboard")}
+              sx={{
+                "&:hover": {
+                  backgroundColor: "action.hover",
+                },
+              }}
+            >
               <ArrowBackIcon fontSize="small" />
             </IconButton>
           </Box>

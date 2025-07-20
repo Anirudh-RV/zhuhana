@@ -283,13 +283,19 @@ export default function LLMPanel({
             sx={{
               display: "flex",
               justifyContent: "center",
-              alignItems: "top",
+              alignItems: "center",
               height: "100%",
-              color: "text.secondary",
-              fontSize: "1rem",
             }}
           >
-            Hi {user?.FirstName}, Let&apos;s get started!
+            <Typography
+              variant="h4"
+              sx={{
+                color: "text.secondary",
+                fontWeight: 500,
+              }}
+            >
+              Hi {user?.FirstName}, Let&apos;s get started!
+            </Typography>
           </Box>
         ) : (
           messages.map((msg, idx) => (
