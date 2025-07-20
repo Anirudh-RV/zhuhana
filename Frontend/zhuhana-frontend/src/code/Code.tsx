@@ -30,7 +30,9 @@ import {
   createCompletionSource,
   createHoverTooltipSource,
 } from "codemirror-languageservice";
-import EditableFileName from "./components/EditableFileName";
+import EditableFileName, {
+  type EditableFileNameHandle,
+} from "./components/EditableFileName";
 
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
@@ -42,6 +44,7 @@ import { useNavigate } from "react-router-dom";
 import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 
 import { initializeLspClient } from "./components/lspClient";
+import { useSearchParams } from "react-router-dom";
 
 const md = new MarkdownIt();
 const FILE_URI =
@@ -162,11 +165,74 @@ export default function CodeEditorDashboard(props: {
     document.title = "Zhuhana - Algorithm IDE";
   }, []);
 
-  const { user } = useAuth();
+  const fileNameRef = useRef<EditableFileNameHandle>(null);
+  useEffect(() => {
+    fileNameRef.current?.focusEditMode();
+  }, []);
+
+  const { user, accessToken } = useAuth();
   const navigate = useNavigate();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
     null
   );
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialAlgorithmId = searchParams.get("algorithm_id");
+
+  const [algorithmId, setAlgorithmId] = useState<string | null>(
+    initialAlgorithmId
+  );
+
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleRename = async (newName: string) => {
+    setFilename(newName);
+    await handleSaveAlgorithm(); // Pass the new name to save
+  };
+
+  const handleSaveAlgorithm = async () => {
+    if (!user || !accessToken) {
+      console.error("User not authenticated");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("scriptName", filename);
+    formData.append(
+      "script",
+      new Blob([code], { type: "text/plain" }),
+      `${filename}.py`
+    );
+
+    const url = algorithmId
+      ? `http://localhost:8008/v1/user/algorithm/python/edit/?algorithm_id=${algorithmId}`
+      : `http://localhost:8008/v1/user/algorithm/python/upload/`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          USER_TOKEN: accessToken,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Failed to save algorithm");
+
+      const result = await response.json();
+      console.log("✅ Save/Edit Success", result);
+
+      // If upload, capture new ID and set to state + URL
+      if (!algorithmId && result.user_algorithm?.ID) {
+        const newId = result.user_algorithm.ID;
+        setAlgorithmId(newId);
+        searchParams.set("algorithm_id", newId);
+        setSearchParams(searchParams);
+      }
+    } catch (err) {
+      console.error("❌ Failed to save:", err);
+    }
+  };
 
   const [llmPanelWidth, setLlmPanelWidth] = useState(25); // in percentage
   const dragLlmInfo = useRef<{ startX: number; startWidth: number } | null>(
@@ -289,6 +355,11 @@ export default function CodeEditorDashboard(props: {
     setCode(currentCode);
     setRuntimeDiagnostics([]); // ✅ clear runtime errors on edit
     lspClientRef.current?.sendDidChange(currentCode);
+
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      handleSaveAlgorithm();
+    }, 3000);
   }, []);
 
   const completionSource = createCompletionSource({
@@ -516,7 +587,11 @@ export default function CodeEditorDashboard(props: {
           {/* Center: Title */}
           <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
             <Typography variant="subtitle1" fontWeight="bold" component="div">
-              <EditableFileName name={filename} onRename={setFilename} />
+              <EditableFileName
+                ref={fileNameRef}
+                name={filename}
+                onRename={handleRename}
+              />
             </Typography>
           </Box>
 
