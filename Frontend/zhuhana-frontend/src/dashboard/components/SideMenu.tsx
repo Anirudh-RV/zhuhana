@@ -1,15 +1,11 @@
 import { styled } from "@mui/material/styles";
-import Avatar from "@mui/material/Avatar";
 import MuiDrawer, { drawerClasses } from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import SelectContent from "./SelectContent";
 import MenuContent from "./MenuContent";
-import CardAlert from "./CardAlert";
-import OptionsMenu from "./OptionsMenu";
 import { useAuth } from "../../AuthContext";
+import Copyright from "../internals/components/Copyright";
 
 const drawerWidth = 240;
 
@@ -79,6 +75,8 @@ export default function SideMenu() {
         }}
       >
         <MenuContent />
+        <Divider />
+        <Copyright sx={{ my: 2 }} />
       </Box>
     </Drawer>
   );

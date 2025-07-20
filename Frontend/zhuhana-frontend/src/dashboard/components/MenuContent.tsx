@@ -18,7 +18,6 @@ const mainListItems = [
 ];
 
 const secondaryListItems = [
-  { text: "Settings", icon: <SettingsRoundedIcon /> },
   { text: "About", icon: <InfoRoundedIcon /> },
   { text: "Feedback", icon: <HelpRoundedIcon /> },
 ];
