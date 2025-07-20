@@ -80,7 +80,7 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 		}), userAuthMiddleware,
 			userAlgorithmController.CancelUserAlgorithmCronSchedule)
 
-		algorithmRoutes.GET("/:id", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+		algorithmRoutes.GET("info/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 			Source:      "header",
 			Param:       "USER_TOKEN",
 			EnableParam: true,
@@ -89,7 +89,7 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 			EnableIP:    true,
 			IPLimit:     100,
 			IPWindow:    300,
-			Endpoint:    "/v1/user/algorithm/:id",
+			Endpoint:    "/v1/user/algorithm/info/",
 		}), userAuthMiddleware,
 			userAlgorithmController.GetUserAlgorithmByID)
 

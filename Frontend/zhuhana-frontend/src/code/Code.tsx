@@ -45,6 +45,13 @@ import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 
 import { initializeLspClient } from "./components/lspClient";
 import { useSearchParams } from "react-router-dom";
+import {
+  USER_PYTHON_ALGORITHM_UPLOAD_V1_ENDPOINT,
+  USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT,
+  CREATE_CHAT_SESSION_V1_ENDPOINT,
+  USER_PYTHON_ALGORITHM_INFORMATION_V1_ENDPOINT,
+  ASK_LLM_V1_ENDPOINT,
+} from "../constants";
 
 const md = new MarkdownIt();
 const FILE_URI =
@@ -198,6 +205,36 @@ export default function CodeEditorDashboard(props: {
     await handleSaveAlgorithm(newName); // Pass the new name to save
   };
 
+  useEffect(() => {
+    const fetchAlgorithmDetails = async () => {
+      if (!initialAlgorithmId || !accessToken) return;
+
+      try {
+        const response = await fetch(
+          `${USER_PYTHON_ALGORITHM_INFORMATION_V1_ENDPOINT}?algorithm_id=${initialAlgorithmId}`,
+          {
+            headers: {
+              ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch algorithm details");
+
+        const result = await response.json();
+        const scriptName = result?.user_algorithm?.scriptName;
+
+        if (scriptName) {
+          setFilename(scriptName);
+        }
+      } catch (err) {
+        console.error("Error fetching algorithm:", err);
+      }
+    };
+
+    fetchAlgorithmDetails();
+  }, [initialAlgorithmId, accessToken]);
+
   const handleSaveAlgorithm = async (nameOverride?: string) => {
     if (!user || !accessToken) {
       console.error("User not authenticated");
@@ -206,7 +243,6 @@ export default function CodeEditorDashboard(props: {
 
     const nameToUse = nameOverride || filename;
 
-    console.log("NAME TO USE: ", nameToUse);
     const formData = new FormData();
     formData.append("scriptName", nameToUse);
     formData.append(
@@ -216,8 +252,8 @@ export default function CodeEditorDashboard(props: {
     );
 
     const url = algorithmId
-      ? `http://localhost:8008/v1/user/algorithm/python/edit/?algorithm_id=${algorithmId}`
-      : `http://localhost:8008/v1/user/algorithm/python/upload/`;
+      ? `<CREATE NEW>?algorithm_id=${algorithmId}`
+      : USER_PYTHON_ALGORITHM_UPLOAD_V1_ENDPOINT;
 
     try {
       const response = await fetch(url, {
@@ -423,7 +459,7 @@ export default function CodeEditorDashboard(props: {
         }
 
         const createSessionResponse = await fetch(
-          "http://localhost:3000/v1/session/",
+          CREATE_CHAT_SESSION_V1_ENDPOINT,
           {
             method: "POST",
             headers: {
@@ -455,7 +491,7 @@ export default function CodeEditorDashboard(props: {
       }
 
       const response = await fetch(
-        `http://localhost:3000/v1/ask/?q=${encodeURIComponent(
+        `${ASK_LLM_V1_ENDPOINT}?q=${encodeURIComponent(
           prompt
         )}&session_id=${currentSessionId}`,
         {

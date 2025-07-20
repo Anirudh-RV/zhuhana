@@ -22,6 +22,10 @@ import HistoryIcon from "@mui/icons-material/History";
 import { useAuth } from "../../AuthContext";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import {
+  CREATE_CHAT_SESSION_V1_ENDPOINT,
+  GET_MESSAGES_V1_ENDPOINT,
+} from "../../constants";
 
 hljs.registerLanguage("python", python);
 
@@ -83,7 +87,7 @@ export default function LLMPanel({
 
     try {
       const response = await fetch(
-        `http://localhost:3000/v1/session/?algorithm_id=${algorithmId}`,
+        `${CREATE_CHAT_SESSION_V1_ENDPOINT}?algorithm_id=${algorithmId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -164,7 +168,7 @@ export default function LLMPanel({
 
       try {
         const response = await fetch(
-          `http://localhost:3000/v1/messages/?session_id=${sessionId}`,
+          `${GET_MESSAGES_V1_ENDPOINT}?session_id=${sessionId}`,
           {
             headers: {
               "Content-Type": "application/json",

@@ -9,6 +9,7 @@ import type { StatCardProps } from "./StatCard";
 import { useAuth } from "../../AuthContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT } from "../../constants";
 
 const data: StatCardProps[] = [];
 
@@ -42,7 +43,7 @@ export default function MainGrid() {
 
       try {
         const response = await fetch(
-          "http://localhost:8008/v1/user/algorithm/",
+          USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT,
           {
             method: "GET",
             headers: {
