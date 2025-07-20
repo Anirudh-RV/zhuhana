@@ -7,12 +7,24 @@ import dayjs from "dayjs";
 import { DatePicker } from "@mui/x-date-pickers";
 import InputAdornment from "@mui/material/InputAdornment";
 import { useColorScheme } from "@mui/material/styles";
+import { Tooltip } from "@mui/material";
 
 export default function BacktestConfig() {
-  const timeDurations = ["1D", "1M", "1Y", "Custom"];
+  const timeDurations = [
+    { value: "1D", label: "1 Day" },
+    { value: "1M", label: "1 Month" },
+    { value: "1Y", label: "1 Year" },
+    { value: "Custom", label: "Custom Range" },
+  ];
+
   const [timeDuration, setTimeDuration] = useState("1Y");
 
-  const frequencies = ["1D", "1W", "1M", "Custom"];
+  const frequencies = [
+    { value: "1D", label: "1 Day" },
+    { value: "1W", label: "1 Week" },
+    { value: "1M", label: "1 Month" },
+    { value: "Custom", label: "Custom Frequency" },
+  ];
   const [frequency, setFrequency] = useState("1D");
 
   const instruments = ["SPY", "AAPL", "GOOGL", "MSFT", "AMZN"];
@@ -86,33 +98,34 @@ export default function BacktestConfig() {
           width: "100%",
         }}
       >
-        {timeDurations.map((val, index) => {
-          const isSelected = timeDuration === val;
+        {timeDurations.map(({ value, label }, index) => {
+          const isSelected = timeDuration === value;
           return (
-            <Button
-              key={val}
-              onClick={() => setTimeDuration(val)}
-              variant="text"
-              sx={{
-                flex: 1,
-                textTransform: "none",
-                borderRadius: 0,
-                py: 3,
-                fontWeight: isSelected ? 600 : 400,
-                backgroundColor: isSelected
-                  ? selectedColor
-                  : "background.paper",
-                color: "text.primary",
-                borderRight:
-                  index < timeDurations.length - 1 ? "1px solid" : "none",
-                borderColor: "divider",
-                "&:hover": {
-                  backgroundColor: isSelected ? "grey.400" : "action.hover",
-                },
-              }}
-            >
-              {val}
-            </Button>
+            <Tooltip key={value} title={label} arrow>
+              <Button
+                onClick={() => setTimeDuration(value)}
+                variant="text"
+                sx={{
+                  flex: 1,
+                  textTransform: "none",
+                  borderRadius: 0,
+                  py: 3,
+                  fontWeight: isSelected ? 600 : 400,
+                  backgroundColor: isSelected
+                    ? selectedColor
+                    : "background.paper",
+                  color: "text.primary",
+                  borderRight:
+                    index < timeDurations.length - 1 ? "1px solid" : "none",
+                  borderColor: "divider",
+                  "&:hover": {
+                    backgroundColor: isSelected ? "grey.400" : "action.hover",
+                  },
+                }}
+              >
+                {value}
+              </Button>
+            </Tooltip>
           );
         })}
       </Box>
@@ -161,33 +174,34 @@ export default function BacktestConfig() {
           width: "100%",
         }}
       >
-        {frequencies.map((val, index) => {
-          const isSelected = frequency === val;
+        {frequencies.map(({ value, label }, index) => {
+          const isSelected = frequency === value;
           return (
-            <Button
-              key={val}
-              onClick={() => setFrequency(val)}
-              variant="text"
-              sx={{
-                flex: 1,
-                textTransform: "none",
-                borderRadius: 0,
-                py: 3,
-                fontWeight: isSelected ? 600 : 400,
-                backgroundColor: isSelected
-                  ? selectedColor
-                  : "background.paper",
-                color: "text.primary",
-                borderRight:
-                  index < frequencies.length - 1 ? "1px solid" : "none",
-                borderColor: "divider",
-                "&:hover": {
-                  backgroundColor: isSelected ? "grey.400" : "action.hover",
-                },
-              }}
-            >
-              {val}
-            </Button>
+            <Tooltip key={value} title={label} arrow>
+              <Button
+                onClick={() => setFrequency(value)}
+                variant="text"
+                sx={{
+                  flex: 1,
+                  textTransform: "none",
+                  borderRadius: 0,
+                  py: 3,
+                  fontWeight: isSelected ? 600 : 400,
+                  backgroundColor: isSelected
+                    ? selectedColor
+                    : "background.paper",
+                  color: "text.primary",
+                  borderRight:
+                    index < frequencies.length - 1 ? "1px solid" : "none",
+                  borderColor: "divider",
+                  "&:hover": {
+                    backgroundColor: isSelected ? "grey.400" : "action.hover",
+                  },
+                }}
+              >
+                {value}
+              </Button>
+            </Tooltip>
           );
         })}
       </Box>
