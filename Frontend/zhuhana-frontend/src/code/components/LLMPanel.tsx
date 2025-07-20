@@ -50,6 +50,7 @@ type LLMPanelProps = {
   sessionId: string | null;
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   isNewSession: boolean;
+  setIsNewSession: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export default function LLMPanel({
@@ -60,6 +61,7 @@ export default function LLMPanel({
   sessionId,
   setSessionId,
   isNewSession,
+  setIsNewSession,
 }: LLMPanelProps) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -161,6 +163,7 @@ export default function LLMPanel({
 
   useEffect(() => {
     const fetchSessionMessages = async () => {
+      console.log("isNewSession: ", isNewSession);
       if (!sessionId || isNewSession) return;
 
       setLoadingMessages(true);
@@ -387,7 +390,7 @@ export default function LLMPanel({
                   onClick={() => {
                     setAnchorEl(null);
                     setSessionId(session.id);
-
+                    setIsNewSession(false);
                     const params = new URLSearchParams(window.location.search);
                     params.set("session_id", session.id);
                     const newUrl = `${

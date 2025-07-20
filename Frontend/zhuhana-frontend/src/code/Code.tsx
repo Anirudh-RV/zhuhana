@@ -827,6 +827,7 @@ export default function CodeEditorDashboard(props: {
                 sessionId={sessionId}
                 setSessionId={setSessionId}
                 isNewSession={isNewSession}
+                setIsNewSession={setIsNewSession}
               />
             </Box>
           </>
