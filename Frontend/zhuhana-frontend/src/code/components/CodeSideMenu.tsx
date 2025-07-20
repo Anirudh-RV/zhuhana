@@ -38,7 +38,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
             mb: 2,
           }}
         >
-          <Typography variant="h5">Configuration</Typography>
+          <Typography variant="h5">Configuration Panel</Typography>
           {onClose && (
             <IconButton size="small" onClick={onClose}>
               <MenuIcon fontSize="small" />

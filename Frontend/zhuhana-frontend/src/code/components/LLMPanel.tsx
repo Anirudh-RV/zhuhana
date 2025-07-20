@@ -19,6 +19,7 @@ import hljs from "highlight.js/lib/core";
 import python from "highlight.js/lib/languages/python";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import HistoryIcon from "@mui/icons-material/History";
+import { useAuth } from "../../AuthContext";
 
 hljs.registerLanguage("python", python);
 
@@ -50,11 +51,12 @@ export default function LLMPanel({
   const [copied, setCopied] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const { user } = useAuth();
 
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
   const panelBgColor =
-    resolvedMode === "dark" ? "#161B26" : "background.default";
+    resolvedMode === "dark" ? "background.paper" : "background.default";
 
   const handleSend = () => {
     if (!input.trim() || isStreaming) return;
@@ -220,7 +222,7 @@ export default function LLMPanel({
           py: 1,
           borderBottom: "1px solid",
           borderColor: "divider",
-          backgroundColor: "background.default",
+          backgroundColor: "background.paper",
         }}
       >
         {/* Left side: Title */}
@@ -276,38 +278,53 @@ export default function LLMPanel({
           gap: 2,
         }}
       >
-        {messages.map((msg, idx) => (
+        {messages.length === 0 ? (
           <Box
-            key={idx}
             sx={{
               display: "flex",
-              justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-              width: "100%",
+              justifyContent: "center",
+              alignItems: "top",
+              height: "100%",
+              color: "text.secondary",
+              fontSize: "1rem",
             }}
           >
+            Hi {user?.FirstName}, Let&apos;s get started!
+          </Box>
+        ) : (
+          messages.map((msg, idx) => (
             <Box
+              key={idx}
               sx={{
-                width: msg.role === "user" ? "75%" : "100%", // user gets bubble, assistant spans full
-                backgroundColor:
-                  msg.role === "user" ? "action.selected" : "transparent",
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                fontSize: "0.95rem",
-                whiteSpace: "pre-wrap",
-                overflowWrap: "anywhere",
-                textAlign: "left", // ensures left justification
+                display: "flex",
+                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
+                width: "100%",
               }}
             >
-              <ReactMarkdown
-                rehypePlugins={[rehypeHighlight]}
-                components={{ code: CodeBlock }}
+              <Box
+                sx={{
+                  width: msg.role === "user" ? "75%" : "100%",
+                  backgroundColor:
+                    msg.role === "user" ? "action.selected" : "transparent",
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  fontSize: "0.95rem",
+                  whiteSpace: "pre-wrap",
+                  overflowWrap: "anywhere",
+                  textAlign: "left",
+                }}
               >
-                {msg.content}
-              </ReactMarkdown>
+                <ReactMarkdown
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{ code: CodeBlock }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              </Box>
             </Box>
-          </Box>
-        ))}
+          ))
+        )}
 
         {isStreaming && showTypingIndicator && (
           <Box
@@ -354,7 +371,7 @@ export default function LLMPanel({
           py: 1,
           borderTop: "1px solid",
           borderColor: "divider",
-          backgroundColor: "background.default",
+          backgroundColor: "background.paper",
           display: "flex",
           alignItems: "flex-end",
           gap: 1,
@@ -365,7 +382,7 @@ export default function LLMPanel({
           multiline
           minRows={1}
           maxRows={6}
-          placeholder="Ask the LLM..."
+          placeholder="Describe your trading idea..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -379,7 +396,7 @@ export default function LLMPanel({
             px: 2,
             py: 1.5,
             borderRadius: 2,
-            backgroundColor: "background.paper",
+            backgroundColor: "background.default",
             color: "text.primary",
             fontSize: "0.95rem",
             fontFamily: "monospace",
