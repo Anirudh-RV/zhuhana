@@ -11,7 +11,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import CodeMirrorEditor from "./components/CodeMirrorEditor";
 import CodeSideMenu from "./components/CodeSideMenu";
-import LLMPanel from "./components/LLMPanel";
+import LLMPanel, { LLMPanelHandle } from "./components/LLMPanel";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
@@ -170,6 +170,8 @@ export default function CodeEditorDashboard(props: {
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
     null
   );
+
+  const [isNewSession, setIsNewSession] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialAlgorithmId = searchParams.get("algorithm_id");
@@ -442,6 +444,7 @@ export default function CodeEditorDashboard(props: {
 
         // Update React state (asynchronously)
         setSessionId(currentSessionId);
+        setIsNewSession(true);
 
         // Update URL query
         searchParams.set("session_id", currentSessionId!);
@@ -495,6 +498,8 @@ export default function CodeEditorDashboard(props: {
             onChunk(chunk);
           }
         }
+
+        if (isNewSession) setIsNewSession(false);
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -782,6 +787,7 @@ export default function CodeEditorDashboard(props: {
                 algorithmId={algorithmId}
                 sessionId={sessionId}
                 setSessionId={setSessionId}
+                isNewSession={isNewSession}
               />
             </Box>
           </>

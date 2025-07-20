@@ -30,6 +30,10 @@ type Message = {
   content: string;
 };
 
+export interface LLMPanelHandle {
+  reset: () => void;
+}
+
 type LLMPanelProps = {
   onSend: (
     messages: Message[],
@@ -41,6 +45,7 @@ type LLMPanelProps = {
   algorithmId: string | null;
   sessionId: string | null;
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
+  isNewSession: boolean;
 };
 
 export default function LLMPanel({
@@ -50,6 +55,7 @@ export default function LLMPanel({
   algorithmId,
   sessionId,
   setSessionId,
+  isNewSession,
 }: LLMPanelProps) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -60,6 +66,7 @@ export default function LLMPanel({
   const { user, accessToken } = useAuth();
 
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [hasStartedChat, setHasStartedChat] = useState(false);
 
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
@@ -150,7 +157,7 @@ export default function LLMPanel({
 
   useEffect(() => {
     const fetchSessionMessages = async () => {
-      if (!sessionId) return;
+      if (!sessionId || isNewSession) return;
 
       setLoadingMessages(true);
       setMessages([]);
@@ -317,6 +324,18 @@ export default function LLMPanel({
           <Tooltip title="New Chat">
             <IconButton
               aria-label="new chat"
+              onClick={() => {
+                setMessages([]);
+                setSessionId(null);
+
+                // Optional: also update the URL to remove ?session_id=
+                const params = new URLSearchParams(window.location.search);
+                params.delete("session_id");
+                const newUrl = `${
+                  window.location.pathname
+                }?${params.toString()}`;
+                window.history.replaceState({}, "", newUrl);
+              }}
               disableRipple
               sx={{
                 backgroundColor: "background.default",
