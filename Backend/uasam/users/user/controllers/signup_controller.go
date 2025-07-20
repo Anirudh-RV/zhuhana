@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"uasam/logger"
 	"uasam/users/user/models"
@@ -36,6 +37,7 @@ func NewSignUpController(userService *userService.UserService, log *logger.Logge
 func (snc *SignUpController) SignUpInitHandler(c *gin.Context) {
 	var signUpInitRequest models.SignUpInitRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&signUpInitRequest); err != nil {
+		log.Printf("Sign-up Decorder error: %v", err)
 		c.JSON(http.StatusBadRequest, models.SignUpInitResponse{
 			Status:            0,
 			StatusDescription: "Invalid request payload",
@@ -45,6 +47,7 @@ func (snc *SignUpController) SignUpInitHandler(c *gin.Context) {
 
 	status, err := snc.userService.IfUserExists(signUpInitRequest.EmailID)
 	if err != nil {
+		log.Printf("Sign-up IfUserExists error: %v", err)
 		c.JSON(http.StatusInternalServerError, models.SignUpInitResponse{
 			Status:            0,
 			StatusDescription: "Server Error",
@@ -62,6 +65,7 @@ func (snc *SignUpController) SignUpInitHandler(c *gin.Context) {
 
 	err = snc.userService.SignUpInitHandler(&signUpInitRequest, c.Request.UserAgent(), c.ClientIP())
 	if err != nil {
+		log.Printf("Sign-up SignUpInitHandler error: %v", err)
 		c.JSON(http.StatusInternalServerError, models.SignUpInitResponse{
 			Status:            0,
 			StatusDescription: "Server Error",

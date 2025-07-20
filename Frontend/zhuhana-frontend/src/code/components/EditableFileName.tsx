@@ -23,21 +23,21 @@ const EditableFileName = forwardRef<
   const [showTooltip, setShowTooltip] = useState(false); // 👈 manually control tooltip
   const inputRef = useRef<HTMLInputElement>(null);
   const hasShownTooltip = useRef(false);
+  const [hasAlgorithmId, setHasAlgorithmId] = useState(true);
 
   useEffect(() => {
-    if (!hasShownTooltip.current) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasId = urlParams.has("algorithm_id");
+
+    setHasAlgorithmId(hasId); // store it in state
+    console.log("ALGORITHM_ID: ", hasId);
+
+    if (!hasId && !hasShownTooltip.current) {
       hasShownTooltip.current = true;
       setShowTooltip(true);
       const timer = setTimeout(() => setShowTooltip(false), 10000);
       return () => clearTimeout(timer);
     }
-  }, []);
-
-  useEffect(() => {
-    // Show tooltip once on first mount (initial load)
-    setShowTooltip(true);
-    const timer = setTimeout(() => setShowTooltip(false), 10000);
-    return () => clearTimeout(timer);
   }, []);
 
   const handleBlurOrSubmit = () => {

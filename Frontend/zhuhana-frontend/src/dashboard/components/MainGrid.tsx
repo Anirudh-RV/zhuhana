@@ -54,7 +54,6 @@ export default function MainGrid() {
         if (!response.ok) throw new Error("Failed to fetch algorithms");
 
         const result = await response.json();
-        console.log("✅ Fetch Success:", result);
 
         if (result?.status === 1) {
           setRows(result.user_algorithms);

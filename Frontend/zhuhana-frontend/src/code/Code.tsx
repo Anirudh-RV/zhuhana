@@ -165,11 +165,6 @@ export default function CodeEditorDashboard(props: {
     document.title = "Zhuhana - Algorithm IDE";
   }, []);
 
-  const fileNameRef = useRef<EditableFileNameHandle>(null);
-  useEffect(() => {
-    fileNameRef.current?.focusEditMode();
-  }, []);
-
   const { user, accessToken } = useAuth();
   const navigate = useNavigate();
   const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
@@ -178,10 +173,20 @@ export default function CodeEditorDashboard(props: {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialAlgorithmId = searchParams.get("algorithm_id");
+  const initialSessionId = searchParams.get("session_id");
 
   const [algorithmId, setAlgorithmId] = useState<string | null>(
     initialAlgorithmId
   );
+
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
+
+  const fileNameRef = useRef<EditableFileNameHandle>(null);
+  useEffect(() => {
+    if (!initialAlgorithmId) {
+      fileNameRef.current?.focusEditMode();
+    }
+  }, [initialAlgorithmId]);
 
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -212,7 +217,8 @@ export default function CodeEditorDashboard(props: {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          USER_TOKEN: accessToken,
+          "Content-Type": "application/json",
+          ...(accessToken ? { USER_TOKEN: accessToken } : {}),
         },
         body: formData,
       });
@@ -220,7 +226,6 @@ export default function CodeEditorDashboard(props: {
       if (!response.ok) throw new Error("Failed to save algorithm");
 
       const result = await response.json();
-      console.log("✅ Save/Edit Success", result);
 
       // If upload, capture new ID and set to state + URL
       if (!algorithmId && result.user_algorithm?.ID) {
@@ -341,7 +346,6 @@ export default function CodeEditorDashboard(props: {
       code,
       onDiagnostics: setLspDiagnostics,
       getEditorView: () => editorViewRef.current,
-      onInitialized: () => console.log("✅ LSP ready"),
     });
     lspClientRef.current = client;
   }, []);
@@ -384,15 +388,11 @@ export default function CodeEditorDashboard(props: {
 
     navigator.clipboard
       .writeText(filtered)
-      .then(() => {
-        console.log("✅ Filtered terminal output copied to clipboard");
-      })
+      .then(() => {})
       .catch((err) => {
         console.error("❌ Failed to copy:", err);
       });
   };
-
-  const [isLLMOpen, setIsLLMOpen] = useState(true);
 
   const handleSendToLLM = async (
     messages: LLMMessage[],
@@ -407,21 +407,58 @@ export default function CodeEditorDashboard(props: {
         )
         .join("\n");
 
-      const sessionId = "e3268d6d-c776-42d8-a04b-c45dc87dc86b";
-      const userToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTQ5ODUxNzAsImlhdCI6MTc1MjM5MzE3MCwidXNlcl9pZCI6IjdlNWEwOTQ0LTM3ODAtNGI3Ni04NWE1LWQ3ZmY1YWUyYTJhOSIsInVzZXJfdHlwZSI6InVzZXIifQ.nkq9c0rGJv2H92MyJc93vo05-XPLTYabVEXTRrTeJb0";
+      // Local variable to ensure correct sessionId usage
+      let currentSessionId = sessionId;
+
+      if (!currentSessionId) {
+        const firstMessage = messages.find((m) => m.role === "user");
+        if (!firstMessage) {
+          onChunk("[Error: No user message to start session]");
+          return;
+        }
+
+        const createSessionResponse = await fetch(
+          "http://localhost:3000/v1/session/",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+            },
+            body: JSON.stringify({
+              algorithm_id: algorithmId,
+              title: firstMessage.content.slice(0, 60),
+            }),
+          }
+        );
+
+        if (!createSessionResponse.ok) {
+          const errorText = await createSessionResponse.text();
+          throw new Error(`Failed to create session: ${errorText}`);
+        }
+
+        const sessionData = await createSessionResponse.json();
+        currentSessionId = sessionData.Result.id;
+
+        // Update React state (asynchronously)
+        setSessionId(currentSessionId);
+
+        // Update URL query
+        searchParams.set("session_id", currentSessionId!);
+        setSearchParams(searchParams);
+      }
 
       const response = await fetch(
         `http://localhost:3000/v1/ask/?q=${encodeURIComponent(
           prompt
-        )}&session_id=${sessionId}`,
+        )}&session_id=${currentSessionId}`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            USER_TOKEN: userToken,
+            ...(accessToken ? { USER_TOKEN: accessToken } : {}),
           },
-          signal, // if you have an AbortSignal for cancellation
+          signal,
         }
       );
 
@@ -461,7 +498,6 @@ export default function CodeEditorDashboard(props: {
       }
     } catch (err: any) {
       if (err.name === "AbortError") {
-        console.log("Request aborted");
       } else {
         onChunk(`[LLM Error]: ${err.message}`);
       }
@@ -741,9 +777,11 @@ export default function CodeEditorDashboard(props: {
             >
               <LLMPanel
                 onSend={handleSendToLLM}
-                onClose={() => setIsLLMOpen(false)}
                 messages={llmMessages}
                 setMessages={setLlmMessages}
+                algorithmId={algorithmId}
+                sessionId={sessionId}
+                setSessionId={setSessionId}
               />
             </Box>
           </>

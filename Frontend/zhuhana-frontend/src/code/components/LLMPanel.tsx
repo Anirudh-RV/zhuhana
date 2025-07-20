@@ -20,6 +20,8 @@ import python from "highlight.js/lib/languages/python";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import HistoryIcon from "@mui/icons-material/History";
 import { useAuth } from "../../AuthContext";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 hljs.registerLanguage("python", python);
 
@@ -34,16 +36,20 @@ type LLMPanelProps = {
     onChunk: (token: string) => void,
     signal: AbortSignal
   ) => Promise<void>;
-  onClose?: () => void;
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  algorithmId: string | null;
+  sessionId: string | null;
+  setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 export default function LLMPanel({
   onSend,
-  onClose,
   messages,
   setMessages,
+  algorithmId,
+  sessionId,
+  setSessionId,
 }: LLMPanelProps) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -51,12 +57,45 @@ export default function LLMPanel({
   const [copied, setCopied] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const { user } = useAuth();
+  const { user, accessToken } = useAuth();
+
+  const [loadingMessages, setLoadingMessages] = useState(false);
 
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
   const panelBgColor =
     resolvedMode === "dark" ? "background.paper" : "background.default";
+
+  const [chatSessions, setChatSessions] = useState<any[]>([]);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleOpenChatHistory = async (
+    event: React.MouseEvent<HTMLElement>
+  ) => {
+    setAnchorEl(event.currentTarget);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/v1/session/?algorithm_id=${algorithmId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+          },
+        }
+      );
+
+      const data = await response.json();
+      const sessions = data?.Result;
+      if (Array.isArray(sessions)) {
+        setChatSessions(sessions);
+      } else {
+        console.error("Invalid chat session response:", data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch chat sessions", err);
+    }
+  };
 
   const handleSend = () => {
     if (!input.trim() || isStreaming) return;
@@ -108,6 +147,54 @@ export default function LLMPanel({
 
     setInput("");
   };
+
+  useEffect(() => {
+    const fetchSessionMessages = async () => {
+      if (!sessionId) return;
+
+      setLoadingMessages(true);
+      setMessages([]);
+
+      try {
+        const response = await fetch(
+          `http://localhost:3000/v1/messages/?session_id=${sessionId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+            },
+          }
+        );
+
+        const data = await response.json();
+        const messageEntries = data?.Result;
+
+        if (Array.isArray(messageEntries)) {
+          const loadedMessages: Message[] = messageEntries.flatMap(
+            (entry: any) => [
+              {
+                role: "user" as const,
+                content: entry.user_message.replace(/^User:\s*/, ""),
+              },
+              {
+                role: "assistant" as const,
+                content: entry.system_message,
+              },
+            ]
+          );
+          setMessages(loadedMessages);
+        } else {
+          console.error("Invalid message response:", data);
+        }
+      } catch (error) {
+        console.error("Failed to load session messages", error);
+      } finally {
+        setLoadingMessages(false);
+      }
+    };
+
+    fetchSessionMessages();
+  }, [sessionId, accessToken, setMessages]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -170,7 +257,6 @@ export default function LLMPanel({
             backgroundColor:
               resolvedMode === "dark" ? "background.paper" : "#ddd",
             color: resolvedMode === "dark" ? "#fff" : "#000",
-            transition: "background-color 0.2s",
             "&:hover": {
               backgroundColor: resolvedMode === "dark" ? "#444" : "#ccc",
             },
@@ -216,7 +302,7 @@ export default function LLMPanel({
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between", // 👈 separates left and right sections
+          justifyContent: "space-between",
           alignItems: "center",
           px: 2,
           py: 1,
@@ -225,17 +311,14 @@ export default function LLMPanel({
           backgroundColor: "background.paper",
         }}
       >
-        {/* Left side: Title */}
         <Typography variant="h6">Zhuhana AI</Typography>
 
-        {/* Right side: Buttons */}
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Tooltip title="New Chat">
             <IconButton
               aria-label="new chat"
               disableRipple
               sx={{
-                border: "none",
                 backgroundColor: "background.default",
                 p: 1,
                 mr: 0.5,
@@ -247,12 +330,13 @@ export default function LLMPanel({
               <ChatBubbleOutlineIcon />
             </IconButton>
           </Tooltip>
+
           <Tooltip title="Chat History">
             <IconButton
               aria-label="chat history"
+              onClick={handleOpenChatHistory}
               disableRipple
               sx={{
-                border: "none",
                 backgroundColor: "background.default",
                 p: 1,
                 "&:hover": {
@@ -263,10 +347,48 @@ export default function LLMPanel({
               <HistoryIcon />
             </IconButton>
           </Tooltip>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={() => setAnchorEl(null)}
+          >
+            <MenuItem disabled>
+              <Typography variant="subtitle2" fontWeight="bold">
+                Chats
+              </Typography>
+            </MenuItem>
+            {chatSessions.length > 0 ? (
+              chatSessions.map((session) => (
+                <MenuItem
+                  key={session.id}
+                  onClick={() => {
+                    setAnchorEl(null);
+                    setSessionId(session.id);
+
+                    const params = new URLSearchParams(window.location.search);
+                    params.set("session_id", session.id);
+                    const newUrl = `${
+                      window.location.pathname
+                    }?${params.toString()}`;
+                    window.history.pushState({}, "", newUrl);
+                  }}
+                >
+                  {session.title ??
+                    new Date(session.created_at).toLocaleString()}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>
+                <Typography variant="body2" color="text.secondary">
+                  No sessions found
+                </Typography>
+              </MenuItem>
+            )}
+          </Menu>
         </Box>
       </Box>
 
-      {/* Chat Area */}
+      {/* Chat Messages */}
       <Box
         sx={{
           flexGrow: 1,
@@ -289,10 +411,7 @@ export default function LLMPanel({
           >
             <Typography
               variant="h4"
-              sx={{
-                color: "text.secondary",
-                fontWeight: 500,
-              }}
+              sx={{ color: "text.secondary", fontWeight: 500 }}
             >
               Hi {user?.FirstName}, Let&apos;s get started!
             </Typography>
@@ -304,7 +423,6 @@ export default function LLMPanel({
               sx={{
                 display: "flex",
                 justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-                width: "100%",
               }}
             >
               <Box
@@ -333,15 +451,7 @@ export default function LLMPanel({
         )}
 
         {isStreaming && showTypingIndicator && (
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              alignItems: "center",
-              px: 2,
-              mt: 1,
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 1, px: 2, mt: 1 }}>
             {[0, 1, 2].map((i) => (
               <Box
                 key={i}
@@ -365,7 +475,7 @@ export default function LLMPanel({
         <div ref={bottomRef} />
       </Box>
 
-      {/* Input Section */}
+      {/* Input */}
       <Box
         component="form"
         onSubmit={(e) => {
@@ -393,8 +503,8 @@ export default function LLMPanel({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault(); // prevent newline
-              handleSend(); // trigger send
+              e.preventDefault();
+              handleSend();
             }
           }}
           disabled={isStreaming}
@@ -427,7 +537,6 @@ export default function LLMPanel({
         </Tooltip>
       </Box>
 
-      {/* Copy Snackbar */}
       <Snackbar
         open={copied}
         message="Copied"
