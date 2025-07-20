@@ -85,7 +85,7 @@ export default function BacktestConfig() {
 
       {/* Time Duration */}
       <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
-        Time Duration
+        Select Time Duration
       </Typography>
       <Box
         sx={{
