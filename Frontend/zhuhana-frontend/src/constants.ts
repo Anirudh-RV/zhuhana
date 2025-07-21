@@ -6,6 +6,9 @@ export const CORTEX_ENDPOINT = "http://localhost:3000";
 export const SIGN_UP_V1_INIT_ENDPOINT =
   UASAM_ENDPOINT + "/v1/user/sign-up/init/";
 
+export const PASSWORD_RESET_V1_INIT_ENDPOINT =
+  UASAM_ENDPOINT + "/v1/user/reset-password/init/";
+
 export const SIGN_UP_V1_VERIFY_OTP_ENDPOINT =
   UASAM_ENDPOINT + "/v1/user/sign-up/verify-otp/";
 

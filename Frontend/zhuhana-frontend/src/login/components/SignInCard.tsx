@@ -11,6 +11,7 @@ import { styled } from "@mui/material/styles";
 import { useNavigate, Link } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useAuth } from "../../AuthContext";
+import ForgotPassword from "./ForgotPassword";
 
 import {
   LOGIN_V1_VERIFY_PASSWORD_ENDPOINT,
@@ -43,6 +44,10 @@ export default function SignInCard() {
   const [otpSent, setOtpSent] = React.useState(false);
   const [otp, setOtp] = React.useState("");
   const [emailForOtp, setEmailForOtp] = React.useState("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
+
+  const openForgotPasswordDialog = () => setForgotPasswordOpen(true);
+  const closeForgotPasswordDialog = () => setForgotPasswordOpen(false);
 
   const navigate = useNavigate();
   const { setAuth } = useAuth();
@@ -179,6 +184,18 @@ export default function SignInCard() {
             />
           </FormControl>
 
+          <Typography
+            variant="body2"
+            sx={{
+              textAlign: "right",
+              cursor: "pointer",
+              color: "primary.main",
+            }}
+            onClick={openForgotPasswordDialog}
+          >
+            Forgot password?
+          </Typography>
+
           <Button type="submit" fullWidth variant="contained">
             Log in
           </Button>
@@ -223,6 +240,10 @@ export default function SignInCard() {
           </Typography>
         </Box>
       )}
+      <ForgotPassword
+        open={forgotPasswordOpen}
+        handleClose={closeForgotPasswordDialog}
+      />
     </Card>
   );
 }
