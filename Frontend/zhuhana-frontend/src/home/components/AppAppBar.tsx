@@ -11,6 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Drawer from "@mui/material/Drawer";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import Typography from "@mui/material/Typography";
 import ColorModeIconDropdown from "../../shared-ui-theme/ColorModeIconDropdown";
 import { useNavigate } from "react-router-dom";
 
@@ -52,8 +53,42 @@ export default function AppAppBar() {
       <Container maxWidth={false}>
         <StyledToolbar variant="dense" disableGutters>
           <Box
-            sx={{ flexGrow: 1, display: "flex", alignItems: "center", px: 0 }}
+            sx={{
+              flexGrow: 1,
+              display: "flex",
+              alignItems: "center",
+              px: 0,
+              gap: 2,
+            }}
           >
+            <Typography
+              variant="h6"
+              onClick={() => navigate("/")}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                cursor: "pointer",
+                userSelect: "none",
+                ml: 1,
+              }}
+            >
+              ZHU
+              <Typography
+                component="span"
+                variant="h6"
+                sx={{
+                  fontSize: "inherit",
+                  color: "primary.main",
+                }}
+              >
+                HANA
+              </Typography>
+            </Typography>
+            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <Button variant="text" color="info" size="small">
                 Features
