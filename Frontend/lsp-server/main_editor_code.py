@@ -18,6 +18,7 @@ class ZhuhanaStrategy:
       pass
 
     def condition_for_sell(self, current_data: OHLCData) -> OrderInstruction:
+      order = Or
       return OrderInstruction(
             side=OrderSide.SELL,
             type=OrderType.MARKET,
