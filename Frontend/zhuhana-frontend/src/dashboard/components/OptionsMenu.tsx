@@ -1,4 +1,3 @@
-import * as React from "react";
 import { styled } from "@mui/material/styles";
 import Divider, { dividerClasses } from "@mui/material/Divider";
 import Menu from "@mui/material/Menu";
@@ -8,83 +7,68 @@ import { listClasses } from "@mui/material/List";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon, { listItemIconClasses } from "@mui/material/ListItemIcon";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
-import MoreVertRoundedIcon from "@mui/icons-material/MoreVertRounded";
-import MenuButton from "./MenuButton";
-import { useAuth } from "../../AuthContext"; // update this path
+import { useAuth } from "../../AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const MenuItem = styled(MuiMenuItem)({
   margin: "2px 0",
 });
 
-export default function OptionsMenu() {
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+interface OptionsMenuProps {
+  anchorEl: null | HTMLElement;
+  onClose: () => void;
+}
+
+export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
   const { clearAuth } = useAuth();
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleLogout = () => {
     clearAuth();
-    navigate("/"); // or wherever your login page is
+    navigate("/");
+    onClose();
   };
 
   return (
-    <React.Fragment>
-      <MenuButton
-        aria-label="Open menu"
-        onClick={handleClick}
-        sx={{ borderColor: "transparent" }}
-      >
-        <MoreVertRoundedIcon />
-      </MenuButton>
-      <Menu
-        anchorEl={anchorEl}
-        id="menu"
-        open={open}
-        onClose={handleClose}
-        onClick={handleClose}
-        transformOrigin={{ horizontal: "right", vertical: "top" }}
-        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+    <Menu
+      anchorEl={anchorEl}
+      id="options-menu"
+      open={open}
+      onClose={onClose}
+      onClick={onClose}
+      slotProps={{
+        list: {
+          autoFocusItem: false, // ✅ use this instead of MenuListProps
+        },
+      }}
+      transformOrigin={{ horizontal: "right", vertical: "top" }}
+      anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+      sx={{
+        [`& .${listClasses.root}`]: { padding: "4px" },
+        [`& .${paperClasses.root}`]: { padding: 0 },
+        [`& .${dividerClasses.root}`]: { margin: "4px -4px" },
+      }}
+    >
+      <MenuItem>Profile</MenuItem>
+      <MenuItem>My account</MenuItem>
+      <Divider />
+      <MenuItem>Settings</MenuItem>
+      <Divider />
+      <MenuItem
+        onClick={handleLogout}
         sx={{
-          [`& .${listClasses.root}`]: {
-            padding: "4px",
-          },
-          [`& .${paperClasses.root}`]: {
-            padding: 0,
-          },
-          [`& .${dividerClasses.root}`]: {
-            margin: "4px -4px",
+          [`& .${listItemIconClasses.root}`]: {
+            ml: "auto",
+            minWidth: 0,
           },
         }}
       >
-        <MenuItem onClick={handleClose}>Profile</MenuItem>
-        <MenuItem onClick={handleClose}>My account</MenuItem>
-        <Divider />
-        <MenuItem onClick={handleClose}>Settings</MenuItem>
-        <Divider />
-        <MenuItem
-          onClick={handleLogout}
-          sx={{
-            [`& .${listItemIconClasses.root}`]: {
-              ml: "auto",
-              minWidth: 0,
-            },
-          }}
-        >
-          <ListItemText>Logout</ListItemText>
-          <ListItemIcon>
-            <LogoutRoundedIcon fontSize="small" />
-          </ListItemIcon>
-        </MenuItem>
-      </Menu>
-    </React.Fragment>
+        <ListItemText>Logout</ListItemText>
+        <ListItemIcon>
+          <LogoutRoundedIcon fontSize="small" />
+        </ListItemIcon>
+      </MenuItem>
+    </Menu>
   );
 }

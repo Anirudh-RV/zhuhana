@@ -1,15 +1,11 @@
 import { styled } from "@mui/material/styles";
-import Avatar from "@mui/material/Avatar";
 import MuiDrawer, { drawerClasses } from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import SelectContent from "./SelectContent";
 import MenuContent from "./MenuContent";
-import CardAlert from "./CardAlert";
-import OptionsMenu from "./OptionsMenu";
 import { useAuth } from "../../AuthContext";
+import Copyright from "../internals/components/Copyright";
 
 const drawerWidth = 240;
 
@@ -40,12 +36,35 @@ export default function SideMenu() {
       <Box
         sx={{
           display: "flex",
+          alignItems: "center", // vertically center
+          justifyContent: "center", // horizontally center
           mt: "calc(var(--template-frame-height, 0px) + 4px)",
           p: 1.5,
         }}
       >
-        <SelectContent />
+        <Typography
+          variant="body2"
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: "center",
+            fontSize: "clamp(1rem, 4vw, 2.5rem)",
+          }}
+        >
+          ZHU
+          <Typography
+            component="span"
+            variant="body2"
+            sx={{
+              fontSize: "inherit",
+              color: "primary.main",
+            }}
+          >
+            HANA
+          </Typography>
+        </Typography>
       </Box>
+
       <Divider />
       <Box
         sx={{
@@ -56,38 +75,9 @@ export default function SideMenu() {
         }}
       >
         <MenuContent />
-        <CardAlert />
+        <Divider />
+        <Copyright sx={{ my: 2 }} />
       </Box>
-      <Stack
-        direction="row"
-        sx={{
-          p: 2,
-          gap: 1,
-          alignItems: "center",
-          borderTop: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Avatar
-          sizes="small"
-          alt={user?.FirstName}
-          src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36 }}
-        />
-        <Box sx={{ mr: "auto" }}>
-          <Typography
-            variant="body2"
-            sx={{ fontWeight: 500, lineHeight: "16px" }}
-          >
-            {user?.FirstName} {user?.MiddleName}
-            {user?.LastName}
-          </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {user?.EmailID}
-          </Typography>
-        </Box>
-        <OptionsMenu />
-      </Stack>
     </Drawer>
   );
 }

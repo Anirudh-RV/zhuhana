@@ -43,7 +43,7 @@ export default function TerminalPanel({
         flexDirection: "column",
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 1,
-        backgroundColor: resolvedMode === "dark" ? "#000000" : "#f5f5f5",
+        backgroundColor: "background.default",
         minHeight: "60px",
         overflow: "hidden",
       }}
@@ -78,8 +78,7 @@ export default function TerminalPanel({
               py: 0.5,
               borderRadius: 1,
               cursor: "pointer",
-              backgroundColor:
-                resolvedMode === "dark" ? "background.paper" : "#ddd",
+              backgroundColor: resolvedMode === "dark" ? "#0A0E13" : "#c2c2c2",
               color: resolvedMode === "dark" ? "#fff" : "#000",
               transition: "background-color 0.2s",
               "&:hover": {
@@ -110,14 +109,14 @@ export default function TerminalPanel({
             size="small"
             disabled={isLoadingPyodide}
             sx={{
+              backgroundColor: resolvedMode === "dark" ? "#000000" : "#c2c2c2",
               color: isLoadingPyodide
                 ? theme.palette.grey[500]
                 : theme.palette.success.main,
               "&:hover": {
-                backgroundColor: isLoadingPyodide
-                  ? "transparent"
-                  : theme.palette.success.dark,
+                backgroundColor: "#444",
               },
+              border: 0,
             }}
           >
             <PlayArrowIcon />
@@ -135,6 +134,7 @@ export default function TerminalPanel({
           wordBreak: "break-word",
           maxWidth: "100%",
           maxHeight: "30vh",
+          backgroundColor: "background.default",
         }}
       >
         {terminalOutput.map((line, index) => (

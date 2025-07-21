@@ -10,49 +10,58 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { Link } from "react-router-dom";
 
 const tiers = [
   {
     title: "Free",
     price: "0",
     description: [
-      "10 users included",
-      "2 GB of storage",
-      "Help center access",
-      "Email support",
+      "No credit card required",
+      "Create upto 5 algorithms",
+      "Backtesting on 5 years of data",
+      "5,000 daily credits for Zhuhana AI",
+      "10,000 daily credits for Backtesting",
     ],
     buttonText: "Sign up for free",
     buttonVariant: "outlined",
-    buttonColor: "primary",
+    buttonColor: "secondary",
   },
   {
-    title: "Professional",
+    title: "Standard",
     subheader: "Recommended",
-    price: "15",
+    price: "20",
     description: [
-      "20 users included",
-      "10 GB of storage",
-      "Help center access",
-      "Priority email support",
-      "Dedicated team",
-      "Best deals",
+      "Create upto 25 algorithms",
+      "Access to Zhuhana vault",
+      "Backtest on all available datasets",
+      "25,000 daily credits for Zhuhana AI",
+      "50,000 daily credits for Backtesting",
+      "Support for Paper Trading and Live Trading",
     ],
     buttonText: "Start now",
     buttonVariant: "contained",
     buttonColor: "secondary",
+    comingSoon: true,
   },
   {
-    title: "Enterprise",
-    price: "30",
+    title: "Pro",
+    price: "99",
     description: [
-      "50 users included",
-      "30 GB of storage",
-      "Help center access",
-      "Phone & email support",
+      "Unlimited algorithm creation",
+      "Access to Zhuhana vault",
+      "Backtest on all available datasets",
+      "Provide custom datasets for Backtesting",
+      "100,000 daily credits for Zhuhana AI",
+      "250,000 daily credits for Backtesting",
+      "Support for Paper Trading and Live Trading",
+      "Priority access to new features",
+      "Premium customer support",
     ],
-    buttonText: "Contact us",
+    buttonText: "Get started",
     buttonVariant: "outlined",
-    buttonColor: "primary",
+    buttonColor: "secondary",
+    comingSoon: true,
   },
 ];
 
@@ -85,10 +94,8 @@ export default function Pricing() {
           Pricing
         </Typography>
         <Typography variant="body1" sx={{ color: "text.secondary" }}>
-          Quickly build an effective pricing table for your potential customers
-          with this layout. <br />
-          It&apos;s built with default Material UI components with little
-          customization.
+          Enjoy a generous Free Tier to test our product and choose a plan that
+          best suites your needs.
         </Typography>
       </Box>
       <Grid
@@ -98,7 +105,7 @@ export default function Pricing() {
       >
         {tiers.map((tier) => (
           <Grid
-            size={{ xs: 12, sm: tier.title === "Enterprise" ? 12 : 6, md: 4 }}
+            size={{ xs: 12, sm: tier.title === "Pro" ? 12 : 6, md: 4 }}
             key={tier.title}
           >
             <Card
@@ -108,8 +115,10 @@ export default function Pricing() {
                   display: "flex",
                   flexDirection: "column",
                   gap: 4,
+                  width: "100%",
+                  minHeight: 560,
                 },
-                tier.title === "Professional" &&
+                tier.title === "Standard" &&
                   ((theme) => ({
                     border: "none",
                     background:
@@ -133,7 +142,7 @@ export default function Pricing() {
                       alignItems: "center",
                       gap: 2,
                     },
-                    tier.title === "Professional"
+                    tier.title === "Standard"
                       ? { color: "grey.100" }
                       : { color: "" },
                   ]}
@@ -141,9 +150,14 @@ export default function Pricing() {
                   <Typography component="h3" variant="h6">
                     {tier.title}
                   </Typography>
-                  {tier.title === "Professional" && (
-                    <Chip icon={<AutoAwesomeIcon />} label={tier.subheader} />
-                  )}
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    {tier.subheader && tier.title === "" && (
+                      <Chip icon={<AutoAwesomeIcon />} label={tier.subheader} />
+                    )}
+                    {tier.comingSoon && (
+                      <Chip label="Coming Soon" color="warning" />
+                    )}
+                  </Box>
                 </Box>
                 <Box
                   sx={[
@@ -151,7 +165,7 @@ export default function Pricing() {
                       display: "flex",
                       alignItems: "baseline",
                     },
-                    tier.title === "Professional"
+                    tier.title === "Standard"
                       ? { color: "grey.50" }
                       : { color: null },
                   ]}
@@ -179,7 +193,7 @@ export default function Pricing() {
                         {
                           width: 20,
                         },
-                        tier.title === "Professional"
+                        tier.title === "Standard"
                           ? { color: "primary.light" }
                           : { color: "primary.main" },
                       ]}
@@ -188,7 +202,7 @@ export default function Pricing() {
                       variant="subtitle2"
                       component={"span"}
                       sx={[
-                        tier.title === "Professional"
+                        tier.title === "Standard"
                           ? { color: "grey.50" }
                           : { color: null },
                       ]}
@@ -198,11 +212,14 @@ export default function Pricing() {
                   </Box>
                 ))}
               </CardContent>
-              <CardActions>
+              <CardActions sx={{ mt: "auto" }}>
                 <Button
                   fullWidth
                   variant={tier.buttonVariant as "outlined" | "contained"}
                   color={tier.buttonColor as "primary" | "secondary"}
+                  disabled={!!tier.comingSoon}
+                  component={tier.title === "Free" ? Link : "button"}
+                  to={tier.title === "Free" ? "/signup" : undefined}
                 >
                   {tier.buttonText}
                 </Button>

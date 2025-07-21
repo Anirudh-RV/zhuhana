@@ -1,6 +1,6 @@
 import SvgIcon from "@mui/material/SvgIcon";
 
-export default function SitemarkIcon() {
+export default function ZhuhanaIcon() {
   return (
     <SvgIcon sx={{ height: 21, width: 100, mr: 2 }}>
       <svg

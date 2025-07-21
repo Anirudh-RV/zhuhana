@@ -7,38 +7,50 @@ import MuiChip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-
-import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
-import EdgesensorHighRoundedIcon from "@mui/icons-material/EdgesensorHighRounded";
+import CodeIcon from "@mui/icons-material/Code";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import ViewQuiltRoundedIcon from "@mui/icons-material/ViewQuiltRounded";
-
-const TEMPLATE_IMAGE_URL =
-  import.meta.env.VITE_TEMPLATE_IMAGE_URL || "https://mui.com";
+import { useColorScheme } from "@mui/material/styles";
 
 const items = [
   {
     icon: <ViewQuiltRoundedIcon />,
     title: "Dashboard",
     description:
-      "This item could provide a snapshot of the most important metrics or data points related to the product.",
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/dash-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/dash-dark.png")`,
+      "A comprehensive dashboard that helps you track your algorithms, backtests and portfolio.",
+    points: [
+      "Track your strategies, performance metrics, and open positions in one unified view.",
+      "Get a high level overview of all your backtests and trading activity.",
+      "Monitor your portfolio and algorithmic trading sessions in real time.",
+    ],
+    imageLight: `url("/images/light-dashboard.png")`,
+    imageDark: `url("/images/dark-dashboard.png")`,
   },
   {
-    icon: <EdgesensorHighRoundedIcon />,
-    title: "Mobile integration",
+    icon: <CodeIcon />,
+    title: "Cloud Coding Environment",
     description:
-      "This item could provide information about the mobile app version of the product.",
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/mobile-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/mobile-dark.png")`,
+      "A cloud environment for you to code in Python with all the features you'd expect from an IDE without having to download a thing.",
+    points: [
+      "Code in Python directly in the browser. No installation required.",
+      "Use Zhuhana AI to generate code by describing your strategy in plain English.",
+      "Review, edit, and fully customize the generated code with a full featured IDE.",
+    ],
+    imageLight: `url("/images/light-code.png")`,
+    imageDark: `url("/images/dark-code.png")`,
   },
   {
-    icon: <DevicesRoundedIcon />,
-    title: "Available on all platforms",
+    icon: <AccountBalanceIcon />,
+    title: "Trading & Execution",
     description:
-      "This item could let users know the product is available on all platforms, such as web, mobile, and desktop.",
-    imageLight: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/devices-light.png")`,
-    imageDark: `url("${TEMPLATE_IMAGE_URL}/static/images/templates/templates-images/devices-dark.png")`,
+      "Backtest, simulate, and execute your strategies seamlessly using your preferred broker.",
+    points: [
+      "Run historical backtests with real market data to validate your strategy.",
+      "Simulate trades with paper trading in live market conditions without any risk.",
+      "Connect to supported brokers and deploy your algorithms live from Zhuhana.",
+    ],
+    imageLight: `url("/images/light-dashboard.png")`,
+    imageDark: `url("/images/dark-dashboard.png")`,
   },
 ];
 
@@ -72,6 +84,10 @@ interface MobileLayoutProps {
   selectedFeature: (typeof items)[0];
 }
 
+function extractUrl(cssUrl: string): string {
+  return cssUrl.replace(/^url\(["']?/, "").replace(/["']?\)$/, "");
+}
+
 export function MobileLayout({
   selectedItemIndex,
   handleItemClick,
@@ -102,7 +118,8 @@ export function MobileLayout({
         <Box
           sx={(theme) => ({
             mb: 2,
-            backgroundSize: "cover",
+            display: { xs: "block", md: "none" }, // ✅ FIXED LINE
+            backgroundSize: "contain",
             backgroundPosition: "center",
             minHeight: 280,
             backgroundImage: "var(--items-imageLight)",
@@ -119,6 +136,7 @@ export function MobileLayout({
               : {}
           }
         />
+
         <Box sx={{ px: 2, pb: 2 }}>
           <Typography
             gutterBottom
@@ -126,9 +144,23 @@ export function MobileLayout({
           >
             {selectedFeature.title}
           </Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1.5 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
             {selectedFeature.description}
           </Typography>
+          {selectedFeature.points?.length && (
+            <Box component="ul" sx={{ pl: 3, m: 0 }}>
+              {selectedFeature.points.map((point, idx) => (
+                <Typography
+                  key={idx}
+                  component="li"
+                  variant="body2"
+                  sx={{ mb: 0.5 }}
+                >
+                  {point}
+                </Typography>
+              ))}
+            </Box>
+          )}
         </Box>
       </Card>
     </Box>
@@ -136,6 +168,9 @@ export function MobileLayout({
 }
 
 export default function Features() {
+  const { mode, systemMode } = useColorScheme();
+  const resolvedMode = mode === "system" ? systemMode : mode;
+
   const [selectedItemIndex, setSelectedItemIndex] = React.useState(0);
 
   const handleItemClick = (index: number) => {
@@ -144,26 +179,29 @@ export default function Features() {
 
   const selectedFeature = items[selectedItemIndex];
 
+  const imageUrl = extractUrl(
+    resolvedMode === "dark"
+      ? selectedFeature.imageDark
+      : selectedFeature.imageLight
+  );
+
   return (
     <Container id="features" sx={{ py: { xs: 8, sm: 16 } }}>
-      <Box sx={{ width: { sm: "100%", md: "60%" } }}>
+      <Box sx={{ width: { sm: "100%", md: "60%" }, mb: { xs: 4, sm: 6 } }}>
         <Typography
           component="h2"
           variant="h4"
           gutterBottom
           sx={{ color: "text.primary" }}
         >
-          Product features
+          Product Features
         </Typography>
-        <Typography
-          variant="body1"
-          sx={{ color: "text.secondary", mb: { xs: 2, sm: 4 } }}
-        >
-          Provide a brief overview of the key features of the product. For
-          example, you could list the number of features, their types or
-          benefits, and add-ons.
+        <Typography variant="body1" sx={{ color: "text.secondary" }}>
+          Explore the key features of Zhuhana that streamline algorithmic
+          trading, from strategy creation to live execution.
         </Typography>
       </Box>
+
       <Box
         sx={{
           display: "flex",
@@ -171,6 +209,7 @@ export default function Features() {
           gap: 2,
         }}
       >
+        {/* Desktop list */}
         <div>
           <Box
             sx={{
@@ -180,7 +219,7 @@ export default function Features() {
               height: "100%",
             }}
           >
-            {items.map(({ icon, title, description }, index) => (
+            {items.map(({ icon, title, description, points }, index) => (
               <Box
                 key={index}
                 component={Button}
@@ -190,6 +229,7 @@ export default function Features() {
                     p: 2,
                     height: "100%",
                     width: "100%",
+                    textAlign: "left",
                     "&:hover": {
                       backgroundColor: (theme.vars || theme).palette.action
                         .hover,
@@ -206,9 +246,8 @@ export default function Features() {
                       width: "100%",
                       display: "flex",
                       flexDirection: "column",
-                      alignItems: "left",
+                      alignItems: "flex-start",
                       gap: 1,
-                      textAlign: "left",
                       textTransform: "none",
                       color: "text.secondary",
                     },
@@ -220,16 +259,41 @@ export default function Features() {
                   {icon}
                   <Typography variant="h6">{title}</Typography>
                   <Typography variant="body2">{description}</Typography>
+                  {points?.length && (
+                    <Box component="ul" sx={{ pl: 3, mt: 1 }}>
+                      {points.map((point, idx) => (
+                        <Typography
+                          key={idx}
+                          component="li"
+                          variant="body2"
+                          sx={{ mb: 0.5 }}
+                        >
+                          {point}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               </Box>
             ))}
           </Box>
-          <MobileLayout
-            selectedItemIndex={selectedItemIndex}
-            handleItemClick={handleItemClick}
-            selectedFeature={selectedFeature}
-          />
+
+          <Box
+            sx={{
+              display: { xs: "flex", sm: "none" },
+              flexDirection: "column",
+              width: "100%",
+            }}
+          >
+            {/* Mobile layout */}
+            <MobileLayout
+              selectedItemIndex={selectedItemIndex}
+              handleItemClick={handleItemClick}
+              selectedFeature={selectedFeature}
+            />
+          </Box>
         </div>
+        {/* Image Preview Card */}
         <Box
           sx={{
             display: { xs: "none", sm: "flex" },
@@ -247,25 +311,25 @@ export default function Features() {
             }}
           >
             <Box
-              sx={(theme) => ({
+              sx={{
                 m: "auto",
-                width: 420,
-                height: 500,
-                backgroundSize: "contain",
-                backgroundImage: "var(--items-imageLight)",
-                ...theme.applyStyles?.("dark", {
-                  backgroundImage: "var(--items-imageDark)",
-                }),
-              })}
-              style={
-                selectedFeature
-                  ? ({
-                      "--items-imageLight": selectedFeature.imageLight,
-                      "--items-imageDark": selectedFeature.imageDark,
-                    } as any)
-                  : {}
-              }
-            />
+                width: "100%",
+                maxWidth: 480,
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt={selectedFeature.title}
+                style={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                  objectFit: "contain",
+                }}
+              />
+            </Box>
           </Card>
         </Box>
       </Box>

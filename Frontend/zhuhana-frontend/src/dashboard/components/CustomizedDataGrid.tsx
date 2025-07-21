@@ -1,12 +1,28 @@
-import { DataGrid } from "@mui/x-data-grid";
-import { columns, rows } from "../internals/data/gridData";
+import {
+  DataGrid,
+  GridColDef,
+  GridRowsProp,
+  GridRowParams,
+} from "@mui/x-data-grid";
 
-export default function CustomizedDataGrid() {
+interface CustomizedDataGridProps {
+  rows: GridRowsProp;
+  columns: GridColDef[];
+  onRowDoubleClick?: (params: GridRowParams) => void;
+}
+
+export default function CustomizedDataGrid({
+  rows,
+  columns,
+  onRowDoubleClick,
+}: CustomizedDataGridProps) {
   return (
     <DataGrid
       checkboxSelection
       rows={rows}
       columns={columns}
+      getRowId={(row) => row.id}
+      onRowDoubleClick={onRowDoubleClick}
       getRowClassName={(params) =>
         params.indexRelativeToCurrentPage % 2 === 0 ? "even" : "odd"
       }
@@ -16,30 +32,9 @@ export default function CustomizedDataGrid() {
       pageSizeOptions={[10, 20, 50]}
       disableColumnResize
       density="compact"
-      slotProps={{
-        filterPanel: {
-          filterFormProps: {
-            logicOperatorInputProps: {
-              variant: "outlined",
-              size: "small",
-            },
-            columnInputProps: {
-              variant: "outlined",
-              size: "small",
-              sx: { mt: "auto" },
-            },
-            operatorInputProps: {
-              variant: "outlined",
-              size: "small",
-              sx: { mt: "auto" },
-            },
-            valueInputProps: {
-              InputComponentProps: {
-                variant: "outlined",
-                size: "small",
-              },
-            },
-          },
+      sx={{
+        "& .MuiDataGrid-row:hover": {
+          cursor: "pointer",
         },
       }}
     />

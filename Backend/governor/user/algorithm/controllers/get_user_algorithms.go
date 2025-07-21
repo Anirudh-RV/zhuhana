@@ -47,12 +47,20 @@ func (uac *UserAlgorithmController) GetUserAlgorithms(c *gin.Context) {
 // @Success      200 {object} models.GetUserAlgorithmResponse "Algorithm fetched successfully"
 // @Failure      500 {object} models.GetUserAlgorithmResponse "Failed to fetch user algorithm"
 // @Security     USER_TOKEN
-// @Router       /v1/user/algorithm/{id} [get]
+// @Router       /v1/user/algorithm/info/ [get]
 func (uac *UserAlgorithmController) GetUserAlgorithmByID(c *gin.Context) {
 	userID, _ := c.Get("USER_ID")
-	id := c.Param("id")
+	algorithmID := c.Query("algorithm_id")
 
-	userAlgorithm, err := uac.userAlgorithmService.GetUserAlgorithm(fmt.Sprint(userID), fmt.Sprint(id))
+	if algorithmID == "" {
+		c.JSON(http.StatusBadRequest, models.GetUserAlgorithmResponse{
+			Status:            0,
+			StatusDescription: "Missing query param: algorithm_id",
+		})
+		return
+	}
+
+	userAlgorithm, err := uac.userAlgorithmService.GetUserAlgorithm(fmt.Sprint(userID), fmt.Sprint(algorithmID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.GetUserAlgorithmResponse{
 			Status:            0,

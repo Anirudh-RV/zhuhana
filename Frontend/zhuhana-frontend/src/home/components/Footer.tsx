@@ -11,14 +11,15 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import TwitterIcon from "@mui/icons-material/X";
 
+import { Link as RouterLink } from "react-router-dom";
+
 function Copyright() {
   return (
     <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
       {"Copyright © "}
-      <Link color="text.secondary" href="https://mui.com/">
-        Sitemark
-      </Link>
-      &nbsp;
+      <Link color="text.secondary" href="https://zhuhana.com/">
+        Zhuhana
+      </Link>{" "}
       {new Date().getFullYear()}
     </Typography>
   );
@@ -61,7 +62,7 @@ export default function Footer() {
               Join the newsletter
             </Typography>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-              Subscribe for weekly updates. No spams ever!
+              Subscribe for weekly updates.
             </Typography>
             <InputLabel htmlFor="email-newsletter">Email</InputLabel>
             <Stack direction="row" spacing={1} useFlexGap>
@@ -92,6 +93,7 @@ export default function Footer() {
             </Stack>
           </Box>
         </Box>
+
         <Box
           sx={{
             display: { xs: "none", sm: "flex" },
@@ -102,22 +104,32 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Product
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/features"
+            color="text.secondary"
+            variant="body2"
+          >
             Features
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Testimonials
+          <Link
+            component={RouterLink}
+            to="/demo"
+            color="text.secondary"
+            variant="body2"
+          >
+            Demo
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Highlights
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/pricing"
+            color="text.secondary"
+            variant="body2"
+          >
             Pricing
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            FAQs
-          </Link>
         </Box>
+
         <Box
           sx={{
             display: { xs: "none", sm: "flex" },
@@ -128,16 +140,24 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Company
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/company"
+            color="text.secondary"
+            variant="body2"
+          >
             About us
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Careers
-          </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Press
+          <Link
+            component={RouterLink}
+            to="/blog"
+            color="text.secondary"
+            variant="body2"
+          >
+            Blog
           </Link>
         </Box>
+
         <Box
           sx={{
             display: { xs: "none", sm: "flex" },
@@ -148,17 +168,33 @@ export default function Footer() {
           <Typography variant="body2" sx={{ fontWeight: "medium" }}>
             Legal
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/terms"
+            color="text.secondary"
+            variant="body2"
+          >
             Terms
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/privacy"
+            color="text.secondary"
+            variant="body2"
+          >
             Privacy
           </Link>
-          <Link color="text.secondary" variant="body2" href="#">
-            Contact
+          <Link
+            component={RouterLink}
+            to="/contact"
+            color="text.secondary"
+            variant="body2"
+          >
+            Support
           </Link>
         </Box>
       </Box>
+
       <Box
         sx={{
           display: "flex",
@@ -170,13 +206,23 @@ export default function Footer() {
         }}
       >
         <div>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/privacy"
+            color="text.secondary"
+            variant="body2"
+          >
             Privacy Policy
           </Link>
           <Typography sx={{ display: "inline", mx: 0.5, opacity: 0.5 }}>
             &nbsp;•&nbsp;
           </Typography>
-          <Link color="text.secondary" variant="body2" href="#">
+          <Link
+            component={RouterLink}
+            to="/terms"
+            color="text.secondary"
+            variant="body2"
+          >
             Terms of Service
           </Link>
           <Copyright />
@@ -190,27 +236,30 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://github.com/mui"
+            href="https://github.com/yxiaa/Zhuhana-algo-trading-sdk"
             aria-label="GitHub"
             sx={{ alignSelf: "center" }}
+            target="_blank"
           >
             <GitHubIcon />
           </IconButton>
           <IconButton
             color="inherit"
             size="small"
-            href="https://x.com/MaterialUI"
+            href="https://x.com/Zhuhana246143"
             aria-label="X"
             sx={{ alignSelf: "center" }}
+            target="_blank"
           >
             <TwitterIcon />
           </IconButton>
           <IconButton
             color="inherit"
             size="small"
-            href="https://www.linkedin.com/company/mui/"
+            href="https://www.linkedin.com/company/zhuhana/"
             aria-label="LinkedIn"
             sx={{ alignSelf: "center" }}
+            target="_blank"
           >
             <LinkedInIcon />
           </IconButton>

@@ -49,7 +49,10 @@ const CodeMirrorEditor: React.FC<CodeMirrorEditorProps> = ({
         extensions={[...baseExtensions, ...extraExtensions]}
         onChange={onChange}
         onCreateEditor={onCreateEditor}
-        style={{ flex: 1, height: "100%" }} // ✅ Ensures the inner editor stretches
+        style={{
+          flex: 1,
+          height: "100%",
+        }}
         basicSetup={{
           lineNumbers: false, // optional: disable if redundant
         }}

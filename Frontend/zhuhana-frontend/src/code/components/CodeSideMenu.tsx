@@ -1,18 +1,9 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  IconButton,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from "@mui/material";
+import { Box, Button, IconButton, Typography, Tooltip } from "@mui/material";
 import BacktestConfig from "./BacktestConfig";
 import PaperTradeConfig from "./PaperTradingConfig";
 import LiveTradeConfig from "./LiveTradingConfig";
 import MenuIcon from "@mui/icons-material/Menu";
-import Tooltip from "@mui/material/Tooltip";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useColorScheme } from "@mui/material/styles";
 
@@ -23,6 +14,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
   const { mode: themeMode, systemMode: themeSystemMode } = useColorScheme();
   const resolvedThemeMode =
     themeMode === "system" ? themeSystemMode : themeMode;
+  const selectedColor = resolvedThemeMode === "dark" ? "grey.700" : "grey.300";
 
   return (
     <Box
@@ -37,8 +29,8 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
         borderColor: "divider",
       }}
     >
-      {/* Bottom Content */}
       <Box sx={{ overflowY: "auto", maxHeight: "100%", mt: 1 }}>
+        {/* Header */}
         <Box
           sx={{
             display: "flex",
@@ -47,7 +39,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
             mb: 2,
           }}
         >
-          <Typography variant="h5">Configuration</Typography>
+          <Typography variant="h5">Configuration Panel</Typography>
           {onClose && (
             <IconButton size="small" onClick={onClose}>
               <MenuIcon fontSize="small" />
@@ -55,12 +47,13 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
           )}
         </Box>
 
+        {/* Mode Selector Title */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Typography variant="h6" sx={{ mr: 0.5 }}>
             Select Execution Mode
           </Typography>
           <Tooltip
-            title="⚠️ Live Trading and Paper Trading coming soon!"
+            title="⚠️ Paper Trading and Live Trading coming soon!"
             placement="bottom"
             slotProps={{
               tooltip: {
@@ -69,7 +62,7 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
                     resolvedThemeMode === "dark" ? "#333" : "#eee",
                   color: resolvedThemeMode === "dark" ? "#fff" : "#000",
                   boxShadow: 3,
-                  opacity: 1, // Ensures it's fully opaque
+                  opacity: 1,
                 },
               },
             }}
@@ -80,25 +73,55 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
           </Tooltip>
         </Box>
 
-        <ToggleButtonGroup
-          value={mode}
-          exclusive
-          onChange={(_e, newMode) => newMode && setMode(newMode)}
-          fullWidth
-          sx={{ mb: 2 }}
+        {/* Custom Toggle Button Replacement */}
+        <Box
+          sx={{
+            display: "flex",
+            mb: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: "8px", // No rounding
+            overflow: "hidden", // Remove border overlaps
+            width: "100%",
+          }}
         >
-          {executionModes.map((m) => (
-            <ToggleButton
-              key={m}
-              value={m}
-              disabled={m === "Live Trade" || m === "Paper Trade"}
-            >
-              {m}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+          {executionModes.map((m, index) => {
+            const isSelected = mode === m;
+            const isDisabled = m === "Live Trade" || m === "Paper Trade";
 
-        {/* Step 3: Conditional Components */}
+            return (
+              <Button
+                key={m}
+                onClick={() => setMode(m)}
+                disabled={isDisabled}
+                variant="text"
+                sx={{
+                  flex: 1,
+                  textTransform: "none",
+                  borderRadius: 0, // Boxy edges
+                  py: 4,
+                  fontWeight: isSelected ? 600 : 400,
+                  backgroundColor: isSelected
+                    ? selectedColor
+                    : "background.paper",
+                  color: isSelected ? "text.primary" : "text.primary",
+                  borderRight:
+                    index < executionModes.length - 1 ? "1px solid" : "none",
+                  borderColor: "divider",
+                  "&:hover": {
+                    backgroundColor: isSelected
+                      ? "primary.dark"
+                      : "action.hover",
+                  },
+                }}
+              >
+                {m}
+              </Button>
+            );
+          })}
+        </Box>
+
+        {/* Conditional Configs */}
         {mode === "Backtest" && <BacktestConfig />}
         {mode === "Paper Trade" && <PaperTradeConfig />}
         {mode === "Live Trade" && <LiveTradeConfig />}

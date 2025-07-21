@@ -11,6 +11,7 @@ import { styled } from "@mui/material/styles";
 import { useNavigate, Link } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useAuth } from "../../AuthContext";
+import ForgotPassword from "./ForgotPassword";
 
 import {
   LOGIN_V1_VERIFY_PASSWORD_ENDPOINT,
@@ -43,9 +44,61 @@ export default function SignInCard() {
   const [otpSent, setOtpSent] = React.useState(false);
   const [otp, setOtp] = React.useState("");
   const [emailForOtp, setEmailForOtp] = React.useState("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
+
+  const [passwordForOtp, setPasswordForOtp] = React.useState("");
+
+  const [otpError, setOtpError] = React.useState(false);
+  const [otpErrorMessage, setOtpErrorMessage] = React.useState("");
+
+  const [resendCount, setResendCount] = React.useState(0);
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  React.useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const openForgotPasswordDialog = () => setForgotPasswordOpen(true);
+  const closeForgotPasswordDialog = () => setForgotPasswordOpen(false);
 
   const navigate = useNavigate();
   const { setAuth } = useAuth();
+
+  const handleResendOtp = async () => {
+    if (resendCount >= 2 || resendCooldown > 0) return;
+
+    try {
+      const res = await fetch(LOGIN_V1_VERIFY_PASSWORD_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          emailId: emailForOtp,
+          password: passwordForOtp,
+        }),
+      });
+
+      if (res.ok) {
+        setResendCount((prev) => prev + 1);
+        setResendCooldown(60);
+        setOtpError(false);
+        setOtpErrorMessage("");
+      } else {
+        setOtpError(true);
+        setOtpErrorMessage(
+          "Failed to resend OTP. Please try logging in again."
+        );
+      }
+    } catch (err) {
+      setOtpError(true);
+      setOtpErrorMessage("Network error while resending OTP.");
+    }
+  };
 
   const validateInputs = () => {
     const email = document.getElementById("email") as HTMLInputElement;
@@ -85,6 +138,7 @@ export default function SignInCard() {
     };
 
     setEmailForOtp(payload.emailId as string);
+    setPasswordForOtp(payload.password as string);
 
     try {
       const res = await fetch(LOGIN_V1_VERIFY_PASSWORD_ENDPOINT, {
@@ -95,17 +149,23 @@ export default function SignInCard() {
 
       if (res.ok) {
         setOtpSent(true);
+        setPasswordError(false);
+        setPasswordErrorMessage("");
       } else {
         const error = await res.json();
-        alert(error.statusDescription || "Invalid credentials");
+
+        setPasswordError(true);
+        setPasswordErrorMessage("Login Error, incorrect email or password");
       }
     } catch (err) {
-      console.error("Password verification failed", err);
       alert("Network error");
     }
   };
 
   const handleOtpVerification = async () => {
+    setOtpError(false);
+    setOtpErrorMessage("");
+
     try {
       const res = await fetch(LOGIN_V1_VERIFY_OTP_ENDPOINT, {
         method: "POST",
@@ -119,11 +179,12 @@ export default function SignInCard() {
         navigate("/dashboard");
       } else {
         const error = await res.json();
-        alert(error.statusDescription || "Invalid OTP");
+        setOtpError(true);
+        setOtpErrorMessage("Invalid OTP, resend and try again.");
       }
     } catch (err) {
-      console.error("OTP verification failed", err);
-      alert("Network error");
+      setOtpError(true);
+      setOtpErrorMessage("Network error. Please try again.");
     }
   };
 
@@ -145,39 +206,45 @@ export default function SignInCard() {
           noValidate
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-          <FormControl>
-            <FormLabel htmlFor="email">Email</FormLabel>
-            <TextField
-              error={emailError}
-              helperText={emailErrorMessage}
-              id="email"
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              autoComplete="email"
-              required
-              fullWidth
-              variant="outlined"
-              color={emailError ? "error" : "primary"}
-            />
-          </FormControl>
+          <FormLabel htmlFor="email">Email</FormLabel>
+          <TextField
+            error={emailError}
+            helperText={emailErrorMessage}
+            id="email"
+            type="email"
+            name="email"
+            placeholder="your@email.com"
+            autoComplete="email"
+            required
+            fullWidth
+            variant="outlined"
+          />
 
-          <FormControl>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <TextField
-              error={passwordError}
-              helperText={passwordErrorMessage}
-              name="password"
-              placeholder="••••••"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              required
-              fullWidth
-              variant="outlined"
-              color={passwordError ? "error" : "primary"}
-            />
-          </FormControl>
+          <FormLabel htmlFor="password">Password</FormLabel>
+          <TextField
+            error={passwordError}
+            helperText={passwordErrorMessage}
+            name="password"
+            placeholder="••••••"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            required
+            fullWidth
+            variant="outlined"
+          />
+
+          <Typography
+            variant="body2"
+            sx={{
+              textAlign: "right",
+              cursor: "pointer",
+              color: "primary.main",
+            }}
+            onClick={openForgotPasswordDialog}
+          >
+            Forgot password?
+          </Typography>
 
           <Button type="submit" fullWidth variant="contained">
             Log in
@@ -194,35 +261,72 @@ export default function SignInCard() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <MuiOtpInput
             value={otp}
-            onChange={setOtp}
+            onChange={(value) => {
+              setOtp(value);
+              setOtpError(false);
+              setOtpErrorMessage("");
+            }}
             length={6}
             autoFocus
             TextFieldsProps={{
               size: "small",
+              error: otpError,
               sx: {
                 width: "3rem",
                 mx: 0.5,
                 input: {
-                  color: "text.primary", // Make text visible
-                  backgroundColor: "background.paper", // Ensure good contrast
+                  color: "text.primary",
+                  backgroundColor: "background.default",
                 },
               },
             }}
           />
+          {otpError && (
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{ textAlign: "center", mt: -1 }}
+            >
+              {otpErrorMessage}
+            </Typography>
+          )}
           <Button variant="contained" onClick={handleOtpVerification}>
             Verify OTP
           </Button>
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ textAlign: "center" }}
+          >
             Didn't receive OTP?{" "}
             <MuiLink
-              sx={{ cursor: "pointer" }}
-              onClick={() => alert("Resend OTP endpoint not implemented yet")}
+              sx={{
+                cursor:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "not-allowed"
+                    : "pointer",
+                pointerEvents:
+                  resendCooldown > 0 || resendCount >= 2 ? "none" : "auto",
+                color:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "text.disabled"
+                    : "primary.main",
+              }}
+              onClick={handleResendOtp}
             >
-              Resend
+              {resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : resendCount >= 2
+                ? "Resend limit reached"
+                : "Resend"}
             </MuiLink>
           </Typography>
         </Box>
       )}
+      <ForgotPassword
+        open={forgotPasswordOpen}
+        handleClose={closeForgotPasswordDialog}
+      />
     </Card>
   );
 }

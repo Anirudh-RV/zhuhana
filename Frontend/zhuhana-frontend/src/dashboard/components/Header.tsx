@@ -1,13 +1,32 @@
-import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import * as React from "react";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
 import CustomDatePicker from "./CustomDatePicker";
 import NavbarBreadcrumbs from "./NavbarBreadcrumbs";
 import MenuButton from "./MenuButton";
 import ColorModeIconDropdown from "../../shared-ui-theme/ColorModeIconDropdown";
+import Stack from "@mui/material/Stack";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import { useAuth } from "../../AuthContext";
+import OptionsMenu from "./OptionsMenu";
 
 import Search from "./Search";
 
 export default function Header() {
+  const { user } = useAuth();
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchorEl(null);
+  };
+
   return (
     <Stack
       direction="row"
@@ -23,12 +42,19 @@ export default function Header() {
     >
       <NavbarBreadcrumbs />
       <Stack direction="row" sx={{ gap: 1 }}>
-        <Search />
-        <CustomDatePicker />
         <MenuButton showBadge aria-label="Open notifications">
           <NotificationsRoundedIcon />
         </MenuButton>
         <ColorModeIconDropdown />
+
+        <Avatar
+          alt={user?.FirstName}
+          src="/static/images/avatar/7.jpg"
+          sx={{ width: 36, height: 36, cursor: "pointer" }}
+          onClick={handleAvatarClick}
+        />
+
+        <OptionsMenu anchorEl={menuAnchorEl} onClose={handleMenuClose} />
       </Stack>
     </Stack>
   );
