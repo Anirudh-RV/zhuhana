@@ -46,14 +46,59 @@ export default function SignInCard() {
   const [emailForOtp, setEmailForOtp] = React.useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
 
+  const [passwordForOtp, setPasswordForOtp] = React.useState("");
+
   const [otpError, setOtpError] = React.useState(false);
   const [otpErrorMessage, setOtpErrorMessage] = React.useState("");
+
+  const [resendCount, setResendCount] = React.useState(0);
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  React.useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const openForgotPasswordDialog = () => setForgotPasswordOpen(true);
   const closeForgotPasswordDialog = () => setForgotPasswordOpen(false);
 
   const navigate = useNavigate();
   const { setAuth } = useAuth();
+
+  const handleResendOtp = async () => {
+    if (resendCount >= 2 || resendCooldown > 0) return;
+
+    try {
+      const res = await fetch(LOGIN_V1_VERIFY_PASSWORD_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          emailId: emailForOtp,
+          password: passwordForOtp,
+        }),
+      });
+
+      if (res.ok) {
+        setResendCount((prev) => prev + 1);
+        setResendCooldown(60);
+        setOtpError(false);
+        setOtpErrorMessage("");
+      } else {
+        setOtpError(true);
+        setOtpErrorMessage(
+          "Failed to resend OTP. Please try logging in again."
+        );
+      }
+    } catch (err) {
+      setOtpError(true);
+      setOtpErrorMessage("Network error while resending OTP.");
+    }
+  };
 
   const validateInputs = () => {
     const email = document.getElementById("email") as HTMLInputElement;
@@ -93,6 +138,7 @@ export default function SignInCard() {
     };
 
     setEmailForOtp(payload.emailId as string);
+    setPasswordForOtp(payload.password as string);
 
     try {
       const res = await fetch(LOGIN_V1_VERIFY_PASSWORD_ENDPOINT, {
@@ -247,13 +293,32 @@ export default function SignInCard() {
           <Button variant="contained" onClick={handleOtpVerification}>
             Verify OTP
           </Button>
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ textAlign: "center" }}
+          >
             Didn't receive OTP?{" "}
             <MuiLink
-              sx={{ cursor: "pointer" }}
-              onClick={() => alert("Resend OTP endpoint not implemented yet")}
+              sx={{
+                cursor:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "not-allowed"
+                    : "pointer",
+                pointerEvents:
+                  resendCooldown > 0 || resendCount >= 2 ? "none" : "auto",
+                color:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "text.disabled"
+                    : "primary.main",
+              }}
+              onClick={handleResendOtp}
             >
-              Resend
+              {resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : resendCount >= 2
+                ? "Resend limit reached"
+                : "Resend"}
             </MuiLink>
           </Typography>
         </Box>
