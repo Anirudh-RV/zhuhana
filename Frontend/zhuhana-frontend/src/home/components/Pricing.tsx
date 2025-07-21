@@ -10,6 +10,7 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { Link } from "react-router-dom";
 
 const tiers = [
   {
@@ -41,6 +42,7 @@ const tiers = [
     buttonText: "Start now",
     buttonVariant: "contained",
     buttonColor: "secondary",
+    comingSoon: true,
   },
   {
     title: "Pro",
@@ -56,9 +58,10 @@ const tiers = [
       "Priority access to new features",
       "Premium customer support",
     ],
-    buttonText: "Contact us",
+    buttonText: "Get started",
     buttonVariant: "outlined",
     buttonColor: "secondary",
+    comingSoon: true,
   },
 ];
 
@@ -147,9 +150,14 @@ export default function Pricing() {
                   <Typography component="h3" variant="h6">
                     {tier.title}
                   </Typography>
-                  {tier.title === "Standard" && (
-                    <Chip icon={<AutoAwesomeIcon />} label={tier.subheader} />
-                  )}
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    {tier.subheader && tier.title === "" && (
+                      <Chip icon={<AutoAwesomeIcon />} label={tier.subheader} />
+                    )}
+                    {tier.comingSoon && (
+                      <Chip label="Coming Soon" color="warning" />
+                    )}
+                  </Box>
                 </Box>
                 <Box
                   sx={[
@@ -209,6 +217,9 @@ export default function Pricing() {
                   fullWidth
                   variant={tier.buttonVariant as "outlined" | "contained"}
                   color={tier.buttonColor as "primary" | "secondary"}
+                  disabled={!!tier.comingSoon}
+                  component={tier.title === "Free" ? Link : "button"}
+                  to={tier.title === "Free" ? "/signup" : undefined}
                 >
                   {tier.buttonText}
                 </Button>

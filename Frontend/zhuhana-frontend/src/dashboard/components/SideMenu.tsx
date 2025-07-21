@@ -48,7 +48,7 @@ export default function SideMenu() {
             display: "flex",
             flexDirection: { xs: "column", sm: "row" },
             alignItems: "center",
-            fontSize: "clamp(1rem, 5vw, 2.5rem)",
+            fontSize: "clamp(1rem, 4vw, 2.5rem)",
           }}
         >
           ZHU

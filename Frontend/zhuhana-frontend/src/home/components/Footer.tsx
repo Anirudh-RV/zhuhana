@@ -190,7 +190,7 @@ export default function Footer() {
             color="text.secondary"
             variant="body2"
           >
-            Contact
+            Support
           </Link>
         </Box>
       </Box>

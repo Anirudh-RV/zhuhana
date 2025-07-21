@@ -7,9 +7,12 @@ import AppAppBar from "./components/AppAppBar";
 import Pricing from "./components/Pricing";
 import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
+import { useTheme } from "@mui/material/styles";
+import Box from "@mui/material/Box";
 
 export default function PricingPage(props: { disableCustomTheme?: boolean }) {
   const location = useLocation();
+  const theme = useTheme();
 
   useEffect(() => {
     document.title = "Zhuhana | Pricing";
@@ -30,15 +33,35 @@ export default function PricingPage(props: { disableCustomTheme?: boolean }) {
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <AppAppBar />
-      <div>
-        <Pricing />
-        <Divider />
-        <div id="faqs">
-          <FAQ />
+      <Box
+        sx={(theme) => ({
+          position: "relative",
+          minHeight: "100vh",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            zIndex: -1,
+            backgroundRepeat: "no-repeat",
+            backgroundImage:
+              "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)",
+            ...theme.applyStyles?.("dark", {
+              backgroundImage:
+                "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+            }),
+          },
+        })}
+      >
+        <div>
+          <Pricing />
+          <Divider />
+          <div id="faqs">
+            <FAQ />
+          </div>
+          <Divider />
+          <Footer />
         </div>
-        <Divider />
-        <Footer />
-      </div>
+      </Box>
     </AppTheme>
   );
 }

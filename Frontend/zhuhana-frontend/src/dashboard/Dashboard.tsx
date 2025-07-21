@@ -41,10 +41,21 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
           component="main"
           sx={(theme) => ({
             flexGrow: 1,
-            backgroundColor: theme.vars
-              ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
-              : alpha(theme.palette.background.default, 1),
             overflow: "auto",
+            position: "relative",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              zIndex: -1,
+              inset: 0,
+              backgroundRepeat: "no-repeat",
+              backgroundImage:
+                "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 90%), transparent)",
+              ...theme.applyStyles?.("dark", {
+                backgroundImage:
+                  "radial-gradient(ellipse 80% 50% at 50% -20%, hsl(210, 100%, 16%), transparent)",
+              }),
+            },
           })}
         >
           <Stack
