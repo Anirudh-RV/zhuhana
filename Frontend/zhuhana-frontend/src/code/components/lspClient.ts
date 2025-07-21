@@ -42,6 +42,10 @@ export function initializeLspClient(options: LspClientOptions) {
   let version = 1;
   let initialized = false;
 
+  const dispose = () => {
+    socket.close();
+  };
+
   const sendMessage = (msg: any) => {
     const json = JSON.stringify(msg);
     const encoder = new TextEncoder();
@@ -63,12 +67,23 @@ export function initializeLspClient(options: LspClientOptions) {
     sendMessage({ jsonrpc: "2.0", method, params });
   };
 
-  const sendDidChange = (newCode: string) => {
-    version += 1;
-    sendNotification("textDocument/didChange", {
-      textDocument: { uri, version },
-      contentChanges: [{ text: newCode }],
+  const definition = async (position: Position) => {
+    return await sendRequest("textDocument/definition", {
+      textDocument: { uri },
+      position,
     });
+  };
+
+  let changeTimeout: any;
+  const sendDidChange = (newCode: string) => {
+    clearTimeout(changeTimeout);
+    changeTimeout = setTimeout(() => {
+      version += 1;
+      sendNotification("textDocument/didChange", {
+        textDocument: { uri, version },
+        contentChanges: [{ text: newCode }],
+      });
+    }, 100);
   };
 
   const hover = async (position: Position): Promise<Hover | null> => {
@@ -200,5 +215,7 @@ export function initializeLspClient(options: LspClientOptions) {
     sendDidChange,
     hover,
     completion,
+    definition,
+    dispose,
   };
 }
