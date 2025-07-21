@@ -15,7 +15,7 @@ export default function Copyright(props: any) {
       ]}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://zhuhana.com/">
+      <Link color="inherit" href="https://zhuhana.com/" target="_blank">
         Zhuhana
       </Link>{" "}
       {new Date().getFullYear()}
