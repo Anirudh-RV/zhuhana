@@ -16,6 +16,7 @@ import Dashboard from "./dashboard/Dashboard";
 import { AuthProvider } from "./AuthContext";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
+import ResetPassword from "./reset-password/resetPassword";
 
 import "./App.css";
 import "highlight.js/styles/github-dark.css";
@@ -111,6 +112,14 @@ function App() {
             element={
               <PublicRoute>
                 <TermsPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PublicRoute>
+                <ResetPassword />
               </PublicRoute>
             }
           />
