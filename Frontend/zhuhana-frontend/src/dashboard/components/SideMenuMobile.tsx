@@ -7,9 +7,11 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import NotificationsRoundedIcon from "@mui/icons-material/NotificationsRounded";
+import Box from "@mui/material/Box";
 import MenuButton from "./MenuButton";
 import MenuContent from "./MenuContent";
 import CardAlert from "./CardAlert";
+import Copyright from "../internals/components/Copyright";
 import { useAuth } from "../../AuthContext";
 
 interface SideMenuMobileProps {
@@ -21,7 +23,7 @@ export default function SideMenuMobile({
   open,
   toggleDrawer,
 }: SideMenuMobileProps) {
-  const { clearAuth } = useAuth();
+  const { user, clearAuth } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -32,17 +34,50 @@ export default function SideMenuMobile({
       sx={{
         zIndex: (theme) => theme.zIndex.drawer + 1,
         [`& .${drawerClasses.paper}`]: {
-          backgroundImage: "none",
           backgroundColor: "background.paper",
+          width: "70dvw",
+          maxWidth: 320,
         },
       }}
     >
-      <Stack
-        sx={{
-          maxWidth: "70dvw",
-          height: "100%",
-        }}
-      >
+      <Stack sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        {/* Branding like SideMenu */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mt: 2,
+            px: 2,
+            py: 1.5,
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              fontSize: "clamp(1rem, 4vw, 2.5rem)",
+            }}
+          >
+            ZHU
+            <Typography
+              component="span"
+              variant="body2"
+              sx={{
+                fontSize: "inherit",
+                color: "primary.main",
+              }}
+            >
+              HANA
+            </Typography>
+          </Typography>
+        </Box>
+
+        <Divider />
+
+        {/* User Info + Notifications */}
         <Stack direction="row" sx={{ p: 2, pb: 0, gap: 1 }}>
           <Stack
             direction="row"
@@ -50,24 +85,36 @@ export default function SideMenuMobile({
           >
             <Avatar
               sizes="small"
-              alt="Zhuhana User"
+              alt={user?.FirstName}
               src="/static/images/avatar/7.jpg"
               sx={{ width: 24, height: 24 }}
             />
             <Typography component="p" variant="h6">
-              Riley Carter
+              {user?.FirstName}
             </Typography>
           </Stack>
           <MenuButton showBadge>
             <NotificationsRoundedIcon />
           </MenuButton>
         </Stack>
+
         <Divider />
-        <Stack sx={{ flexGrow: 1 }}>
+
+        {/* Main Menu Content */}
+        <Box
+          sx={{
+            overflow: "auto",
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <MenuContent />
-          <Divider />
-        </Stack>
-        <CardAlert />
+          <Divider sx={{ mt: "auto" }} />
+          <Copyright sx={{ my: 2 }} />
+        </Box>
+
+        {/* Alerts and Logout */}
         <Stack sx={{ p: 2 }}>
           <Button
             variant="outlined"

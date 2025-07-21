@@ -17,10 +17,7 @@ const mainListItems = [
   { text: "Analytics", icon: <AnalyticsRoundedIcon /> },
 ];
 
-const secondaryListItems = [
-  { text: "About", icon: <InfoRoundedIcon /> },
-  { text: "Feedback", icon: <HelpRoundedIcon /> },
-];
+const secondaryListItems = [{ text: "Feedback", icon: <HelpRoundedIcon /> }];
 
 export default function MenuContent() {
   return (

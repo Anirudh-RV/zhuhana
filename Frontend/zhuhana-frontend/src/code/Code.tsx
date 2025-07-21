@@ -30,9 +30,13 @@ import {
   createCompletionSource,
   createHoverTooltipSource,
 } from "codemirror-languageservice";
+import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
+import { completionKeymap, acceptCompletion } from "@codemirror/autocomplete";
+import { indentMore } from "@codemirror/commands";
 import EditableFileName, {
   type EditableFileNameHandle,
 } from "./components/EditableFileName";
+import { keymap } from "@codemirror/view";
 
 import MarkdownIt from "markdown-it";
 import DOMPurify from "dompurify";
@@ -391,6 +395,14 @@ export default function CodeEditorDashboard(props: {
     lspClientRef.current = client;
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (lspClientRef.current?.dispose) {
+        lspClientRef.current.dispose();
+      }
+    };
+  }, []);
+
   const handleEditorCreation = useCallback((view: EditorView) => {
     editorViewRef.current = view;
   }, []);
@@ -407,12 +419,37 @@ export default function CodeEditorDashboard(props: {
     }, 3000);
   }, []);
 
-  const completionSource = createCompletionSource({
-    markdownToDom,
-    doComplete: async (_doc, position, context) => {
-      return await lspClientRef.current?.completion(position, context);
-    },
-  });
+  const completionSource = async (
+    context: CompletionContext
+  ): Promise<CompletionResult | null> => {
+    const offset = context.pos;
+    const line = context.state.doc.lineAt(offset);
+
+    const position = {
+      line: line.number - 1,
+      character: offset - line.from,
+    };
+
+    const result = await lspClientRef.current?.completion(position);
+    if (!result) return null;
+
+    const items = Array.isArray(result.items) ? result.items : result;
+
+    const before = line.text.slice(0, offset - line.from);
+    const match = /[a-zA-Z0-9_]+$/.exec(before);
+    const from = match ? offset - match[0].length : offset;
+
+    return {
+      from,
+      to: offset,
+      options: items.map((item: any) => ({
+        label: item.label,
+        type: "variable", // fallback type; can improve later
+        info: item.documentation?.value || item.detail,
+        apply: item.insertText || item.label,
+      })),
+    };
+  };
 
   const hoverSource = createHoverTooltipSource({
     markdownToDom,

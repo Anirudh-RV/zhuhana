@@ -1,13 +1,24 @@
 import {
-  Message, RequestMessage, InitializeParams, InitializeResult,
-  PublishDiagnosticsParams, MarkupKind, Diagnostic as LSPDiagnostic,
-  TextDocumentIdentifier, Position, Hover
+  Message,
+  RequestMessage,
+  InitializeParams,
+  InitializeResult,
+  PublishDiagnosticsParams,
+  MarkupKind,
+  Diagnostic as LSPDiagnostic,
+  TextDocumentIdentifier,
+  Position,
+  Hover,
 } from "vscode-languageserver-protocol";
 
-import { linter, Diagnostic as CodeMirrorDiagnostic, lintGutter } from "@codemirror/lint";
+import {
+  linter,
+  Diagnostic as CodeMirrorDiagnostic,
+  lintGutter,
+} from "@codemirror/lint";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { TextDecoder } from "text-encoding";
-import { EditorView, hoverTooltip } from "@codemirror/view";
+import { EditorView } from "@codemirror/view";
 
 type LspClientOptions = {
   uri: string;
@@ -19,21 +30,21 @@ type LspClientOptions = {
 };
 
 export function initializeLspClient(options: LspClientOptions) {
-  const {
-    uri,
-    languageId,
-    code,
-    onDiagnostics,
-    getEditorView,
-    onInitialized,
-  } = options;
+  const { uri, languageId, code, onDiagnostics, getEditorView, onInitialized } =
+    options;
 
   const socket = new ReconnectingWebSocket("ws://localhost:3001");
-  const pendingRequests = new Map<number, { resolve: Function; reject: Function }>();
+  const pendingRequests = new Map<
+    number,
+    { resolve: Function; reject: Function }
+  >();
   let requestId = 1;
   let version = 1;
   let initialized = false;
-  let messageBuffer = "";
+
+  const dispose = () => {
+    socket.close();
+  };
 
   const sendMessage = (msg: any) => {
     const json = JSON.stringify(msg);
@@ -56,12 +67,23 @@ export function initializeLspClient(options: LspClientOptions) {
     sendMessage({ jsonrpc: "2.0", method, params });
   };
 
-  const sendDidChange = (newCode: string) => {
-    version += 1;
-    sendNotification("textDocument/didChange", {
-      textDocument: { uri, version },
-      contentChanges: [{ text: newCode }],
+  const definition = async (position: Position) => {
+    return await sendRequest("textDocument/definition", {
+      textDocument: { uri },
+      position,
     });
+  };
+
+  let changeTimeout: any;
+  const sendDidChange = (newCode: string) => {
+    clearTimeout(changeTimeout);
+    changeTimeout = setTimeout(() => {
+      version += 1;
+      sendNotification("textDocument/didChange", {
+        textDocument: { uri, version },
+        contentChanges: [{ text: newCode }],
+      });
+    }, 100);
   };
 
   const hover = async (position: Position): Promise<Hover | null> => {
@@ -81,7 +103,9 @@ export function initializeLspClient(options: LspClientOptions) {
     });
   };
 
-  const lspDiagnosticToCm = (diag: LSPDiagnostic): CodeMirrorDiagnostic | null => {
+  const lspDiagnosticToCm = (
+    diag: LSPDiagnostic
+  ): CodeMirrorDiagnostic | null => {
     const view = getEditorView();
     if (!view) return null;
     const lineStart = view.state.doc.line(diag.range.start.line + 1);
@@ -103,7 +127,10 @@ export function initializeLspClient(options: LspClientOptions) {
       capabilities: {},
     };
 
-    const result: InitializeResult = await sendRequest("initialize", initParams);
+    const result: InitializeResult = await sendRequest(
+      "initialize",
+      initParams
+    );
     initialized = true;
     sendNotification("initialized", {});
     sendNotification("textDocument/didOpen", {
@@ -112,27 +139,53 @@ export function initializeLspClient(options: LspClientOptions) {
     onInitialized?.();
   };
 
+  let messageBuffer = new Uint8Array();
+
   socket.onmessage = async (event) => {
-    const chunk = typeof event.data === "string" ? event.data : await event.data.text();
-    messageBuffer += chunk;
+    const decoder = new TextDecoder("utf-8");
+
+    // Convert Blob to Uint8Array if needed
+    const newChunk =
+      event.data instanceof Blob
+        ? new Uint8Array(await event.data.arrayBuffer())
+        : new Uint8Array(event.data);
+
+    // Append to existing buffer
+    const combined = new Uint8Array(messageBuffer.length + newChunk.length);
+    combined.set(messageBuffer);
+    combined.set(newChunk, messageBuffer.length);
+    messageBuffer = combined;
 
     while (true) {
-      const headerEnd = messageBuffer.indexOf("\r\n\r\n");
-      if (headerEnd === -1) break;
+      const text = decoder.decode(messageBuffer);
+      const headerEnd = text.indexOf("\r\n\r\n");
 
-      const header = messageBuffer.slice(0, headerEnd);
-      const match = header.match(/Content-Length: (\d+)/i);
-      if (!match) break;
+      if (headerEnd === -1) {
+        break;
+      }
+
+      const headerText = text.slice(0, headerEnd);
+      const match = headerText.match(/Content-Length: (\d+)/i);
+
+      if (!match) {
+        break;
+      }
 
       const contentLength = parseInt(match[1], 10);
-      const fullLength = headerEnd + 4 + contentLength;
-      if (messageBuffer.length < fullLength) break;
+      const bodyStart = headerEnd + 4;
+      const fullMessageLength = bodyStart + contentLength;
 
-      const body = messageBuffer.slice(headerEnd + 4, fullLength);
-      messageBuffer = messageBuffer.slice(fullLength);
+      if (messageBuffer.length < fullMessageLength) {
+        break;
+      }
+
+      const bodyBytes = messageBuffer.slice(bodyStart, fullMessageLength);
+      const bodyText = decoder.decode(bodyBytes);
 
       try {
-        const msg = JSON.parse(body);
+        const msg = JSON.parse(bodyText);
+
+        // Handle LSP message
         if (msg.id && pendingRequests.has(msg.id)) {
           const { resolve, reject } = pendingRequests.get(msg.id)!;
           pendingRequests.delete(msg.id);
@@ -148,8 +201,11 @@ export function initializeLspClient(options: LspClientOptions) {
           }
         }
       } catch (err) {
-        console.error("Failed to parse LSP message:", err);
+        console.error("❌ Failed to parse LSP JSON body:", err);
       }
+
+      // Trim processed message from buffer
+      messageBuffer = messageBuffer.slice(fullMessageLength);
     }
   };
 
@@ -159,5 +215,7 @@ export function initializeLspClient(options: LspClientOptions) {
     sendDidChange,
     hover,
     completion,
+    definition,
+    dispose,
   };
 }
