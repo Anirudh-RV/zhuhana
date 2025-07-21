@@ -1,13 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./home/HomePage";
-import Blog from "./home/Blog";
-import CompanyPage from "./home/Company";
-import DemoPage from "./home/Demo";
-import FeaturesPage from "./home/Features";
-import PricingPage from "./home/Pricing";
-import PrivacyPage from "./home/Privacy";
-import TermsPage from "./home/Terms";
-import ContactPage from "./home/Contact";
+import Blog from "./home/BlogPage";
+import CompanyPage from "./home/CompanyPage";
+import DemoPage from "./home/DemoPage";
+import FeaturesPage from "./home/FeaturesPage";
+import PricingPage from "./home/PricingPage";
+import PrivacyPage from "./home/PrivacyPage";
+import TermsPage from "./home/TermsPage";
+import ContactPage from "./home/ContactPage";
 
 import Login from "./login/login";
 import SignUp from "./signup/signup";

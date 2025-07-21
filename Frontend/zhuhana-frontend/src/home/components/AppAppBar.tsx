@@ -90,31 +90,15 @@ export default function AppAppBar() {
             <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
 
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              <Button variant="text" color="info" size="small">
+              <MenuItem onClick={() => navigate("/features")}>
                 Features
-              </Button>
-              <Button variant="text" color="info" size="small">
+              </MenuItem>
+              <MenuItem onClick={() => navigate("/features#highlights")}>
                 Highlights
-              </Button>
-              <Button variant="text" color="info" size="small">
-                Pricing
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0 }}
-              >
-                FAQ
-              </Button>
-              <Button
-                variant="text"
-                color="info"
-                size="small"
-                sx={{ minWidth: 0 }}
-              >
-                Blog
-              </Button>
+              </MenuItem>
+              <MenuItem onClick={() => navigate("/pricing")}>Pricing</MenuItem>
+              <MenuItem onClick={() => navigate("/pricing#faqs")}>FAQ</MenuItem>
+              <MenuItem onClick={() => navigate("/blog")}>Blog</MenuItem>
             </Box>
           </Box>
           <Box

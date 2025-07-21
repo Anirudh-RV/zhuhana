@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
 import AppTheme from "../shared-ui-theme/AppTheme";
@@ -10,19 +11,35 @@ import Features from "./components/Features";
 import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
 
-export default function PricingPage(props: { disableCustomTheme?: boolean }) {
+export default function FeaturesPage(props: { disableCustomTheme?: boolean }) {
+  const location = useLocation();
+
   useEffect(() => {
-    document.title = "Zhuhana | Pricing";
-  }, []);
+    document.title = "Zhuhana | Features";
+
+    setTimeout(() => {
+      if (location.hash) {
+        const el = document.querySelector(location.hash);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } else {
+        // Fallback scroll to top if no hash
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 100);
+  }, [location]);
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
-
       <AppAppBar />
       <div>
-        <Pricing />
+        <Features />
         <Divider />
-        <FAQ />
+        <div id="highlights">
+          <Highlights />
+        </div>
         <Divider />
         <Footer />
       </div>
