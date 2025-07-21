@@ -46,6 +46,9 @@ export default function SignInCard() {
   const [emailForOtp, setEmailForOtp] = React.useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
 
+  const [otpError, setOtpError] = React.useState(false);
+  const [otpErrorMessage, setOtpErrorMessage] = React.useState("");
+
   const openForgotPasswordDialog = () => setForgotPasswordOpen(true);
   const closeForgotPasswordDialog = () => setForgotPasswordOpen(false);
 
@@ -100,17 +103,23 @@ export default function SignInCard() {
 
       if (res.ok) {
         setOtpSent(true);
+        setPasswordError(false);
+        setPasswordErrorMessage("");
       } else {
         const error = await res.json();
-        alert(error.statusDescription || "Invalid credentials");
+
+        setPasswordError(true);
+        setPasswordErrorMessage("Login Error, incorrect email or password");
       }
     } catch (err) {
-      console.error("Password verification failed", err);
       alert("Network error");
     }
   };
 
   const handleOtpVerification = async () => {
+    setOtpError(false);
+    setOtpErrorMessage("");
+
     try {
       const res = await fetch(LOGIN_V1_VERIFY_OTP_ENDPOINT, {
         method: "POST",
@@ -124,11 +133,12 @@ export default function SignInCard() {
         navigate("/dashboard");
       } else {
         const error = await res.json();
-        alert(error.statusDescription || "Invalid OTP");
+        setOtpError(true);
+        setOtpErrorMessage("Invalid OTP, resend and try again.");
       }
     } catch (err) {
-      console.error("OTP verification failed", err);
-      alert("Network error");
+      setOtpError(true);
+      setOtpErrorMessage("Network error. Please try again.");
     }
   };
 
@@ -150,39 +160,33 @@ export default function SignInCard() {
           noValidate
           sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-          <FormControl>
-            <FormLabel htmlFor="email">Email</FormLabel>
-            <TextField
-              error={emailError}
-              helperText={emailErrorMessage}
-              id="email"
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              autoComplete="email"
-              required
-              fullWidth
-              variant="outlined"
-              color={emailError ? "error" : "primary"}
-            />
-          </FormControl>
+          <FormLabel htmlFor="email">Email</FormLabel>
+          <TextField
+            error={emailError}
+            helperText={emailErrorMessage}
+            id="email"
+            type="email"
+            name="email"
+            placeholder="your@email.com"
+            autoComplete="email"
+            required
+            fullWidth
+            variant="outlined"
+          />
 
-          <FormControl>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <TextField
-              error={passwordError}
-              helperText={passwordErrorMessage}
-              name="password"
-              placeholder="••••••"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              required
-              fullWidth
-              variant="outlined"
-              color={passwordError ? "error" : "primary"}
-            />
-          </FormControl>
+          <FormLabel htmlFor="password">Password</FormLabel>
+          <TextField
+            error={passwordError}
+            helperText={passwordErrorMessage}
+            name="password"
+            placeholder="••••••"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            required
+            fullWidth
+            variant="outlined"
+          />
 
           <Typography
             variant="body2"
@@ -211,21 +215,35 @@ export default function SignInCard() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <MuiOtpInput
             value={otp}
-            onChange={setOtp}
+            onChange={(value) => {
+              setOtp(value);
+              setOtpError(false);
+              setOtpErrorMessage("");
+            }}
             length={6}
             autoFocus
             TextFieldsProps={{
               size: "small",
+              error: otpError,
               sx: {
                 width: "3rem",
                 mx: 0.5,
                 input: {
-                  color: "text.primary", // Make text visible
-                  backgroundColor: "background.default", // Ensure good contrast
+                  color: "text.primary",
+                  backgroundColor: "background.default",
                 },
               },
             }}
           />
+          {otpError && (
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{ textAlign: "center", mt: -1 }}
+            >
+              {otpErrorMessage}
+            </Typography>
+          )}
           <Button variant="contained" onClick={handleOtpVerification}>
             Verify OTP
           </Button>
