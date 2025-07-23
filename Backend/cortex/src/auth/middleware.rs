@@ -70,13 +70,26 @@ pub async fn user_auth_middleware(
         return Ok(unauthorized_response("Not Authorized"));
     }
 
-    let auth_response: UserAuthenticateResponse = match resp.json().await {
-        Ok(body) => body,
+    let raw_body = match resp.text().await {
+        Ok(body) => {
+            tracing::error!("🔍 Raw auth response: {}", body);
+            body
+        }
         Err(err) => {
-            tracing::error!("❌ Failed to parse auth response: {:?}", err);
+            tracing::error!("❌ Failed to read auth response body: {:?}", err);
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     };
+
+    let auth_response: UserAuthenticateResponse = match serde_json::from_str(&raw_body) {
+        Ok(body) => body,
+        Err(err) => {
+            tracing::error!("❌ Failed to parse auth response: {:?}", err);
+            tracing::error!("📦 Raw response that failed to parse: {}", raw_body);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
 
     if auth_response.status != 1 {
         return Ok(unauthorized_response(&auth_response.status_description));

@@ -15,6 +15,7 @@ import {
   GET_NOTIFICATIONS_V1_INIT_ENDPOINT,
   READ_NOTIFICATIONS_V1_INIT_ENDPOINT,
 } from "../../constants";
+import { useNavigate } from "react-router-dom";
 
 interface Notification {
   ID: string;
@@ -26,7 +27,8 @@ interface Notification {
 }
 
 export default function NotificationMenu() {
-  const { accessToken } = useAuth(); // Ensure this is available in your context
+  const navigate = useNavigate();
+  const { accessToken } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -85,6 +87,13 @@ export default function NotificationMenu() {
     setAnchorEl(null);
   };
 
+  const handleNotificationClick = (notification: Notification) => {
+    handleClose();
+    if (notification.Link) {
+      navigate(notification.Link);
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
   }, []);
@@ -116,7 +125,7 @@ export default function NotificationMenu() {
         {notifications.map((notification) => (
           <MenuItem
             key={notification.ID}
-            onClick={handleClose}
+            onClick={() => handleNotificationClick(notification)}
             sx={{ whiteSpace: "normal", alignItems: "flex-start" }}
           >
             <ListItemText

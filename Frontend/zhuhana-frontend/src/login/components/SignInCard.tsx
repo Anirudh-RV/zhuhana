@@ -3,7 +3,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import MuiCard from "@mui/material/Card";
 import FormLabel from "@mui/material/FormLabel";
-import FormControl from "@mui/material/FormControl";
 import MuiLink from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
@@ -12,6 +11,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
 import { useAuth } from "../../AuthContext";
 import ForgotPassword from "./ForgotPassword";
+import CircularProgress from "@mui/material/CircularProgress";
 
 import {
   LOGIN_V1_VERIFY_PASSWORD_ENDPOINT,
@@ -45,6 +45,8 @@ export default function SignInCard() {
   const [otp, setOtp] = React.useState("");
   const [emailForOtp, setEmailForOtp] = React.useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmittingOtp, setIsSubmittingOtp] = React.useState(false);
 
   const [passwordForOtp, setPasswordForOtp] = React.useState("");
 
@@ -131,6 +133,8 @@ export default function SignInCard() {
     event.preventDefault();
     if (!validateInputs()) return;
 
+    setIsSubmitting(true);
+
     const data = new FormData(event.currentTarget);
     const payload = {
       emailId: data.get("email"),
@@ -159,12 +163,15 @@ export default function SignInCard() {
       }
     } catch (err) {
       alert("Network error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleOtpVerification = async () => {
     setOtpError(false);
     setOtpErrorMessage("");
+    setIsSubmittingOtp(true);
 
     try {
       const res = await fetch(LOGIN_V1_VERIFY_OTP_ENDPOINT, {
@@ -185,6 +192,8 @@ export default function SignInCard() {
     } catch (err) {
       setOtpError(true);
       setOtpErrorMessage("Network error. Please try again.");
+    } finally {
+      setIsSubmittingOtp(false);
     }
   };
 
@@ -246,8 +255,20 @@ export default function SignInCard() {
             Forgot password?
           </Typography>
 
-          <Button type="submit" fullWidth variant="contained">
-            Log in
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={isSubmitting}
+            sx={{
+              color: isSubmitting ? "common.white" : undefined,
+            }}
+          >
+            {isSubmitting ? (
+              <CircularProgress size={24} color="primary" />
+            ) : (
+              "Log in"
+            )}
           </Button>
 
           <Typography sx={{ textAlign: "center" }}>
@@ -269,12 +290,22 @@ export default function SignInCard() {
             length={6}
             autoFocus
             TextFieldsProps={{
-              size: "small",
               error: otpError,
               sx: {
-                width: "3rem",
                 mx: 0.5,
-                input: {
+                "& .MuiInputBase-root": {
+                  width: "3rem", // ✅ Set root width
+                  height: "4rem", // Set height
+                  borderRadius: "0.5rem",
+                },
+                "& input": {
+                  width: "100%", // ✅ Force input to fill root
+                  height: "100%",
+                  textAlign: "center",
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  padding: 0,
                   color: "text.primary",
                   backgroundColor: "background.default",
                 },
@@ -290,8 +321,17 @@ export default function SignInCard() {
               {otpErrorMessage}
             </Typography>
           )}
-          <Button variant="contained" onClick={handleOtpVerification}>
-            Verify OTP
+
+          <Button
+            variant="contained"
+            onClick={handleOtpVerification}
+            disabled={isSubmittingOtp}
+          >
+            {isSubmittingOtp ? (
+              <CircularProgress size={24} color="primary" />
+            ) : (
+              "Verify OTP"
+            )}
           </Button>
           <Typography
             variant="caption"

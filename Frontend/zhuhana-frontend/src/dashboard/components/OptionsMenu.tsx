@@ -51,9 +51,7 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
       }}
     >
       <MenuItem>Profile</MenuItem>
-      <MenuItem>My account</MenuItem>
-      <Divider />
-      <MenuItem>Settings</MenuItem>
+      <MenuItem>My Account</MenuItem>
       <Divider />
       <MenuItem
         onClick={handleLogout}

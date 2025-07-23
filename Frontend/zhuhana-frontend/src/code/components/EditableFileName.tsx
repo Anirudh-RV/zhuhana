@@ -1,4 +1,4 @@
-import { TextField, Typography, Tooltip } from "@mui/material";
+import { TextField, Typography, Tooltip, Box } from "@mui/material";
 import {
   useState,
   useRef,
@@ -20,7 +20,8 @@ const EditableFileName = forwardRef<
 >(({ name, onRename }, ref) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState(name);
-  const [showTooltip, setShowTooltip] = useState(false); // 👈 manually control tooltip
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [hovering, setHovering] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const hasShownTooltip = useRef(false);
   const [hasAlgorithmId, setHasAlgorithmId] = useState(true);
@@ -28,9 +29,7 @@ const EditableFileName = forwardRef<
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const hasId = urlParams.has("algorithm_id");
-
-    setHasAlgorithmId(hasId); // store it in state
-    console.log("ALGORITHM_ID: ", hasId);
+    setHasAlgorithmId(hasId);
 
     if (!hasId && !hasShownTooltip.current) {
       hasShownTooltip.current = true;
@@ -40,15 +39,6 @@ const EditableFileName = forwardRef<
     }
   }, []);
 
-  const handleBlurOrSubmit = () => {
-    setIsEditing(false);
-    if (draftName.trim() && draftName !== name) {
-      onRename(draftName.trim());
-    } else {
-      setDraftName(name);
-    }
-  };
-
   useImperativeHandle(ref, () => ({
     focusEditMode: () => setIsEditing(true),
   }));
@@ -57,12 +47,23 @@ const EditableFileName = forwardRef<
     setDraftName(name);
   }, [name]);
 
+  const handleBlurOrSubmit = () => {
+    setIsEditing(false);
+    setHovering(false); // 👈 Reset hover state
+
+    if (draftName.trim() && draftName !== name) {
+      onRename(draftName.trim());
+    } else {
+      setDraftName(name);
+    }
+  };
+
   return isEditing ? (
     <Tooltip
       title="Save the algorithm with a new name"
       placement="bottom"
       arrow
-      open={showTooltip} // 👈 control manually
+      open={showTooltip}
       slotProps={{
         tooltip: {
           sx: {
@@ -84,42 +85,58 @@ const EditableFileName = forwardRef<
           if (e.key === "Escape") {
             setIsEditing(false);
             setDraftName(name);
+            setHovering(false); // 👈 Reset hover state
           }
         }}
         size="small"
+        autoFocus
         sx={{
           fontWeight: "bold",
-          input: { textAlign: "center" },
+          input: {
+            textAlign: "center",
+            fontSize: "1rem",
+            fontWeight: "bold",
+          },
           width: "200px",
         }}
       />
     </Tooltip>
   ) : (
     <Tooltip
-      title="Double-click to rename"
+      title="Click to rename"
       arrow
       open={showTooltip}
       disableFocusListener
       disableHoverListener
       disableTouchListener
     >
-      <Typography
-        variant="subtitle1"
-        fontWeight="bold"
-        onDoubleClick={() => setIsEditing(true)}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+      <Box
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => setHovering(false)}
+        onClick={() => setIsEditing(true)}
         sx={{
-          cursor: "pointer",
-          textAlign: "center",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          cursor: "text", // I-beam
+          borderRadius: "4px",
+          padding: "2px 6px",
+          border: hovering ? "1px solid #1976d2" : "1px solid transparent",
+          transition: "border 0.2s",
+          display: "inline-block",
           maxWidth: "200px",
         }}
       >
-        {name}
-      </Typography>
+        <Typography
+          variant="subtitle1"
+          fontWeight="bold"
+          sx={{
+            textAlign: "center",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {name}
+        </Typography>
+      </Box>
     </Tooltip>
   );
 });

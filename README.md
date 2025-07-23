@@ -15,6 +15,8 @@ Algorithm Trading Platform
   > skaffold dev
   > skaffold dev --cleanup=true --no-prune=false
   > skaffold dev --no-prune
+  > nohup skaffold dev --cleanup=true --no-prune=false
+  > tail -f skaffold.log
 
 - To add the Gateway:
 
