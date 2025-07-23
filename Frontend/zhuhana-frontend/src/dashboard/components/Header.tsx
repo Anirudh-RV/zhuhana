@@ -10,8 +10,7 @@ import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import { useAuth } from "../../AuthContext";
 import OptionsMenu from "./OptionsMenu";
-
-import Search from "./Search";
+import NotificationMenu from "./NotificationsMenu";
 
 export default function Header() {
   const { user } = useAuth();
@@ -42,9 +41,7 @@ export default function Header() {
     >
       <NavbarBreadcrumbs />
       <Stack direction="row" sx={{ gap: 1 }}>
-        <MenuButton showBadge aria-label="Open notifications">
-          <NotificationsRoundedIcon />
-        </MenuButton>
+        <NotificationMenu />
         <ColorModeIconDropdown />
 
         <Avatar

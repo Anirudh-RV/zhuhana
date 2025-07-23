@@ -246,7 +246,7 @@ export default function Footer() {
           <IconButton
             color="inherit"
             size="small"
-            href="https://x.com/Zhuhana246143"
+            href="https://x.com/zhuhanatrading"
             aria-label="X"
             sx={{ alignSelf: "center" }}
             target="_blank"
