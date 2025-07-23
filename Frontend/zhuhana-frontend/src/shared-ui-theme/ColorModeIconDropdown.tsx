@@ -47,13 +47,24 @@ export default function ColorModeIconDropdown(props: IconButtonOwnProps) {
   return (
     <React.Fragment>
       <IconButton
-        data-screenshot="toggle-mode"
         onClick={handleClick}
         disableRipple
         size="small"
         aria-controls={open ? "color-scheme-menu" : undefined}
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
+        sx={{
+          width: 36,
+          height: 36,
+          padding: 0,
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          "&:hover": {
+            backgroundColor: "action.hover",
+          },
+        }}
         {...props}
       >
         {icon}

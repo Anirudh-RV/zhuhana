@@ -1,4 +1,3 @@
-// NotificationMenu.tsx (updated)
 import React, { useEffect, useState } from "react";
 import {
   Menu,
@@ -100,7 +99,22 @@ export default function NotificationMenu() {
 
   return (
     <>
-      <IconButton onClick={handleClick} color="inherit">
+      <IconButton
+        onClick={handleClick}
+        color="inherit"
+        sx={{
+          width: 36,
+          height: 36,
+          padding: 0,
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          "&:hover": {
+            backgroundColor: "action.hover",
+          },
+        }}
+      >
         <Badge badgeContent={unreadCount} color="error">
           <NotificationsRoundedIcon />
         </Badge>

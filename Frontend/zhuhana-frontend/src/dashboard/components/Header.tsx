@@ -26,6 +26,19 @@ export default function Header() {
     setMenuAnchorEl(null);
   };
 
+  const iconWrapperSx = {
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "action.hover",
+    },
+  };
+
   return (
     <Stack
       direction="row"
@@ -41,13 +54,25 @@ export default function Header() {
     >
       <NavbarBreadcrumbs />
       <Stack direction="row" sx={{ gap: 1 }}>
-        <NotificationMenu />
-        <ColorModeIconDropdown />
+        <Box>
+          <NotificationMenu />
+        </Box>
+
+        <Box>
+          <ColorModeIconDropdown />
+        </Box>
 
         <Avatar
           alt={user?.FirstName}
           src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36, cursor: "pointer" }}
+          sx={{
+            width: 36,
+            height: 36,
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: "action.hover",
+            },
+          }}
           onClick={handleAvatarClick}
         />
 

@@ -102,42 +102,33 @@ const EditableFileName = forwardRef<
       />
     </Tooltip>
   ) : (
-    <Tooltip
-      title="Click to rename"
-      arrow
-      open={showTooltip}
-      disableFocusListener
-      disableHoverListener
-      disableTouchListener
+    <Box
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
+      onClick={() => setIsEditing(true)}
+      sx={{
+        cursor: "text", // I-beam
+        borderRadius: "4px",
+        padding: "2px 6px",
+        border: hovering ? "1px solid #1976d2" : "1px solid transparent",
+        transition: "border 0.2s",
+        display: "inline-block",
+        maxWidth: "200px",
+      }}
     >
-      <Box
-        onMouseEnter={() => setHovering(true)}
-        onMouseLeave={() => setHovering(false)}
-        onClick={() => setIsEditing(true)}
+      <Typography
+        variant="subtitle1"
+        fontWeight="bold"
         sx={{
-          cursor: "text", // I-beam
-          borderRadius: "4px",
-          padding: "2px 6px",
-          border: hovering ? "1px solid #1976d2" : "1px solid transparent",
-          transition: "border 0.2s",
-          display: "inline-block",
-          maxWidth: "200px",
+          textAlign: "center",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       >
-        <Typography
-          variant="subtitle1"
-          fontWeight="bold"
-          sx={{
-            textAlign: "center",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {name}
-        </Typography>
-      </Box>
-    </Tooltip>
+        {name}
+      </Typography>
+    </Box>
   );
 });
 
