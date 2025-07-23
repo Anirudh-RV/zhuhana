@@ -52,13 +52,15 @@ func main() {
 	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)
 	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
 
+	userAuthMiddleware := middleware.UserAuthMiddleware(jwtService, log)
+
 	router.Use(middleware.RequestLogger(log))
 	go log.Info("registered logger for the router", zap.String("execution level", "Root"))
 
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(&ctx, router, log, db.DB, cache.RedisObj, emailService, jwtService, authMiddleware)
+	routes.RegisterRoutes(&ctx, router, log, db.DB, cache.RedisObj, emailService, jwtService, authMiddleware, userAuthMiddleware)
 
 	go log.Info("starting application at port 8080...", zap.String("execution level", "Root"))
 	router.Run(":8080")

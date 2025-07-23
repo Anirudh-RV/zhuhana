@@ -195,6 +195,100 @@
                 }
             }
         },
+        "/v1/notification/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves all notifications for the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Get user notifications",
+                "responses": {
+                    "200": {
+                        "description": "Notifications fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetNotificationsResponseSwagger"
+                        }
+                    },
+                    "400": {
+                        "description": "Unauthorized access",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetNotificationsResponseSwagger"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/notification/read/": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Marks a list of user notifications as read based on their IDs.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Notification"
+                ],
+                "summary": "Mark notifications as read",
+                "parameters": [
+                    {
+                        "description": "List of notification IDs to mark as read",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ReadNotificationsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notifications marked as read successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.ReadNotificationsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Error marking notifications as read",
+                        "schema": {
+                            "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user/login/verify-otp/": {
             "post": {
                 "description": "Verifies the OTP provided by the user and returns an access token upon successful authentication",
@@ -503,6 +597,23 @@
         }
     },
     "definitions": {
+        "models.GetNotificationsResponseSwagger": {
+            "type": "object",
+            "properties": {
+                "notifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NotificationSwagger"
+                    }
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "models.LoginVerifyOTPRequest": {
             "type": "object",
             "properties": {
@@ -654,6 +765,63 @@
                 "accessToken": {
                     "type": "string"
                 },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.NotificationSwagger": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "pinned": {
+                    "type": "boolean"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ReadNotificationsRequest": {
+            "type": "object",
+            "properties": {
+                "IDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.ReadNotificationsResponse": {
+            "type": "object",
+            "properties": {
                 "status": {
                     "type": "integer"
                 },

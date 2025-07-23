@@ -13,13 +13,13 @@ class ZhuhanaStrategyRunner:
         self.api_endpoint = API_ENDPOINT
 
         if ORDER_DOMAIN == "Backtest":
-            self.market: str = os.getenv("MARKET")
-            self.symbol: str = os.getenv("SYMBOL")
-            self.start_time: str = os.getenv("START_TIME")
-            self.end_time: str = os.getenv("END_TIME")
-            self.portfolio_size: int = int(os.getenv("PORTFOLIO_SIZE"))
-            self.frequency: int = int(os.getenv("FREQUENCY"))
-            self.next_url: str = None  # initial state
+            self.market: str = os.getenv("MARKET", "")
+            self.symbol: str = os.getenv("SYMBOL", "")
+            self.start_time: str = os.getenv("START_TIME", "")
+            self.end_time: str = os.getenv("END_TIME", "")
+            self.portfolio_size: int = int(os.getenv("PORTFOLIO_SIZE", 0))
+            self.frequency: int = int(os.getenv("FREQUENCY", 0))
+            self.next_url: str = ""  # initial state
             self.initial_fetch_done: bool = False
         else:
             raise ValueError("Unsupported ORDER_DOMAIN")

@@ -13,6 +13,7 @@ import Footer from "./components/Footer";
 export default function HomePage(props: { disableCustomTheme?: boolean }) {
   useEffect(() => {
     document.title = "Zhuhana";
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
   return (
     <AppTheme {...props}>

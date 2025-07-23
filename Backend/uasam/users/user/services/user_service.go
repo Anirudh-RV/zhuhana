@@ -13,23 +13,25 @@ import (
 )
 
 type UserService struct {
-	ctx            *context.Context
-	otpService     *OTPService
-	jwtService     *commonutils.JWTService
-	userRepository *repositories.UserRepository
-	logger         *logger.Logger
-	redis          *redis.Client
+	ctx                 *context.Context
+	otpService          *OTPService
+	jwtService          *commonutils.JWTService
+	userRepository      *repositories.UserRepository
+	logger              *logger.Logger
+	redis               *redis.Client
+	notificationService *NotificationService
 }
 
-func NewUserService(ctx *context.Context, otpService *OTPService, jwtService *commonutils.JWTService, userRepository *repositories.UserRepository, logger *logger.Logger, redis *redis.Client) *UserService {
+func NewUserService(ctx *context.Context, otpService *OTPService, jwtService *commonutils.JWTService, notificationService *NotificationService, userRepository *repositories.UserRepository, logger *logger.Logger, redis *redis.Client) *UserService {
 
 	return &UserService{
-		ctx:            ctx,
-		otpService:     otpService,
-		jwtService:     jwtService,
-		userRepository: userRepository,
-		logger:         logger,
-		redis:          redis,
+		ctx:                 ctx,
+		otpService:          otpService,
+		jwtService:          jwtService,
+		notificationService: notificationService,
+		userRepository:      userRepository,
+		logger:              logger,
+		redis:               redis,
 	}
 }
 
@@ -42,9 +44,10 @@ func (us *UserService) CreateUser(firstname string, middleName string, lastName 
 	user, err := us.userRepository.CreateUser(firstname, middleNamePtr, lastName, emailID, password)
 
 	if err != nil {
-
 		return nil, err
 	}
+
+	go us.notificationService.CreateSignUpNotification(user)
 
 	return user, nil
 }
