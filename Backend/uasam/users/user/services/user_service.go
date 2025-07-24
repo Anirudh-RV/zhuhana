@@ -8,6 +8,7 @@ import (
 
 	"uasam/logger"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -59,4 +60,14 @@ func (us *UserService) IfUserExists(emailID string) (bool, error) {
 		return false, err
 	}
 	return status, nil
+}
+
+func (us *UserService) UpdateUserNameFields(userID uuid.UUID, firstName, middleName, lastName *string) error {
+	err := us.userRepository.UpdateUserNameFields(userID, firstName, middleName, lastName)
+	if err != nil {
+		go us.logger.Warning("error while updating user fields", zap.String("execution level", "UpdateUserNameFields"), zap.String("Error", err.Error()))
+		return err
+	}
+
+	return nil
 }

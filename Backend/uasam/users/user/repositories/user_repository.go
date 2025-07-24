@@ -3,9 +3,12 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"uasam/middleware"
 	"uasam/users/user/models"
+
+	"github.com/google/uuid"
 )
 
 type UserRepository struct {
@@ -192,4 +195,59 @@ func (ur *UserRepository) GetUserByUserID(userID string) (*models.UserObject, er
 	}
 
 	return &user, nil
+}
+
+func (ur *UserRepository) UpdateUserNameFields(userID uuid.UUID, firstName *string, middleName *string, lastName *string) error {
+	// Build query dynamically
+	setClauses := []string{}
+	args := []interface{}{}
+	argIdx := 1
+
+	if firstName != nil {
+		encFirstName, err := middleware.Encrypt(*firstName)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, fmt.Sprintf("first_name = $%d", argIdx))
+		args = append(args, encFirstName)
+		argIdx++
+	}
+
+	if middleName != nil {
+		encMiddleName, err := middleware.Encrypt(*middleName)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, fmt.Sprintf("middle_name = $%d", argIdx))
+		args = append(args, encMiddleName)
+		argIdx++
+	}
+
+	if lastName != nil {
+		encLastName, err := middleware.Encrypt(*lastName)
+		if err != nil {
+			return err
+		}
+		setClauses = append(setClauses, fmt.Sprintf("last_name = $%d", argIdx))
+		args = append(args, encLastName)
+		argIdx++
+	}
+
+	// No fields to update
+	if len(setClauses) == 0 {
+		return nil
+	}
+
+	// Append WHERE clause
+	args = append(args, userID)
+	query := fmt.Sprintf(`
+		UPDATE "account"
+		SET %s,
+		    updated_at = NOW()
+		WHERE id = $%d
+	`, strings.Join(setClauses, ", "), argIdx)
+
+	// Execute query
+	_, err := ur.db.Exec(query, args...)
+	return err
 }

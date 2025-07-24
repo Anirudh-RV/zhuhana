@@ -6,6 +6,11 @@ export const CORTEX_ENDPOINT = "http://localhost:3000";
 export const SIGN_UP_V1_INIT_ENDPOINT =
   UASAM_ENDPOINT + "/v1/user/sign-up/init/";
 
+export const USER_AUTHENTICATE_V1_ENDPOINT =
+  UASAM_ENDPOINT + "/v1/user/authenticate/";
+
+export const USER_FIELDS_EDIT_V1_ENDPOINT = UASAM_ENDPOINT + "/v1/user/edit/";
+
 export const GET_NOTIFICATIONS_V1_INIT_ENDPOINT =
   UASAM_ENDPOINT + "/v1/notification/list/";
 

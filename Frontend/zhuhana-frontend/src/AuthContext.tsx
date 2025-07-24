@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { USER_AUTHENTICATE_V1_ENDPOINT } from "./constants";
 
 interface User {
   ID: string;
   FirstName: string;
-  MiddleName: string;
+  MiddleName: string | null;
   LastName: string;
   EmailID: string;
   CreatedAt: string;
@@ -15,6 +16,7 @@ interface AuthContextType {
   accessToken: string | null;
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
+  refreshAuth: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -27,14 +29,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("accessToken");
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setAccessToken(storedToken);
+  const refreshAuth = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      clearAuth();
+      return;
     }
-    setIsLoading(false);
+
+    try {
+      const res = await fetch(USER_AUTHENTICATE_V1_ENDPOINT, {
+        method: "POST",
+        headers: {
+          USER_TOKEN: token,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const userFromApi = data.user;
+
+        setUser(userFromApi);
+        setAccessToken(token);
+        localStorage.setItem("user", JSON.stringify(userFromApi));
+      } else {
+        console.warn("Authentication failed, logging out.");
+        clearAuth();
+      }
+    } catch (err) {
+      console.error("Network error during authentication:", err);
+      clearAuth();
+    }
+  };
+
+  useEffect(() => {
+    refreshAuth().finally(() => setIsLoading(false));
   }, []);
 
   const setAuth = (user: User, token: string) => {
@@ -53,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ user, accessToken, setAuth, clearAuth, isLoading }}
+      value={{ user, accessToken, setAuth, clearAuth, refreshAuth, isLoading }}
     >
       {children}
     </AuthContext.Provider>

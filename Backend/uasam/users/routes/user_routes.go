@@ -38,6 +38,9 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 		userAuthenticateController := userController.NewUserAuthenticateController(log, userService)
 		go log.Info("user service created", zap.String("execution level", "UserRoutesV1"))
 
+		userFieldsUpdateController := userController.NewUpdateUserFieldsController(userService, log)
+		go log.Info("user fields update controller created", zap.String("execution level", "UserRoutesV1"))
+
 		signUp := user.Group("sign-up/")
 		{
 			signUpController := userController.NewSignUpController(userService, log)
@@ -136,6 +139,18 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			IPWindow:    300,
 			Endpoint:    "/v1/user/authenticate/",
 		}), userAuthenticateController.UserAuthenticateHandler)
+
+		user.PUT("edit/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     300,
+			IPWindow:    300,
+			Endpoint:    "/v1/user/edit/",
+		}), userAuthMiddleware, userFieldsUpdateController.UpdateUserFieldsHandler)
 	}
 
 	notification := r.Group("notification/")

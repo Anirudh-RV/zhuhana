@@ -20,6 +20,7 @@ import ResetPassword from "./reset-password/resetPassword";
 
 import "./App.css";
 import "highlight.js/styles/github-dark.css";
+import Profile from "./profile/profile";
 
 function App() {
   return (
@@ -130,6 +131,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

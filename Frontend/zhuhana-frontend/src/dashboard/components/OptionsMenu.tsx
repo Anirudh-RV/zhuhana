@@ -30,6 +30,11 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
     onClose();
   };
 
+  const handleProfileClick = () => {
+    navigate("/profile");
+    onClose();
+  };
+
   return (
     <Menu
       anchorEl={anchorEl}
@@ -39,7 +44,7 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
       onClick={onClose}
       slotProps={{
         list: {
-          autoFocusItem: false, // ✅ use this instead of MenuListProps
+          autoFocusItem: false,
         },
       }}
       transformOrigin={{ horizontal: "right", vertical: "top" }}
@@ -50,7 +55,7 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
         [`& .${dividerClasses.root}`]: { margin: "4px -4px" },
       }}
     >
-      <MenuItem>Profile</MenuItem>
+      <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
       <MenuItem>My Account</MenuItem>
       <Divider />
       <MenuItem
