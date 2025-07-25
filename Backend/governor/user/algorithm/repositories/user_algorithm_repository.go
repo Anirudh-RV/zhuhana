@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"governor/user/algorithm/models"
+
+	"github.com/google/uuid"
 )
 
 type UserAlgorithmRepository struct {
@@ -35,6 +37,39 @@ func (uar *UserAlgorithmRepository) CreateUserAlgorithm(userID, scriptName strin
 	// Store plain values in model for app use
 	userAlgorithm.ScriptName = scriptName
 	return &userAlgorithm, nil
+}
+
+func (uar *UserAlgorithmRepository) UpdateUserAlgorithmScriptName(userID string, algorithmID uuid.UUID, newScriptName string) (*models.UserAlgorithm, error) {
+	updateQuery := `
+		UPDATE "user_algorithm"
+		SET script_name = $1, updated_at = NOW()
+		WHERE id = $2 AND user_id = $3
+		RETURNING id, user_id, script_name, script_url, start_cron_schedule, end_cron_schedule, order_domain, created_at, updated_at
+	`
+
+	var updatedAlgorithm models.UserAlgorithm
+	err := uar.db.QueryRow(
+		updateQuery,
+		newScriptName,
+		algorithmID,
+		userID,
+	).Scan(
+		&updatedAlgorithm.ID,
+		&updatedAlgorithm.UserID,
+		&updatedAlgorithm.ScriptName,
+		&updatedAlgorithm.ScriptURL,
+		&updatedAlgorithm.StartCronSchedule,
+		&updatedAlgorithm.EndCronSchedule,
+		&updatedAlgorithm.OrderDomain,
+		&updatedAlgorithm.CreatedAt,
+		&updatedAlgorithm.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedAlgorithm, nil
 }
 
 func (uar *UserAlgorithmRepository) UpdateScriptURL(userAlgorithmID, scriptURL string) error {

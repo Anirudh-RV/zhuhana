@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -22,6 +23,18 @@ func (uas *UserAlgorithmService) CreateUserAlgorithmHandler(userID, scriptName s
 	}
 
 	go uas.logger.Info("spawning thread to upload, build and push user algorithm", zap.String("execution level", "CreateUserAlgorithm"))
+	go uas.UploadUserAlgorithmScript(userID, userAlgorithm.ID.String(), script)
+	return userAlgorithm, nil
+}
+
+func (uas *UserAlgorithmService) EditUserAlgorithmHandler(userID string, algorithmID uuid.UUID, algorithmName string, script multipart.File) (*models.UserAlgorithm, error) {
+	userAlgorithm, err := uas.userAlgorthmRepository.UpdateUserAlgorithmScriptName(userID, algorithmID, algorithmName)
+	if err != nil {
+		go uas.logger.Error("could not create user algorithm entry", zap.String("execution level", "EditUserAlgorithmHandler"), zap.String("Error", err.Error()))
+		return nil, err
+	}
+
+	go uas.logger.Info("spawning thread to upload, build and push user algorithm", zap.String("execution level", "EditUserAlgorithmHandler"))
 	go uas.UploadUserAlgorithmScript(userID, userAlgorithm.ID.String(), script)
 	return userAlgorithm, nil
 }
