@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::env;
 
 use dotenvy::dotenv;
 use reqwest::Client;
@@ -15,6 +16,7 @@ mod consts;
 mod db;
 mod state;
 mod tables;
+mod redis;
 
 use crate::auth::middleware::{user_auth_middleware, AuthConfig};
 use crate::consts::user_authentication_endpoint;
@@ -38,12 +40,18 @@ async fn main() {
         http_client: Client::new(),
     });
 
+    let redis_client = Arc::new(redis::init_redis_client().expect("Failed to initialize Redis"));
+
+
     let shared_state = AppState {
         db: pool,
         auth_config,
+        redis: redis_client.clone(),
     };
 
-    let app = api::routes()
+
+
+    let app = api::routes(shared_state.clone())
         .layer(axum::middleware::from_fn_with_state(
             shared_state.clone(),
             user_auth_middleware,

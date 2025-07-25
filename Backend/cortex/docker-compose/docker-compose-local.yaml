@@ -22,5 +22,12 @@ services:
       - "5425:5432"
     restart: unless-stopped
 
+  cortex-redis:
+    image: redis:7
+    container_name: cortex-redis-container
+    command: ["redis-server", "--requirepass", "password"]
+    ports:
+      - "6310:6379"
+
 volumes:
   cortex_pgdata:

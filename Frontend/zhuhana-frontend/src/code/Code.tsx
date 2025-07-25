@@ -822,7 +822,7 @@ export default function CodeEditorDashboard(props: {
                     }}
                     size="small"
                   >
-                    <PlayArrowIcon fontSize="small" />
+                    <PlayArrowIcon />
                   </IconButton>
                 </span>
               </Tooltip>

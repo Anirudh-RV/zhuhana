@@ -72,7 +72,6 @@ pub async fn user_auth_middleware(
 
     let raw_body = match resp.text().await {
         Ok(body) => {
-            tracing::error!("🔍 Raw auth response: {}", body);
             body
         }
         Err(err) => {
