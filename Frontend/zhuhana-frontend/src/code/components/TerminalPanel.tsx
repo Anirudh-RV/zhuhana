@@ -11,24 +11,18 @@ export default function TerminalPanel({
   terminalOutput,
   isLoadingPyodide,
   onRunCode,
-  onCopyTerminal,
+  onAskAI,
 }: {
   terminalOutput: TerminalLine[];
   isLoadingPyodide: boolean;
   onRunCode: () => void;
-  onCopyTerminal: () => void;
+  onAskAI: (errorMessage: string) => void;
 }) {
   const theme = useTheme();
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
 
   const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    onCopyTerminal();
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500); // reset after 1.5s
-  };
 
   const lineCount = terminalOutput.length;
   const maxLines = 20; // cap height if too many lines
@@ -40,12 +34,12 @@ export default function TerminalPanel({
       sx={{
         flexGrow: 1,
         display: "flex",
+        borderRadius: 1,
         flexDirection: "column",
         border: `1px solid ${theme.palette.divider}`,
-        borderRadius: 1,
         backgroundColor: "background.default",
-        minHeight: "60px",
         overflow: "hidden",
+        minHeight: 0,
       }}
     >
       <Toolbar
@@ -68,93 +62,53 @@ export default function TerminalPanel({
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           {/* Copy Button with background */}
-          <Box
-            onClick={handleCopy}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              px: 1,
-              py: 0.5,
-              borderRadius: 1,
-              cursor: "pointer",
-              backgroundColor: resolvedMode === "dark" ? "#0A0E13" : "#c2c2c2",
-              color: resolvedMode === "dark" ? "#fff" : "#000",
-              transition: "background-color 0.2s",
-              "&:hover": {
-                backgroundColor: resolvedMode === "dark" ? "#444" : "#ccc",
-              },
-            }}
-          >
-            {copied ? (
-              <>
-                <CheckIcon fontSize="small" />
-                <Typography variant="body2" fontSize="0.8rem">
-                  Copied
-                </Typography>
-              </>
-            ) : (
-              <>
-                <ContentCopyIcon fontSize="small" />
-                <Typography variant="body2" fontSize="0.8rem">
-                  Copy
-                </Typography>
-              </>
-            )}
-          </Box>
-
-          {/* Run Button */}
-          <IconButton
-            onClick={onRunCode}
-            size="small"
-            disabled={isLoadingPyodide}
-            sx={{
-              backgroundColor: resolvedMode === "dark" ? "#000000" : "#c2c2c2",
-              color: isLoadingPyodide
-                ? theme.palette.grey[500]
-                : theme.palette.success.main,
-              "&:hover": {
-                backgroundColor: "#444",
-              },
-              border: 0,
-            }}
-          >
-            <PlayArrowIcon />
-          </IconButton>
         </Box>
       </Toolbar>
 
       <Box
         sx={{
           flexGrow: 1,
-          p: 1,
           overflowY: "auto",
           overflowX: "auto",
           whiteSpace: "pre-wrap",
           wordBreak: "break-word",
-          maxWidth: "100%",
-          maxHeight: "30vh",
-          backgroundColor: "background.default",
+          p: 1,
+          fontFamily: "monospace",
         }}
       >
         {terminalOutput.map((line, index) => (
-          <Typography
+          <Box
             key={index}
-            sx={{
-              color:
-                line.type === "success"
-                  ? "#0f0"
-                  : line.type === "error"
-                  ? "#f55"
-                  : resolvedMode === "dark"
-                  ? "#aaa"
-                  : "#222",
-              fontFamily: "monospace",
-              fontSize: "0.875rem",
-            }}
+            sx={{ display: "flex", alignItems: "center", gap: 1 }}
           >
-            {line.text}
-          </Typography>
+            <Typography
+              sx={{
+                color:
+                  line.type === "success"
+                    ? "#0f0"
+                    : line.type === "error"
+                    ? "#f55"
+                    : resolvedMode === "dark"
+                    ? "#aaa"
+                    : "#222",
+                fontSize: "0.875rem",
+                whiteSpace: "pre-wrap",
+                flexGrow: 1,
+              }}
+            >
+              {line.text}
+            </Typography>
+
+            {line.type === "error" && (
+              <IconButton
+                size="small"
+                onClick={() => onAskAI(line.text)}
+                title="Ask AI about this error"
+              >
+                <PlayArrowIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
         ))}
       </Box>
     </Box>

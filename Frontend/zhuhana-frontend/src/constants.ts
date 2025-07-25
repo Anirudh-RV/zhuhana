@@ -49,6 +49,7 @@ export const PASSWORD_UPDATE_V1_ENDPOINT =
   UASAM_ENDPOINT + "/v1/user/reset-password/update/";
 
 export const CREATE_CHAT_SESSION_V1_ENDPOINT = CORTEX_ENDPOINT + "/v1/session/";
+export const ADD_MESSAGES_V1_ENDPOINT = CORTEX_ENDPOINT + "/v1/message/";
 export const ASK_LLM_V1_ENDPOINT = CORTEX_ENDPOINT + "/v1/ask/";
 export const GET_MESSAGES_V1_ENDPOINT = CORTEX_ENDPOINT + "/v1/messages/";
 

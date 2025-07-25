@@ -58,7 +58,11 @@ import {
   CREATE_CHAT_SESSION_V1_ENDPOINT,
   USER_PYTHON_ALGORITHM_INFORMATION_V1_ENDPOINT,
   ASK_LLM_V1_ENDPOINT,
+  ADD_MESSAGES_V1_ENDPOINT,
 } from "../constants";
+import { useColorScheme } from "@mui/material/styles";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { Snackbar, Alert } from "@mui/material";
 
 const md = new MarkdownIt();
 const FILE_URI =
@@ -185,6 +189,14 @@ export default function CodeEditorDashboard(props: {
     null
   );
 
+  const { mode: themeMode, systemMode: themeSystemMode } = useColorScheme();
+  const resolvedThemeMode =
+    themeMode === "system" ? themeSystemMode : themeMode;
+
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error" | "codeRun"
+  >("idle");
+
   const [isNewSession, setIsNewSession] = useState(false);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -194,6 +206,8 @@ export default function CodeEditorDashboard(props: {
   const [algorithmId, setAlgorithmId] = useState<string | null>(
     initialAlgorithmId
   );
+
+  const [isSuccessDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
 
@@ -242,11 +256,14 @@ export default function CodeEditorDashboard(props: {
     fetchAlgorithmDetails();
   }, [initialAlgorithmId, accessToken]);
 
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleSaveAlgorithm = async (nameOverride?: string) => {
     if (!user || !accessToken) {
       console.error("User not authenticated");
       return;
     }
+    setSaveStatus("saving");
 
     const nameToUse = nameOverride || filename;
 
@@ -289,7 +306,12 @@ export default function CodeEditorDashboard(props: {
         searchParams.set("algorithm_id", newId);
         setSearchParams(searchParams);
       }
+      setSaveStatus("success");
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 5000);
     } catch (err) {
+      setSaveStatus("error");
       console.error("❌ Failed to save:", err);
     }
   };
@@ -298,6 +320,8 @@ export default function CodeEditorDashboard(props: {
   const dragLlmInfo = useRef<{ startX: number; startWidth: number } | null>(
     null
   );
+
+  const [aiPrompt, setAiPrompt] = useState<string>("");
 
   const handleLlmMouseMove = (e: MouseEvent) => {
     if (!dragLlmInfo.current) return;
@@ -336,12 +360,7 @@ export default function CodeEditorDashboard(props: {
   const pyodideInstanceRef = useRef<any>(null);
   const editorViewRef = useRef<EditorView | null>(null);
   const [isLoadingPyodide, setIsLoadingPyodide] = useState(true);
-  const [diagnostics, setDiagnostics] = useState<CodeMirrorDiagnostic[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragInfo = useRef<{ startY: number; startHeight: number } | null>(null);
-  const [editorHeight, setEditorHeight] = useState(
-    () => window.innerHeight * 0.82
-  );
   const lspClientRef = useRef<any>(null);
   const [filename, setFilename] = useState("New Algorithm");
   const [runtimeDiagnostics, setRuntimeDiagnostics] = useState<
@@ -594,9 +613,7 @@ export default function CodeEditorDashboard(props: {
   const handleRunCode = async () => {
     if (!pyodideInstanceRef.current) return;
 
-    // Clear previous runtime errors
     setRuntimeDiagnostics([]);
-
     setTerminalOutput([
       { text: ">> Terminal ready...", type: "info" },
       { text: ">> Executing Python code...", type: "info" },
@@ -606,11 +623,15 @@ export default function CodeEditorDashboard(props: {
       pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
       await pyodideInstanceRef.current.runPythonAsync(code);
 
-      setRuntimeDiagnostics([]); // ✅ no error
+      setRuntimeDiagnostics([]);
       setTerminalOutput((prev) => [
         ...prev,
         { text: ">> Code execution finished.", type: "success" },
       ]);
+      setSaveStatus("codeRun");
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 5000);
     } catch (error: any) {
       const message = error.message || String(error);
       const execLineMatch = message.match(/File "<exec>", line (\d+)/);
@@ -637,22 +658,63 @@ export default function CodeEditorDashboard(props: {
         ...prev,
         { text: `>> Error: ${message}`, type: "error" },
       ]);
+
+      // ❌ Send error message to LLMPanel
+      const formattedPrompt = `While running your code, it encountered the following error:\n\n\`\`\`python\n${message}\n\`\`\`\nDo you want me to help you fix it?\nJust response with a 'Yes' and I'll the fix it for you!`;
+      const defaultTitle = "Zhuhana AI code fix";
+
+      try {
+        let currentSessionId = sessionId;
+
+        if (!currentSessionId) {
+          // Create session
+          const createRes = await fetch(CREATE_CHAT_SESSION_V1_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+            },
+            body: JSON.stringify({
+              algorithm_id: algorithmId,
+              title: defaultTitle,
+              system_q: formattedPrompt,
+            }),
+          });
+
+          const sessionJson = await createRes.json();
+          if (sessionJson.Status !== 1)
+            throw new Error("Failed to create session");
+
+          currentSessionId = sessionJson.Result.id;
+          setSessionId(currentSessionId);
+          window.history.replaceState(
+            {},
+            "",
+            `/code/?algorithm_id=${algorithmId}&session_id=${currentSessionId}`
+          );
+        } else {
+          // Send message to session
+          await fetch(ADD_MESSAGES_V1_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+            },
+            body: JSON.stringify({
+              session_id: currentSessionId,
+              system_q: formattedPrompt,
+            }),
+          });
+
+          setLlmMessages((prev) => [
+            ...prev,
+            { role: "system", content: formattedPrompt },
+          ]);
+        }
+      } catch (e) {
+        console.error("Failed to handle LLM error message:", e);
+      }
     }
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!dragInfo.current) return;
-    const delta = e.clientY - dragInfo.current.startY;
-    const newHeight = Math.max(100, dragInfo.current.startHeight + delta);
-    setEditorHeight(newHeight);
-  };
-
-  const handleMouseUp = () => {
-    dragInfo.current = null;
-    document.body.style.cursor = "default";
-    document.body.style.userSelect = "auto";
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
   };
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -709,7 +771,14 @@ export default function CodeEditorDashboard(props: {
 
           {/* Center: Title */}
           <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{
+                minWidth: 300, // or whatever minimum width keeps layout stable
+              }}
+            >
               <EditableFileName
                 ref={fileNameRef}
                 name={filename}
@@ -724,6 +793,58 @@ export default function CodeEditorDashboard(props: {
                   <SaveIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
+              <Tooltip title="Run the code locally">
+                <span>
+                  <IconButton
+                    onClick={handleRunCode}
+                    disabled={isLoadingPyodide}
+                    sx={{
+                      color:
+                        resolvedThemeMode === "dark"
+                          ? "#00e676"
+                          : "rgba(0, 100, 0, 0.85)",
+                      backgroundColor:
+                        resolvedThemeMode === "dark"
+                          ? "rgba(0, 230, 118, 0.1)"
+                          : "rgba(76, 175, 80, 0.15)",
+                      border: `1px solid ${
+                        resolvedThemeMode === "dark"
+                          ? "rgba(0, 230, 118, 0.4)"
+                          : "rgba(76, 175, 80, 0.4)"
+                      }`,
+                      backdropFilter: "blur(4px)",
+                      "&:hover": {
+                        backgroundColor:
+                          resolvedThemeMode === "dark"
+                            ? "rgba(0, 230, 118, 0.2)"
+                            : "rgba(76, 175, 80, 0.25)",
+                      },
+                    }}
+                    size="small"
+                  >
+                    <PlayArrowIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              {saveStatus !== "idle" && (
+                <Typography
+                  variant="body2"
+                  noWrap
+                  sx={{
+                    ml: 1,
+                    fontWeight: 500,
+                    overflowX: "visible",
+                  }}
+                >
+                  {saveStatus === "saving"
+                    ? "Saving..."
+                    : saveStatus === "success"
+                    ? "Saved!"
+                    : saveStatus === "codeRun"
+                    ? "✅ Code executed successfully"
+                    : "Failed to Save"}
+                </Typography>
+              )}
             </Stack>
           </Box>
 
@@ -755,9 +876,15 @@ export default function CodeEditorDashboard(props: {
                 borderColor: "divider",
                 display: "flex",
                 flexDirection: "column",
+                height: "100%",
               }}
             >
-              <CodeSideMenu onClose={() => setIsSidebarOpen(false)} />
+              <CodeSideMenu
+                onClose={() => setIsSidebarOpen(false)}
+                terminalOutput={terminalOutput}
+                isLoadingPyodide={isLoadingPyodide}
+                onRunCode={handleRunCode}
+              />
             </Box>
           ) : (
             <Box
@@ -784,7 +911,6 @@ export default function CodeEditorDashboard(props: {
             ref={containerRef}
             sx={{
               flexGrow: 1,
-              px: 0.5,
               display: "flex",
               flexDirection: "column",
               minWidth: 0,
@@ -792,9 +918,9 @@ export default function CodeEditorDashboard(props: {
           >
             <Box
               sx={{
-                height: `${editorHeight}px`,
+                flexGrow: 1,
                 border: "1px solid #ccc",
-                borderRadius: 1,
+                minHeight: 0,
               }}
             >
               <CodeMirrorEditor
@@ -813,32 +939,6 @@ export default function CodeEditorDashboard(props: {
                 ]}
               />
             </Box>
-
-            <Divider
-              sx={{
-                height: "6px",
-                backgroundColor: "divider",
-                my: 0.5,
-                cursor: "row-resize",
-              }}
-              onMouseDown={(e) => {
-                dragInfo.current = {
-                  startY: e.clientY,
-                  startHeight: editorHeight,
-                };
-                document.body.style.cursor = "row-resize";
-                document.body.style.userSelect = "none";
-                window.addEventListener("mousemove", handleMouseMove);
-                window.addEventListener("mouseup", handleMouseUp);
-              }}
-            />
-
-            <TerminalPanel
-              terminalOutput={terminalOutput}
-              isLoadingPyodide={isLoadingPyodide}
-              onRunCode={handleRunCode}
-              onCopyTerminal={handleCopyTerminal}
-            />
           </Box>
 
           {/* Right LLM Panel */}
