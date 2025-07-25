@@ -1,4 +1,15 @@
 definitions:
+  models.GetNotificationsResponseSwagger:
+    properties:
+      notifications:
+        items:
+          $ref: '#/definitions/models.NotificationSwagger'
+        type: array
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.LoginVerifyOTPRequest:
     properties:
       emailId:
@@ -96,6 +107,43 @@ definitions:
     properties:
       accessToken:
         type: string
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.NotificationSwagger:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      link:
+        type: string
+      message:
+        type: string
+      pinned:
+        type: boolean
+      read:
+        type: boolean
+      title:
+        type: string
+      type:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.ReadNotificationsRequest:
+    properties:
+      IDs:
+        items:
+          type: string
+        type: array
+    type: object
+  models.ReadNotificationsResponse:
+    properties:
       status:
         type: integer
       statusDescription:
@@ -316,6 +364,65 @@ paths:
       summary: Authenticate a microservice user
       tags:
       - Microservice Authentication
+  /v1/notification/list:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all notifications for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notifications fetched successfully
+          schema:
+            $ref: '#/definitions/models.GetNotificationsResponseSwagger'
+        "400":
+          description: Unauthorized access
+          schema:
+            $ref: '#/definitions/models.GetNotificationsResponseSwagger'
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get user notifications
+      tags:
+      - Notification
+  /v1/notification/read/:
+    post:
+      consumes:
+      - application/json
+      description: Marks a list of user notifications as read based on their IDs.
+      parameters:
+      - description: List of notification IDs to mark as read
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.ReadNotificationsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Notifications marked as read successfully
+          schema:
+            $ref: '#/definitions/models.ReadNotificationsResponse'
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+        "401":
+          description: Error marking notifications as read
+          schema:
+            $ref: '#/definitions/models.ResetPasswordInitResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Mark notifications as read
+      tags:
+      - Notification
   /v1/user/login/verify-otp/:
     post:
       consumes:

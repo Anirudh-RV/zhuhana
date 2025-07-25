@@ -33,8 +33,8 @@ func NewUserSecretsGetController(userSecretsServiceObj *services.UserSecretsServ
 // @Failure      400 {object} models.UserSecretsGetResponse "Invalid request or missing user ID"
 // @Failure      500 {object} models.UserSecretsGetResponse "Internal server error"
 // @Security     ApiKeyAuth
-// @Router       /v1/user/secrets/ [get]
-func (usc *UserSecretsSetController) UserSecretsGetHandler(c *gin.Context) {
+// @Router       /v1/user/secret/ [get]
+func (usc *UserSecretsGetController) UserSecretGetHandler(c *gin.Context) {
 	var userSecretGetRequest models.UserSecretsGetRequest
 	userID, _ := c.Get("USER_ID")
 	if userID == nil {
@@ -62,9 +62,46 @@ func (usc *UserSecretsSetController) UserSecretsGetHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.UserSecretsGetResponse{
+	c.JSON(http.StatusOK, models.UserSecretsGetResponse{
 		Status:            1,
 		StatusDescription: "User Secret Fetched",
 		UserSecret:        userSecret,
+	})
+}
+
+// UserSecretKeysGetHandler godoc
+//
+// @Summary      Get all secret keys for the current user
+// @Description  Returns all secret keys stored for the authenticated user.
+// @Tags         user-secrets
+// @Produce      json
+// @Success      200  {object}  models.UserSecretKeysResponse  "Success"
+// @Failure      400  {object}  models.UserSecretKeysResponse  "Invalid user ID"
+// @Failure      500  {object}  models.UserSecretKeysResponse  "Server error"
+// @Router       /v1/user/secret/keys [get]
+// @Security     ApiKeyAuth
+func (usc *UserSecretsGetController) UserSecretKeysGetHandler(c *gin.Context) {
+	userID, _ := c.Get("USER_ID")
+	if userID == nil {
+		c.JSON(http.StatusBadRequest, models.UserSecretKeysResponse{
+			Status:            -2,
+			StatusDescription: "Unable to parse UserID",
+		})
+		return
+	}
+
+	userSecretKeys, err := usc.userSecretsServiceObj.GetUserKeys(fmt.Sprint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.UserSecretKeysResponse{
+			Status:            0,
+			StatusDescription: "Server Error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.UserSecretKeysResponse{
+		Status:            1,
+		StatusDescription: "User Secret Keys Fetched",
+		Keys:              userSecretKeys,
 	})
 }

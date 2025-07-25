@@ -18,7 +18,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := r.Group("/v1/")
 	{
@@ -27,7 +27,7 @@ func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db 
 				"status": "ok",
 			})
 		})
-		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService, jwtService, authMiddleware)
+		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService, jwtService, authMiddleware, userAuthMiddleware)
 		microservice_routes.MicroServiceRoutesV1(v1, log, db, redis, jwtService, authMiddleware)
 	}
 }

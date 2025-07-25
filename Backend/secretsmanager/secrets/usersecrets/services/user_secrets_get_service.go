@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"secretsmanager/secrets/usersecrets/models"
 
 	"go.uber.org/zap"
@@ -17,8 +16,18 @@ func (uss *UserSecretsService) GetUserSecret(userID, key string) (*models.UserSe
 
 	if userSecret == nil {
 		go uss.logger.Warning("no key exists", zap.String("execution level", "GetUserSecret"))
-		return nil, errors.New("no key exists")
+		return nil, nil
 	}
 
 	return userSecret, nil
+}
+
+func (uss *UserSecretsService) GetUserKeys(userID string) ([]string, error) {
+	userKeys, err := uss.userSecretsRepository.GetAllUserSecretKeys(userID)
+	if err != nil {
+		go uss.logger.Warning("error getting user keys", zap.String("execution level", "GetUserKeys"), zap.String("Error", err.Error()))
+		return nil, err
+	}
+
+	return userKeys, nil
 }

@@ -10,7 +10,7 @@ pub struct UserObject {
     #[serde(rename = "FirstName")]
     pub first_name: String,
     #[serde(rename = "MiddleName")]
-    pub middle_name: String,
+    pub middle_name: Option<String>,
     #[serde(rename = "LastName")]
     pub last_name: String,
     #[serde(rename = "EmailID")]

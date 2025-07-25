@@ -5,6 +5,7 @@ import (
 	"uasam/users/user/models"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -24,5 +25,26 @@ func (us *UserService) ResetPasswordHandler(resetPasswordRequest *models.ResetPa
 		return err
 	}
 	err = us.otpService.ResetPassword(resetPasswordRequest.EmailID, resetPasswordRequest.Token, hashedPassword)
+	return err
+}
+
+func (us *UserService) UpdatePasswordHandler(id uuid.UUID, password string) error {
+	if password == "" {
+		go us.logger.Warning("password cannot be empty", zap.String("execution level", "UpdatePasswordHandler"))
+		return fmt.Errorf("password cannot be empty")
+	}
+
+	hashedPassword, err := argon2id.CreateHash(password, argon2id.DefaultParams)
+	if err != nil {
+		go us.logger.Warning("password hashing failed", zap.String("execution level", "UpdatePasswordHandler"))
+		return err
+	}
+
+	err = us.userRepository.UpdateUserPasswordByID(id, hashedPassword)
+	if err != nil {
+		go us.logger.Warning("update password failed", zap.String("execution level", "UpdatePasswordHandler"))
+		return err
+	}
+
 	return err
 }

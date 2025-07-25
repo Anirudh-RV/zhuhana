@@ -485,16 +485,19 @@ export default function CodeEditorDashboard(props: {
         )
         .join("\n");
 
+      const latestUserMessage = [...messages]
+        .reverse()
+        .find((msg) => msg.role === "user");
+
+      if (!latestUserMessage) {
+        onChunk("[Error: No user message found]");
+        return;
+      }
+
       // Local variable to ensure correct sessionId usage
       let currentSessionId = sessionId;
 
       if (!currentSessionId) {
-        const firstMessage = messages.find((m) => m.role === "user");
-        if (!firstMessage) {
-          onChunk("[Error: No user message to start session]");
-          return;
-        }
-
         const createSessionResponse = await fetch(
           CREATE_CHAT_SESSION_V1_ENDPOINT,
           {
@@ -505,7 +508,7 @@ export default function CodeEditorDashboard(props: {
             },
             body: JSON.stringify({
               algorithm_id: algorithmId,
-              title: firstMessage.content.slice(0, 60),
+              title: latestUserMessage.content.slice(0, 60),
             }),
           }
         );
@@ -518,28 +521,27 @@ export default function CodeEditorDashboard(props: {
         const sessionData = await createSessionResponse.json();
         currentSessionId = sessionData.Result.id;
 
-        // Update React state (asynchronously)
         setSessionId(currentSessionId);
         setIsNewSession(true);
 
-        // Update URL query
         searchParams.set("session_id", currentSessionId!);
         setSearchParams(searchParams);
       }
 
-      const response = await fetch(
-        `${ASK_LLM_V1_ENDPOINT}?q=${encodeURIComponent(
-          prompt
-        )}&session_id=${currentSessionId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(accessToken ? { USER_TOKEN: accessToken } : {}),
-          },
-          signal,
-        }
-      );
+      const queryParams = new URLSearchParams({
+        q: prompt,
+        current_user_q: latestUserMessage.content,
+        ...(currentSessionId ? { session_id: currentSessionId } : {}),
+      });
+
+      const response = await fetch(`${ASK_LLM_V1_ENDPOINT}?${queryParams}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+        },
+        signal,
+      });
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -578,8 +580,7 @@ export default function CodeEditorDashboard(props: {
         if (isNewSession) setIsNewSession(false);
       }
     } catch (err: any) {
-      if (err.name === "AbortError") {
-      } else {
+      if (err.name !== "AbortError") {
         onChunk(`[LLM Error]: ${err.message}`);
       }
     }

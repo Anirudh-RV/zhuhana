@@ -54,6 +54,26 @@ definitions:
     properties:
       algorithmID:
         type: string
+      end_time:
+        type: string
+      frequency:
+        type: integer
+      market:
+        type: string
+      portfolio_size:
+        type: integer
+      start_time:
+        type: string
+      symbol:
+        type: string
+    required:
+    - algorithmID
+    - end_time
+    - frequency
+    - market
+    - portfolio_size
+    - start_time
+    - symbol
     type: object
   models.StartUserAlgorithmResponse:
     properties:
@@ -186,14 +206,15 @@ paths:
       summary: Get all user algorithms
       tags:
       - UserAlgorithm
-  /v1/user/algorithm/{id}:
+  /v1/user/algorithm/info:
     get:
-      description: Retrieves a specific user algorithm for the authenticated user
-        using the algorithm ID.
+      consumes:
+      - application/json
+      description: Retrieves a specific user algorithm by its ID.
       parameters:
-      - description: Algorithm ID (UUID)
-        in: path
-        name: id
+      - description: Algorithm ID
+        in: query
+        name: algorithm_id
         required: true
         type: string
       produces:
@@ -203,13 +224,17 @@ paths:
           description: Algorithm fetched successfully
           schema:
             $ref: '#/definitions/models.GetUserAlgorithmResponse'
+        "400":
+          description: Missing or invalid algorithm_id
+          schema:
+            $ref: '#/definitions/models.GetUserAlgorithmResponse'
         "500":
-          description: Failed to fetch user algorithm
+          description: Internal server error
           schema:
             $ref: '#/definitions/models.GetUserAlgorithmResponse'
       security:
-      - USER_TOKEN: []
-      summary: Get user algorithm by ID
+      - ApiKeyAuth: []
+      summary: Get user algorithm details
       tags:
       - UserAlgorithm
   /v1/user/algorithm/python/upload/:

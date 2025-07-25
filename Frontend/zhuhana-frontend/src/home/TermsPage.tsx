@@ -69,19 +69,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          4. Algorithm Usage
-        </Typography>
-        <Box mb={3}>
-          <Typography variant="body1">
-            You retain ownership of your custom algorithms uploaded to the
-            Platform. By submitting code, you grant Zhuhana a limited license to
-            store, process, and execute your algorithms strictly for providing
-            services to you.
-          </Typography>
-        </Box>
-
-        <Typography variant="h5" gutterBottom>
-          5. Financial Disclaimer
+          4. Financial Disclaimer
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">
@@ -93,7 +81,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          6. Termination
+          5. Termination
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">
@@ -104,7 +92,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          7. Limitation of Liability
+          6. Limitation of Liability
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">
@@ -115,7 +103,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          8. Changes to Terms
+          7. Changes to Terms
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">
@@ -126,7 +114,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          9. Governing Law
+          8. Governing Law
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">
@@ -137,7 +125,7 @@ export default function TermsPage(props: { disableCustomTheme?: boolean }) {
         </Box>
 
         <Typography variant="h5" gutterBottom>
-          10. Contact Us
+          9. Contact Us
         </Typography>
         <Box mb={3}>
           <Typography variant="body1">

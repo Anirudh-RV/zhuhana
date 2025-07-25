@@ -1,3 +1,4 @@
+import { enUS } from "@mui/x-charts/locales";
 import {
   DataGrid,
   GridColDef,
@@ -32,6 +33,11 @@ export default function CustomizedDataGrid({
       pageSizeOptions={[10, 20, 50]}
       disableColumnResize
       density="compact"
+      localeText={{
+        ...enUS.components.MuiChartsLocalizationProvider.defaultProps
+          .localeText,
+        noRowsLabel: "No Algorithms Created",
+      }}
       sx={{
         "& .MuiDataGrid-row:hover": {
           cursor: "pointer",

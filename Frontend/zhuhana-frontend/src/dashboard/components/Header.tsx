@@ -10,8 +10,7 @@ import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import { useAuth } from "../../AuthContext";
 import OptionsMenu from "./OptionsMenu";
-
-import Search from "./Search";
+import NotificationMenu from "./NotificationsMenu";
 
 export default function Header() {
   const { user } = useAuth();
@@ -25,6 +24,19 @@ export default function Header() {
 
   const handleMenuClose = () => {
     setMenuAnchorEl(null);
+  };
+
+  const iconWrapperSx = {
+    width: 36,
+    height: 36,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    "&:hover": {
+      backgroundColor: "action.hover",
+    },
   };
 
   return (
@@ -42,15 +54,25 @@ export default function Header() {
     >
       <NavbarBreadcrumbs />
       <Stack direction="row" sx={{ gap: 1 }}>
-        <MenuButton showBadge aria-label="Open notifications">
-          <NotificationsRoundedIcon />
-        </MenuButton>
-        <ColorModeIconDropdown />
+        <Box>
+          <NotificationMenu />
+        </Box>
+
+        <Box>
+          <ColorModeIconDropdown />
+        </Box>
 
         <Avatar
           alt={user?.FirstName}
           src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36, cursor: "pointer" }}
+          sx={{
+            width: 36,
+            height: 36,
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: "action.hover",
+            },
+          }}
           onClick={handleAvatarClick}
         />
 

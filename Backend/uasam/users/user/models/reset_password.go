@@ -19,3 +19,12 @@ type ResetPasswordResponse struct {
 	Status            int    `json:"status"`
 	StatusDescription string `json:"statusDescription"`
 }
+
+type UpdatePasswordRequest struct {
+	Password string `json:"password"`
+}
+
+type UpdatePasswordResponse struct {
+	Status            int    `json:"status"`
+	StatusDescription string `json:"statusDescription"`
+}

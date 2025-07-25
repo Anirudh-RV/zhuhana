@@ -95,3 +95,74 @@ func (ur *UserSecretRepository) GetUserSecret(userID, key string) (*models.UserS
 
 	return &userSecret, nil
 }
+
+func (ur *UserSecretRepository) GetAllUserSecretKeys(userID string) ([]string, error) {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	query := `
+		SELECT key
+		FROM "user_secret"
+		WHERE user_id = $1
+	`
+
+	rows, err := ur.db.Query(query, userUUID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var encKeys []string
+	for rows.Next() {
+		var encKey string
+		if err := rows.Scan(&encKey); err != nil {
+			return nil, err
+		}
+		encKeys = append(encKeys, encKey)
+	}
+
+	// Decrypt each key
+	var decryptedKeys []string
+	for _, ek := range encKeys {
+		key, err := middleware.DecryptDeterministic(ek)
+		if err != nil {
+			continue
+		}
+		decryptedKeys = append(decryptedKeys, key)
+	}
+
+	return decryptedKeys, nil
+}
+
+func (ur *UserSecretRepository) DeleteUserSecretByID(userID, secretID string) error {
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		return err
+	}
+	secretUUID, err := uuid.Parse(secretID)
+	if err != nil {
+		return err
+	}
+
+	query := `
+		DELETE FROM "user_secret"
+		WHERE user_id = $1 AND id = $2
+	`
+
+	result, err := ur.db.Exec(query, userUUID, secretUUID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows // or a custom error like ErrSecretNotFound
+	}
+
+	return nil
+}

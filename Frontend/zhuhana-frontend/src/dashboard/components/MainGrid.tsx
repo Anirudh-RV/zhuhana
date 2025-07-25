@@ -70,7 +70,7 @@ export default function MainGrid() {
   }, [user, accessToken]);
 
   const columns = [
-    { field: "scriptName", headerName: "Script Name", flex: 1 },
+    { field: "scriptName", headerName: "Algorithm Name", flex: 1 },
 
     { field: "order_domain", headerName: "Domain", flex: 1 },
     { field: "created_at", headerName: "Created At", flex: 1 },

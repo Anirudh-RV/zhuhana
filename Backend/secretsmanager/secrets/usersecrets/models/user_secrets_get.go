@@ -13,3 +13,9 @@ type UserSecretsGetResponse struct {
 	StatusDescription string      `json:"statusDescription"`
 	UserSecret        *UserSecret `json:"userSecret,omitempty"`
 }
+
+type UserSecretKeysResponse struct {
+	Status            int      `json:"status"`
+	StatusDescription string   `json:"statusDescription"`
+	Keys              []string `json:"keys,omitempty"`
+}

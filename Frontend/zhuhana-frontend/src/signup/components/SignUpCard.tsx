@@ -10,14 +10,14 @@ import MuiLink from "@mui/material/Link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { styled } from "@mui/material/styles";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MuiOtpInput } from "mui-one-time-password-input";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../AuthContext";
 import {
   SIGN_UP_V1_INIT_ENDPOINT,
   SIGN_UP_V1_VERIFY_OTP_ENDPOINT,
 } from "../../constants";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -37,7 +37,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
   }),
 }));
 
-export default function SignInCard() {
+export default function SignUpCard() {
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
@@ -47,6 +47,27 @@ export default function SignInCard() {
   const [otpSent, setOtpSent] = React.useState(false);
   const [otp, setOtp] = React.useState("");
   const [emailForOtp, setEmailForOtp] = React.useState("");
+  const [passwordForOtp, setPasswordForOtp] = React.useState("");
+  const [nameForOtp, setNameForOtp] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmittingOtp, setIsSubmittingOtp] = React.useState(false);
+
+  const [otpError, setOtpError] = React.useState(false);
+  const [otpErrorMessage, setOtpErrorMessage] = React.useState("");
+
+  const [resendCount, setResendCount] = React.useState(0);
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  React.useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const navigate = useNavigate();
   const { setAuth } = useAuth();
 
@@ -91,14 +112,16 @@ export default function SignInCard() {
     event.preventDefault();
     if (!validateInputs()) return;
 
+    setIsSubmitting(true);
+
     const data = new FormData(event.currentTarget);
 
     const fullName = data.get("name")?.toString().trim() || "";
-    const nameParts = fullName.split(/\s+/); // Split by any whitespace
+    const nameParts = fullName.split(/\s+/);
 
-    let firstName = "";
-    let middleName = "";
-    let lastName = "";
+    let firstName = "",
+      middleName = "",
+      lastName = "";
 
     if (nameParts.length === 1) {
       firstName = nameParts[0];
@@ -110,15 +133,20 @@ export default function SignInCard() {
       middleName = nameParts.slice(1, -1).join(" ");
     }
 
+    const emailId = data.get("email") as string;
+    const password = data.get("password") as string;
+
     const payload = {
-      emailId: data.get("email"),
+      emailId,
       firstName,
       middleName,
       lastName,
-      password: data.get("password"),
+      password,
     };
 
-    setEmailForOtp(payload.emailId as string);
+    setEmailForOtp(emailId);
+    setPasswordForOtp(password);
+    setNameForOtp(fullName);
 
     try {
       const res = await fetch(SIGN_UP_V1_INIT_ENDPOINT, {
@@ -128,21 +156,102 @@ export default function SignInCard() {
       });
 
       if (res.ok) {
-        setEmailForOtp(payload.emailId as string); // ✅ store email
-        setOtpSent(true); // switch view to OTP
+        setOtpSent(true);
+        setResendCount(0);
+        setResendCooldown(60);
       } else {
         const error = await res.json();
         console.error("Signup error", error);
       }
     } catch (err) {
       console.error("Network error", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCount >= 2 || resendCooldown > 0) return;
+
+    try {
+      const fullName = nameForOtp.trim();
+      const nameParts = fullName.split(/\s+/);
+      let firstName = "",
+        middleName = "",
+        lastName = "";
+
+      if (nameParts.length === 1) {
+        firstName = nameParts[0];
+      } else if (nameParts.length === 2) {
+        [firstName, lastName] = nameParts;
+      } else {
+        firstName = nameParts[0];
+        lastName = nameParts[nameParts.length - 1];
+        middleName = nameParts.slice(1, -1).join(" ");
+      }
+
+      const payload = {
+        emailId: emailForOtp,
+        firstName,
+        middleName,
+        lastName,
+        password: passwordForOtp,
+      };
+
+      const res = await fetch(SIGN_UP_V1_INIT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setResendCount((prev) => prev + 1);
+        setResendCooldown(60);
+        setOtpError(false);
+        setOtpErrorMessage("");
+      } else {
+        setOtpError(true);
+        setOtpErrorMessage("Failed to resend OTP. Please try again.");
+      }
+    } catch (err) {
+      setOtpError(true);
+      setOtpErrorMessage("Network error while resending OTP.");
+    }
+  };
+
+  const handleOtpVerification = async () => {
+    setIsSubmittingOtp(true);
+    setOtpError(false);
+    setOtpErrorMessage("");
+
+    try {
+      const res = await fetch(SIGN_UP_V1_VERIFY_OTP_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId: emailForOtp, otp }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAuth(data.user, data.accessToken);
+        navigate("/dashboard");
+      } else {
+        const errData = await res.json();
+        setOtpError(true);
+        setOtpErrorMessage(
+          errData.statusDescription || "Invalid OTP, please try again."
+        );
+      }
+    } catch (err) {
+      setOtpError(true);
+      setOtpErrorMessage("Network error. Please try again.");
+    } finally {
+      setIsSubmittingOtp(false);
     }
   };
 
   return (
     <Card variant="outlined">
-      <Box sx={{ display: { xs: "flex", md: "none" } }}></Box>
-
       <Typography
         component="h1"
         variant="h4"
@@ -156,156 +265,163 @@ export default function SignInCard() {
           component="form"
           onSubmit={handleSubmit}
           noValidate
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            width: "100%",
-            gap: 2,
-          }}
+          sx={{ display: "flex", flexDirection: "column", gap: 2 }}
         >
-          <Typography
-            component="h1"
-            variant="h4"
-            sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
-          ></Typography>
           <FormControl>
             <FormLabel htmlFor="name">Full name</FormLabel>
             <TextField
-              autoComplete="name"
+              id="name"
               name="name"
               required
               fullWidth
-              id="name"
               placeholder="Jon Snow"
               error={nameError}
               helperText={nameErrorMessage}
-              color={nameError ? "error" : "primary"}
             />
           </FormControl>
+
           <FormControl>
             <FormLabel htmlFor="email">Email</FormLabel>
             <TextField
+              id="email"
+              name="email"
+              type="email"
+              required
+              fullWidth
+              placeholder="your@email.com"
               error={emailError}
               helperText={emailErrorMessage}
-              id="email"
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              autoComplete="email"
-              required
-              fullWidth
-              variant="outlined"
-              color={emailError ? "error" : "primary"}
             />
           </FormControl>
+
           <FormControl>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <FormLabel htmlFor="password">Password</FormLabel>
-            </Box>
+            <FormLabel htmlFor="password">Password</FormLabel>
             <TextField
+              id="password"
+              name="password"
+              type="password"
+              required
+              fullWidth
+              placeholder="••••••"
               error={passwordError}
               helperText={passwordErrorMessage}
-              name="password"
-              placeholder="••••••"
-              type="password"
-              id="password"
-              autoComplete="current-password"
-              required
-              fullWidth
-              variant="outlined"
-              color={passwordError ? "error" : "primary"}
             />
           </FormControl>
+
           <FormControlLabel
-            control={
-              <Checkbox
-                value="agreeToConditions"
-                color="primary"
-                defaultChecked
-              />
-            }
+            control={<Checkbox defaultChecked />}
             label={
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ textAlign: "center" }}
-                >
-                  Agree to our&nbsp;
-                  <Link to="/sign-up" style={{ alignSelf: "center" }}>
-                    Terms of Service
-                  </Link>
-                  &nbsp;and&nbsp;
-                  <Link to="/sign-up" style={{ alignSelf: "center" }}>
-                    Privacy Policy
-                  </Link>
-                  .
-                </Typography>
-              </Box>
+              <Typography variant="caption" color="text.secondary">
+                Agree to our <Link to="/terms">Terms of Service</Link> and{" "}
+                <Link to="/privacy">Privacy Policy</Link>.
+              </Typography>
             }
           />
-          <Button type="submit" fullWidth variant="contained">
-            Sign up
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disabled={isSubmitting}
+            sx={{
+              color: isSubmitting ? "common.white" : undefined,
+            }}
+          >
+            {isSubmitting ? (
+              <CircularProgress size={24} color="primary" />
+            ) : (
+              "Sign up"
+            )}
           </Button>
+
           <Typography sx={{ textAlign: "center" }}>
             Already have an account?{" "}
-            <span>
-              <Link to="/login" style={{ alignSelf: "center" }}>
-                Log in
-              </Link>
-            </span>
+            <Link to="/login" style={{ alignSelf: "center" }}>
+              Log in
+            </Link>
           </Typography>
         </Box>
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <MuiOtpInput
             value={otp}
-            onChange={setOtp}
+            onChange={(value) => {
+              setOtp(value);
+              setOtpError(false);
+              setOtpErrorMessage("");
+            }}
             length={6}
             autoFocus
-            TextFieldsProps={{ size: "small", sx: { width: "3rem", mx: 0.5 } }}
+            TextFieldsProps={{
+              error: otpError,
+              sx: {
+                mx: 0.5,
+                "& .MuiInputBase-root": {
+                  width: "3rem",
+                  height: "4rem",
+                  borderRadius: "0.5rem",
+                },
+                "& input": {
+                  width: "100%",
+                  height: "100%",
+                  textAlign: "center",
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  padding: 0,
+                },
+              },
+            }}
           />
+
+          {otpError && (
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{ textAlign: "center", mt: -1 }}
+            >
+              {otpErrorMessage}
+            </Typography>
+          )}
+
           <Button
             variant="contained"
-            onClick={() => {
-              fetch(SIGN_UP_V1_VERIFY_OTP_ENDPOINT, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ emailId: emailForOtp, otp }),
-              })
-                .then(async (res) => {
-                  if (res.ok) {
-                    const data = await res.json();
-
-                    // Store in localStorage
-                    setAuth(data.user, data.accessToken);
-                    navigate("/dashboard");
-
-                    navigate("/dashboard");
-                  } else {
-                    const errData = await res.json();
-                    alert(
-                      errData.statusDescription || "OTP verification failed"
-                    );
-                  }
-                })
-                .catch((err) => {
-                  console.error("Verification error:", err);
-                  alert("An error occurred while verifying OTP");
-                });
-            }}
+            onClick={handleOtpVerification}
+            disabled={isSubmittingOtp}
           >
-            Verify OTP
+            {isSubmittingOtp ? (
+              <CircularProgress size={24} color="primary" />
+            ) : (
+              "Verify OTP"
+            )}
           </Button>
-          <Typography variant="caption" color="text.secondary">
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ textAlign: "center" }}
+          >
             Didn't receive OTP?{" "}
             <MuiLink
-              onClick={() => {
-                // Call resend OTP endpoint
+              onClick={handleResendOtp}
+              sx={{
+                cursor:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "not-allowed"
+                    : "pointer",
+                pointerEvents:
+                  resendCooldown > 0 || resendCount >= 2 ? "none" : "auto",
+                color:
+                  resendCooldown > 0 || resendCount >= 2
+                    ? "text.disabled"
+                    : "primary.main",
               }}
-              sx={{ cursor: "pointer" }}
             >
-              Resend
+              {resendCooldown > 0
+                ? `Resend in ${resendCooldown}s`
+                : resendCount >= 2
+                ? "Resend limit reached"
+                : "Resend"}
             </MuiLink>
           </Typography>
         </Box>

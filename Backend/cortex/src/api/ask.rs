@@ -21,8 +21,10 @@ use crate::{
 #[derive(Debug, serde::Deserialize)]
 pub struct AskParams {
     pub q: String,
+    pub current_user_q: String,
     pub session_id: Option<Uuid>,
 }
+
 
 pub async fn handle_ask(
     Query(params): Query<AskParams>,
@@ -122,7 +124,8 @@ pub async fn handle_ask(
 
     // Store to DB after stream completes
     let pool = pool.clone();
-    let prompt_clone = prompt.clone();
+    let current_user_q = params.current_user_q.clone();
+
 
     tokio::spawn(async move {
         let mut total_tokens = 0;
@@ -164,7 +167,7 @@ pub async fn handle_ask(
             "#,
         )
         .bind(session_id)
-        .bind(prompt_clone)
+        .bind(current_user_q)
         .bind(collected)
         .bind(model_name)
         .bind(total_tokens)

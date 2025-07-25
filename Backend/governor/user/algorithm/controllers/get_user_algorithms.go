@@ -37,17 +37,19 @@ func (uac *UserAlgorithmController) GetUserAlgorithms(c *gin.Context) {
 	})
 }
 
-// GetUserAlgorithmByID retrieves a specific user algorithm by its ID.
+// GetUserAlgorithmByID godoc
 //
-// @Summary      Get user algorithm by ID
-// @Description  Retrieves a specific user algorithm for the authenticated user using the algorithm ID.
+// @Summary      Get user algorithm details
+// @Description  Retrieves a specific user algorithm by its ID.
 // @Tags         UserAlgorithm
+// @Accept       json
 // @Produce      json
-// @Param        id path string true "Algorithm ID (UUID)"
-// @Success      200 {object} models.GetUserAlgorithmResponse "Algorithm fetched successfully"
-// @Failure      500 {object} models.GetUserAlgorithmResponse "Failed to fetch user algorithm"
-// @Security     USER_TOKEN
-// @Router       /v1/user/algorithm/info/ [get]
+// @Param        algorithm_id  query     string  true  "Algorithm ID"
+// @Success      200           {object}  models.GetUserAlgorithmResponse  "Algorithm fetched successfully"
+// @Failure      400           {object}  models.GetUserAlgorithmResponse  "Missing or invalid algorithm_id"
+// @Failure      500           {object}  models.GetUserAlgorithmResponse  "Internal server error"
+// @Security     ApiKeyAuth
+// @Router       /v1/user/algorithm/info [get]
 func (uac *UserAlgorithmController) GetUserAlgorithmByID(c *gin.Context) {
 	userID, _ := c.Get("USER_ID")
 	algorithmID := c.Query("algorithm_id")

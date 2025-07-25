@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userScriptAuthMiddleware gin.HandlerFunc) {
+func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userScriptAuthMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
 	userSecretsRepoObj := repositories.NewUserSecretRepository(db)
 	go log.Info("user secrets service created", zap.String("execution level", "UserSecretsRoutesV1"))
 
@@ -23,28 +23,57 @@ func UserSecretsRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, red
 	userSecretsSetController := controllers.NewUserSecretsSetController(userSecretsServiceObj, log)
 	go log.Info("user secrets set controller created", zap.String("execution level", "UserSecretsRoutesV1"))
 
-	r.POST("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
-		Source:      "header",
-		Param:       "USER_SCRIPT_TOKEN",
-		EnableParam: true,
-		Limit:       300,
-		Window:      300,
-		EnableIP:    false,
-		Endpoint:    "POST/user/secrets/",
-	}), authMiddleware,
-		userScriptAuthMiddleware,
-		userSecretsSetController.UserSecretsSetHandler)
+	userSecretsGetController := controllers.NewUserSecretsGetController(userSecretsServiceObj, log)
+	go log.Info("user secrets get controller created", zap.String("execution level", "UserSecretsRoutesV1"))
 
-	r.GET("user/secrets/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
-		Source:      "header",
-		Param:       "USER_SCRIPT_TOKEN",
-		EnableParam: true,
-		Limit:       300,
-		Window:      300,
-		EnableIP:    false,
-		Endpoint:    "GET/user/secrets/",
-	}), authMiddleware,
-		userScriptAuthMiddleware,
-		userSecretsSetController.UserSecretsGetHandler)
+	userSecretsDeleteController := controllers.NewUserSecretsDeleteController(userSecretsServiceObj, log)
+	go log.Info("user secrets delete controller created", zap.String("execution level", "UserSecretsRoutesV1"))
+
+	user := r.Group("user/")
+	{
+		user.POST("secret/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    false,
+			Endpoint:    "POST/user/secret/",
+		}), userAuthMiddleware,
+			userSecretsSetController.UserSecretsSetHandler)
+
+		user.GET("secret/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    false,
+			Endpoint:    "GET/user/secret/",
+		}), userAuthMiddleware,
+			userSecretsGetController.UserSecretGetHandler)
+
+		user.DELETE("secret/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    false,
+			Endpoint:    "DELETE/user/secret/",
+		}), userAuthMiddleware,
+			userSecretsDeleteController.UserSecretDeleteHandler)
+
+		user.GET("secret/keys/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    false,
+			Endpoint:    "/user/secret/keys",
+		}), userAuthMiddleware,
+			userSecretsGetController.UserSecretKeysGetHandler)
+	}
 
 }
