@@ -13,6 +13,7 @@ import CodeMirrorEditor from "./components/CodeMirrorEditor";
 import CodeSideMenu from "./components/CodeSideMenu";
 import LLMPanel, { LLMPanelHandle } from "./components/LLMPanel";
 import Toolbar from "@mui/material/Toolbar";
+import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "../AuthContext";
@@ -46,11 +47,13 @@ import { RangeSetBuilder } from "@codemirror/state";
 
 import { useNavigate } from "react-router-dom";
 import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
+import SaveIcon from "@mui/icons-material/Save";
 
 import { initializeLspClient } from "./components/lspClient";
 import { useSearchParams } from "react-router-dom";
 import {
   USER_PYTHON_ALGORITHM_UPLOAD_V1_ENDPOINT,
+  USER_PYTHON_ALGORITHM_EDIT_V1_ENDPOINT,
   USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT,
   CREATE_CHAT_SESSION_V1_ENDPOINT,
   USER_PYTHON_ALGORITHM_INFORMATION_V1_ENDPOINT,
@@ -248,20 +251,27 @@ export default function CodeEditorDashboard(props: {
     const nameToUse = nameOverride || filename;
 
     const formData = new FormData();
-    formData.append("scriptName", nameToUse);
+    formData.append("algorithmName", nameToUse);
     formData.append(
-      "script",
+      "algorithm",
       new Blob([code], { type: "text/plain" }),
       `${filename}.py`
     );
 
-    const url = algorithmId
-      ? `<CREATE NEW>?algorithm_id=${algorithmId}`
+    if (algorithmId) {
+      formData.append("algorithmID", algorithmId); // Only required for PUT
+    }
+
+    // Determine method and endpoint
+    const isEdit = !!algorithmId;
+    const method = isEdit ? "PUT" : "POST";
+    const url = isEdit
+      ? USER_PYTHON_ALGORITHM_EDIT_V1_ENDPOINT
       : USER_PYTHON_ALGORITHM_UPLOAD_V1_ENDPOINT;
 
     try {
       const response = await fetch(url, {
-        method: "POST",
+        method,
         headers: {
           ...(accessToken ? { USER_TOKEN: accessToken } : {}),
         },
@@ -272,7 +282,7 @@ export default function CodeEditorDashboard(props: {
 
       const result = await response.json();
 
-      // If upload, capture new ID and set to state + URL
+      // If it was a new upload, capture the new ID
       if (!algorithmId && result.user_algorithm?.ID) {
         const newId = result.user_algorithm.ID;
         setAlgorithmId(newId);
@@ -412,11 +422,6 @@ export default function CodeEditorDashboard(props: {
     setCode(currentCode);
     setRuntimeDiagnostics([]); // ✅ clear runtime errors on edit
     lspClientRef.current?.sendDidChange(currentCode);
-
-    if (saveTimeout.current) clearTimeout(saveTimeout.current);
-    saveTimeout.current = setTimeout(() => {
-      handleSaveAlgorithm();
-    }, 3000);
   }, []);
 
   const completionSource = async (
@@ -704,13 +709,22 @@ export default function CodeEditorDashboard(props: {
 
           {/* Center: Title */}
           <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-            <Typography variant="subtitle1" fontWeight="bold" component="div">
+            <Stack direction="row" alignItems="center" spacing={1}>
               <EditableFileName
                 ref={fileNameRef}
                 name={filename}
                 onRename={handleRename}
               />
-            </Typography>
+              <Tooltip title="Save File" arrow>
+                <IconButton
+                  size="small"
+                  onClick={() => handleSaveAlgorithm()}
+                  sx={{ ml: 1 }}
+                >
+                  <SaveIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Box>
 
           {/* Right: Empty space to balance layout */}

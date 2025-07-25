@@ -36,6 +36,9 @@ export const LOGIN_V1_VERIFY_OTP_ENDPOINT =
 export const USER_PYTHON_ALGORITHM_UPLOAD_V1_ENDPOINT =
   GOVERNOR_ENDPOINT + "/v1/user/algorithm/python/upload/";
 
+export const USER_PYTHON_ALGORITHM_EDIT_V1_ENDPOINT =
+  GOVERNOR_ENDPOINT + "/v1/user/algorithm/python/edit/";
+
 export const USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT =
   GOVERNOR_ENDPOINT + "/v1/user/algorithm/";
 
