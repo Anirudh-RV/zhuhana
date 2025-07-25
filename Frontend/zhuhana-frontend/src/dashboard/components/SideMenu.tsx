@@ -20,7 +20,13 @@ const Drawer = styled(MuiDrawer)({
   },
 });
 
-export default function SideMenu() {
+export default function SideMenu({
+  selectedPage,
+  onSelectPage,
+}: {
+  selectedPage: "home" | "analytics" | "vault";
+  onSelectPage: (page: "home" | "analytics" | "vault") => void;
+}) {
   const { user } = useAuth();
 
   return (
@@ -74,7 +80,7 @@ export default function SideMenu() {
           flexDirection: "column",
         }}
       >
-        <MenuContent />
+        <MenuContent selectedPage={selectedPage} onSelectPage={onSelectPage} />
         <Divider />
         <Copyright sx={{ my: 2 }} />
       </Box>

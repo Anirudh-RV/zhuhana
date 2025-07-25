@@ -23,6 +23,19 @@ func NewUpdateUserFieldsController(userService *userService.UserService, log *lo
 	}
 }
 
+// UpdateUserFieldsHandler godoc
+//
+// @Summary      Update user name fields
+// @Description  Updates first name, middle name, and last name of the authenticated user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body models.UpdateUserFieldsRequest true "User fields to update"
+// @Success      200 {object} models.UpdateUserFieldsResponse "User fields updated successfully"
+// @Failure      400 {object} models.UpdateUserFieldsResponse "Invalid request payload or USER_ID format"
+// @Failure      401 {object} models.UpdateUserFieldsResponse "Unauthorized - update failed"
+// @Router       /v1/user/edit/ [put]
 func (ufc *UpdateUserFieldsController) UpdateUserFieldsHandler(c *gin.Context) {
 	var updateUserFieldsRequest models.UpdateUserFieldsRequest
 	if err := json.NewDecoder(c.Request.Body).Decode(&updateUserFieldsRequest); err != nil {
@@ -46,7 +59,10 @@ func (ufc *UpdateUserFieldsController) UpdateUserFieldsHandler(c *gin.Context) {
 	// Parse to UUID
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid USER_ID format"})
+		c.JSON(http.StatusOK, &models.UpdateUserFieldsResponse{
+			Status:            -1,
+			StatusDescription: "unable to find USER_ID",
+		})
 		return
 	}
 

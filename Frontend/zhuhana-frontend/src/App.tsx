@@ -21,6 +21,7 @@ import ResetPassword from "./reset-password/resetPassword";
 import "./App.css";
 import "highlight.js/styles/github-dark.css";
 import Profile from "./profile/profile";
+import Account from "./account/account";
 
 function App() {
   return (
@@ -139,6 +140,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             }
           />

@@ -8,6 +8,7 @@ import (
 	userService "uasam/users/user/services"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type ResetPasswordController struct {
@@ -124,6 +125,64 @@ func (rpc *ResetPasswordController) ResetPasswordHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, models.ResetPasswordResponse{
+		Status:            1,
+		StatusDescription: "Reset password successful",
+	})
+}
+
+// UpdatePasswordHandler godoc
+//
+// @Summary      Update password
+// @Description  Allows an authenticated user to update their password
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        request body models.UpdatePasswordRequest true "New password payload"
+// @Success      200 {object} models.UpdatePasswordResponse "Password updated successfully"
+// @Failure      400 {object} models.UpdatePasswordResponse "Invalid request payload or missing USER_ID"
+// @Failure      401 {object} models.UpdatePasswordResponse "Unauthorized or update failed"
+// @Router       /v1/user/reset-password/update/ [put]
+func (rpc *ResetPasswordController) UpdatePasswordHandler(c *gin.Context) {
+	var resetPasswordRequest models.UpdatePasswordRequest
+	if err := json.NewDecoder(c.Request.Body).Decode(&resetPasswordRequest); err != nil {
+		c.JSON(http.StatusBadRequest, models.UpdatePasswordResponse{
+			Status:            0,
+			StatusDescription: "Invalid request payload",
+		})
+		return
+	}
+
+	rawUserID, _ := c.Get("USER_ID")
+	userIDStr, ok := rawUserID.(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, models.UpdatePasswordResponse{
+			Status:            0,
+			StatusDescription: "Could not find USER_ID",
+		})
+		return
+	}
+
+	// Parse to UUID
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusOK, &models.UpdatePasswordResponse{
+			Status:            -1,
+			StatusDescription: "unable to find USER_ID",
+		})
+		return
+	}
+
+	err = rpc.userService.UpdatePasswordHandler(userID, resetPasswordRequest.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, models.UpdatePasswordResponse{
+			Status:            -1,
+			StatusDescription: "Reset password Error",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.UpdatePasswordResponse{
 		Status:            1,
 		StatusDescription: "Reset password successful",
 	})

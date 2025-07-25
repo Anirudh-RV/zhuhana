@@ -40,14 +40,17 @@ func (nc *NotificationController) GetNotificationsHandler(c *gin.Context) {
 	rawUserID, _ := c.Get("USER_ID")
 	userIDStr, ok := rawUserID.(string)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "USER_ID is not a string"})
+		c.JSON(http.StatusOK, &models.GetNotificationsResponse{
+			Status:            -1,
+			StatusDescription: "unable to find USER_ID",
+		})
 		return
 	}
 
 	// Parse to UUID
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusOK, &models.UpdateUserFieldsResponse{
+		c.JSON(http.StatusOK, &models.GetNotificationsResponse{
 			Status:            -1,
 			StatusDescription: "unable to find USER_ID",
 		})

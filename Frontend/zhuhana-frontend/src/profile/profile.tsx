@@ -12,14 +12,20 @@ import {
 } from "@mui/material";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import { useAuth } from "../AuthContext";
-import { USER_FIELDS_EDIT_V1_ENDPOINT } from "../constants";
+import {
+  USER_FIELDS_EDIT_V1_ENDPOINT,
+  PASSWORD_UPDATE_V1_ENDPOINT,
+} from "../constants";
 import ColorModeIconDropdown from "../shared-ui-theme/ColorModeIconDropdown";
 import IconButton from "@mui/material/IconButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 export default function Profile(props: { disableCustomTheme?: boolean }) {
-  const { user, accessToken, refreshAuth } = useAuth();
+  const { user, accessToken, refreshAuth, clearAuth } = useAuth();
 
   const [selectedMenu, setSelectedMenu] = useState<"user" | "resetPassword">(
     "user"
@@ -30,6 +36,13 @@ export default function Profile(props: { disableCustomTheme?: boolean }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [snackBarSuccessValue, snackBarPromptSuccess] = useState<string | null>(
+    null
+  );
+  const [snackBarErrorValue, snackBarPromptError] = useState<string | null>(
+    null
+  );
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +86,7 @@ export default function Profile(props: { disableCustomTheme?: boolean }) {
       }
 
       refreshAuth();
+      snackBarPromptSuccess("User fields updated!");
     } catch (err) {
       console.error("Network error", err);
       alert("Something went wrong. Please try again.");
@@ -81,13 +95,55 @@ export default function Profile(props: { disableCustomTheme?: boolean }) {
     }
   };
 
-  const handleResetPassword = () => {
-    if (newPassword !== confirmPassword) {
-      alert("Passwords do not match");
+  const handleResetPassword = async () => {
+    if (!accessToken) {
+      snackBarPromptError("Password update Error");
       return;
     }
 
-    alert("Password reset logic triggered.");
+    if (newPassword === "") {
+      snackBarPromptError("Passwords cannot be empty");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      snackBarPromptError("Passwords do not match");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(PASSWORD_UPDATE_V1_ENDPOINT, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          USER_TOKEN: accessToken,
+        },
+        body: JSON.stringify({
+          password: newPassword,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Reset failed", err);
+        snackBarPromptError("Failed to reset password.");
+        return;
+      }
+
+      // Clear input fields
+      setNewPassword("");
+      setConfirmPassword("");
+
+      // Show success Snackbar
+      snackBarPromptSuccess("Password updated");
+    } catch (err) {
+      console.error("Network error", err);
+      snackBarPromptError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   <ColorModeIconDropdown
@@ -193,6 +249,35 @@ export default function Profile(props: { disableCustomTheme?: boolean }) {
                 }}
               >
                 <ListItemText primary="Reset Password" />
+              </ListItemButton>
+              <ListItemButton
+                onClick={() => {
+                  clearAuth(); // Clear tokens and user
+                  navigate("/"); // Redirect to login
+                }}
+                sx={{
+                  borderRadius: 2,
+                  mx: 1,
+                  px: 2,
+                  mt: 2,
+                  color: "error.main",
+                  "&:hover": {
+                    backgroundColor: "action.hover",
+                  },
+                }}
+              >
+                <LogoutRoundedIcon
+                  fontSize="small"
+                  sx={{
+                    marginRight: 1,
+                    color: "error.main",
+                  }}
+                />
+                <ListItemText
+                  primary={
+                    <Typography sx={{ fontWeight: 600 }}>Logout</Typography>
+                  }
+                />
               </ListItemButton>
             </List>
           </Box>
@@ -303,6 +388,55 @@ export default function Profile(props: { disableCustomTheme?: boolean }) {
             )}
           </Box>
         </Container>
+        <Snackbar
+          open={!!snackBarSuccessValue}
+          autoHideDuration={4000}
+          onClose={() => snackBarPromptSuccess(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => snackBarPromptSuccess(null)}
+            severity="success"
+            variant="outlined"
+            sx={{
+              width: "100%",
+              bgcolor: "background.paper",
+              color: "text.primary",
+              borderColor: "success.main",
+              boxShadow: 2,
+            }}
+            iconMapping={{
+              success: <span>✅</span>,
+            }}
+          >
+            {snackBarSuccessValue}
+          </Alert>
+        </Snackbar>
+
+        <Snackbar
+          open={!!snackBarErrorValue}
+          autoHideDuration={4000}
+          onClose={() => snackBarPromptError(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={() => snackBarPromptError(null)}
+            severity="error"
+            variant="outlined"
+            sx={{
+              width: "100%",
+              bgcolor: "background.default",
+              color: "text.primary",
+              borderColor: "error.main",
+              boxShadow: 2,
+            }}
+            iconMapping={{
+              error: <span>❌</span>,
+            }}
+          >
+            {snackBarErrorValue}
+          </Alert>
+        </Snackbar>
       </Box>
     </AppTheme>
   );

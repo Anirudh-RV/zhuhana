@@ -35,6 +35,11 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
     onClose();
   };
 
+  const handleAccountClick = () => {
+    navigate("/account");
+    onClose();
+  };
+
   return (
     <Menu
       anchorEl={anchorEl}
@@ -56,7 +61,7 @@ export default function OptionsMenu({ anchorEl, onClose }: OptionsMenuProps) {
       }}
     >
       <MenuItem onClick={handleProfileClick}>Profile</MenuItem>
-      <MenuItem>My Account</MenuItem>
+      <MenuItem onClick={handleAccountClick}>My Account</MenuItem>
       <Divider />
       <MenuItem
         onClick={handleLogout}

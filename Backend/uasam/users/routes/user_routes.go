@@ -126,6 +126,17 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				IPWindow:    300,
 				Endpoint:    "user/reset-password/reset",
 			}), resetPasswordController.ResetPasswordHandler)
+			resetPassword.PUT("update/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_TOKEN",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "user/reset-password/update",
+			}), userAuthMiddleware, resetPasswordController.UpdatePasswordHandler)
 		}
 
 		user.POST("authenticate/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{

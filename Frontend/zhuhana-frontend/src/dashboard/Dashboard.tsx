@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type {} from "@mui/x-date-pickers/themeAugmentation";
 import type {} from "@mui/x-charts/themeAugmentation";
 import type {} from "@mui/x-tree-view/themeAugmentation";
-import { alpha } from "@mui/material/styles";
+import { useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -11,6 +11,9 @@ import Header from "./components/Header";
 import MainGrid from "./components/MainGrid";
 import SideMenu from "./components/SideMenu";
 import AppTheme from "../shared-ui-theme/AppTheme";
+import Analytics from "./components/Analytics";
+import Vault from "./components/Vault";
+
 import {
   chartsCustomizations,
   dataGridCustomizations,
@@ -26,17 +29,40 @@ const xThemeComponents = {
 };
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
+  const [selectedPage, setSelectedPage] = useState<
+    "home" | "analytics" | "vault"
+  >("home");
+
   useEffect(() => {
     document.title = "Zhuhana - Dashboard";
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "analytics" || hash === "vault" || hash === "home") {
+        setSelectedPage(hash as typeof selectedPage);
+      }
+    };
+
+    handleHashChange(); // run once on mount
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
   return (
     <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: "flex" }}>
-        <SideMenu />
+        <SideMenu
+          selectedPage={selectedPage}
+          onSelectPage={(page) => {
+            setSelectedPage(page);
+            window.location.hash = page;
+          }}
+        />
         <AppNavbar />
-        {/* Main content */}
         <Box
           component="main"
           sx={(theme) => ({
@@ -60,15 +86,12 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
         >
           <Stack
             spacing={2}
-            sx={{
-              alignItems: "center",
-              mx: 3,
-              pb: 5,
-              mt: { xs: 8, md: 0 },
-            }}
+            sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}
           >
             <Header />
-            <MainGrid />
+            {selectedPage === "home" && <MainGrid />}
+            {selectedPage === "analytics" && <Analytics />}
+            {selectedPage === "vault" && <Vault />}
           </Stack>
         </Box>
       </Box>

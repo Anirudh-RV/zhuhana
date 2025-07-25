@@ -43,7 +43,8 @@ func EncryptDeterministic(plainText string) (string, error) {
 		return "", err
 	}
 
-	cipherText := sivCipher.Seal([]byte(plainText), nil, nil, nil)
+	cipherText := sivCipher.Seal(nil, nil, []byte(plainText), nil)
+
 	return base64.StdEncoding.EncodeToString(cipherText), nil
 }
 
@@ -90,9 +91,9 @@ func DecryptDeterministic(cipherTextB64 string) (string, error) {
 		return "", err
 	}
 
-	plainText, err := sivCipher.Open(cipherText, nil, nil, nil)
+	plainText, err := sivCipher.Open(nil, nil, cipherText, nil)
 	if err != nil {
-		return "", errors.New("failed to decrypt")
+		return "", err
 	}
 
 	return string(plainText), nil

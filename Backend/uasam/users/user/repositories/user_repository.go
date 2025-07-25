@@ -152,6 +152,12 @@ func (ur *UserRepository) UpdateUserPasswordByEmail(emailID string, newPassword 
 	return err
 }
 
+func (ur *UserRepository) UpdateUserPasswordByID(id uuid.UUID, newPassword string) error {
+	query := `UPDATE "account" SET password = $1, updated_at = NOW() WHERE id = $2`
+	_, err := ur.db.Exec(query, newPassword, id)
+	return err
+}
+
 func (ur *UserRepository) GetUserByUserID(userID string) (*models.UserObject, error) {
 	query := `
 		SELECT id, first_name, middle_name, last_name, email_id, created_at, updated_at
