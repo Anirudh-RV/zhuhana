@@ -6,10 +6,23 @@ import LiveTradeConfig from "./LiveTradingConfig";
 import MenuIcon from "@mui/icons-material/Menu";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useColorScheme } from "@mui/material/styles";
+import TerminalPanel, { TerminalLine } from "./TerminalPanel";
 
 const executionModes = ["Backtest", "Paper Trade", "Live Trade"];
 
-export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
+interface CodeSideMenuProps {
+  onClose?: () => void;
+  terminalOutput: TerminalLine[];
+  isLoadingPyodide: boolean;
+  onRunCode: () => void;
+}
+
+export default function CodeSideMenu({
+  onClose,
+  terminalOutput,
+  isLoadingPyodide,
+  onRunCode,
+}: CodeSideMenuProps) {
   const [mode, setMode] = React.useState("Backtest");
   const { mode: themeMode, systemMode: themeSystemMode } = useColorScheme();
   const resolvedThemeMode =
@@ -27,9 +40,18 @@ export default function CodeSideMenu({ onClose }: { onClose?: () => void }) {
         flexDirection: "column",
         borderRight: "1px solid",
         borderColor: "divider",
+        minHeight: 0,
       }}
     >
-      <Box sx={{ overflowY: "auto", maxHeight: "100%", mt: 1 }}>
+      <Box
+        sx={{
+          overflowY: "auto",
+          flexGrow: 1,
+          minHeight: 0,
+          pr: 1,
+          mt: 1,
+        }}
+      >
         {/* Header */}
         <Box
           sx={{

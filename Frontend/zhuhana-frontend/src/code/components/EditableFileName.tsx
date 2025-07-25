@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 export interface EditableFileNameHandle {
   focusEditMode: () => void;

@@ -443,37 +443,40 @@ export default function LLMPanel({
             </Typography>
           </Box>
         ) : (
-          messages.map((msg, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                display: "flex",
-                justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
-              }}
-            >
+          messages
+            .filter((msg) => msg.content.trim() !== "")
+            .map((msg, idx) => (
               <Box
+                key={idx}
                 sx={{
-                  width: msg.role === "user" ? "75%" : "100%",
-                  backgroundColor:
-                    msg.role === "user" ? "action.selected" : "transparent",
-                  px: 2,
-                  py: 1,
-                  borderRadius: 2,
-                  fontSize: "0.95rem",
-                  whiteSpace: "pre-wrap",
-                  overflowWrap: "anywhere",
-                  textAlign: "left",
+                  display: "flex",
+                  justifyContent:
+                    msg.role === "user" ? "flex-end" : "flex-start",
                 }}
               >
-                <ReactMarkdown
-                  rehypePlugins={[rehypeHighlight]}
-                  components={{ code: CodeBlock }}
+                <Box
+                  sx={{
+                    width: msg.role === "user" ? "75%" : "100%",
+                    backgroundColor:
+                      msg.role === "user" ? "action.selected" : "transparent",
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    fontSize: "0.95rem",
+                    whiteSpace: "pre-wrap",
+                    overflowWrap: "anywhere",
+                    textAlign: "left",
+                  }}
                 >
-                  {msg.content}
-                </ReactMarkdown>
+                  <ReactMarkdown
+                    rehypePlugins={[rehypeHighlight]}
+                    components={{ code: CodeBlock }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                </Box>
               </Box>
-            </Box>
-          ))
+            ))
         )}
 
         {isStreaming && showTypingIndicator && (
