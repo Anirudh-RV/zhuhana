@@ -206,6 +206,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/news/article/": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns financial news articles based on the query and page number",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "News"
+                ],
+                "summary": "Get news articles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search query (e.g., 'crypto', 'stocks')",
+                        "name": "query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor (e.g., 'nextPageToken')",
+                        "name": "page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.NewsArticleResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.NewsArticleResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/notification/list": {
             "get": {
                 "security": [
@@ -295,6 +343,57 @@ const docTemplate = `{
                         "description": "Error marking notifications as read",
                         "schema": {
                             "$ref": "#/definitions/models.ResetPasswordInitResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/edit/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates first name, middle name, and last name of the authenticated user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user name fields",
+                "parameters": [
+                    {
+                        "description": "User fields to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserFieldsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User fields updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserFieldsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload or USER_ID format",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserFieldsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - update failed",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdateUserFieldsResponse"
                         }
                     }
                 }
@@ -503,6 +602,57 @@ const docTemplate = `{
                         "description": "Server error",
                         "schema": {
                             "$ref": "#/definitions/models.ResetPasswordResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/user/reset-password/update/": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows an authenticated user to update their password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update password",
+                "parameters": [
+                    {
+                        "description": "New password payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePasswordResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request payload or missing USER_ID",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePasswordResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized or update failed",
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePasswordResponse"
                         }
                     }
                 }
@@ -784,6 +934,133 @@ const docTemplate = `{
                 }
             }
         },
+        "models.NewsArticle": {
+            "type": "object",
+            "properties": {
+                "ai_content": {
+                    "type": "string"
+                },
+                "ai_org": {
+                    "type": "string"
+                },
+                "ai_region": {
+                    "type": "string"
+                },
+                "ai_summary": {
+                    "type": "string"
+                },
+                "ai_tag": {
+                    "type": "string"
+                },
+                "article_id": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "content": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "creator": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duplicate": {
+                    "type": "boolean"
+                },
+                "image_url": {
+                    "type": "string"
+                },
+                "keywords": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "language": {
+                    "type": "string"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "pubDate": {
+                    "type": "string"
+                },
+                "pubDateTZ": {
+                    "type": "string"
+                },
+                "sentiment": {
+                    "type": "string"
+                },
+                "sentiment_stats": {
+                    "type": "string"
+                },
+                "source_icon": {
+                    "type": "string"
+                },
+                "source_id": {
+                    "type": "string"
+                },
+                "source_name": {
+                    "type": "string"
+                },
+                "source_priority": {
+                    "type": "integer"
+                },
+                "source_url": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "video_url": {
+                    "description": "optional",
+                    "type": "string"
+                }
+            }
+        },
+        "models.NewsArticleData": {
+            "type": "object",
+            "properties": {
+                "nextPage": {
+                    "type": "string"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.NewsArticle"
+                    }
+                }
+            }
+        },
+        "models.NewsArticleResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.NewsArticleData"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
         "models.NotificationSwagger": {
             "type": "object",
             "properties": {
@@ -941,6 +1218,50 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.UserObject"
+                }
+            }
+        },
+        "models.UpdatePasswordRequest": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdatePasswordResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateUserFieldsRequest": {
+            "type": "object",
+            "properties": {
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "middle_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UpdateUserFieldsResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "statusDescription": {
+                    "type": "string"
                 }
             }
         },

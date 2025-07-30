@@ -22,6 +22,18 @@ func NewNewsArticlesController(log *logger.Logger, newsArticleService *services.
 	}
 }
 
+// GetNewsArticle godoc
+// @Summary      Get news articles
+// @Description  Returns financial news articles based on the query and page number
+// @Tags         News
+// @Accept       json
+// @Produce      json
+// @Param        query  query     string  false  "Search query (e.g., 'crypto', 'stocks')"
+// @Param        page   query     string  false  "Pagination cursor (e.g., 'nextPageToken')"
+// @Success      200    {object}  models.NewsArticleResponse
+// @Failure      400    {object}  models.NewsArticleResponse
+// @Security     ApiKeyAuth
+// @Router       /v1/news/article/ [get]
 func (nac *NewsArticlesController) GetNewsArticle(c *gin.Context) {
 	rawUserID, _ := c.Get("USER_ID")
 	userIDStr, ok := rawUserID.(string)
