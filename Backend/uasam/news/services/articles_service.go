@@ -70,8 +70,6 @@ func (nas *NewsArticleService) GetNewsArticle(query string, nextPage string) (*m
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	nas.logger.Info("Raw response", zap.String("body", string(body)))
-
 	// Unmarshal
 	var result models.NewsDataResponse
 	if err := json.Unmarshal(body, &result); err != nil {
