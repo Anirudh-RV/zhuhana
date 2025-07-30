@@ -40,3 +40,5 @@ data:
   SECRETS_MANAGER_API_KEY: passkey_secrets_manager
   FORGE_API_KEY: passkey_forge
   UASAM_URL: http://host.docker.internal:8002
+  NEWS_API_KEY: pub_0448d9d30d294a92a1179330e059e9c1
+  NEWS_API_ENDPOINT: https://newsdata.io/api/1/latest

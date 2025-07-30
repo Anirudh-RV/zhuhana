@@ -8,15 +8,17 @@ import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
 import AnalyticsRoundedIcon from "@mui/icons-material/AnalyticsRounded";
 import LockIcon from "@mui/icons-material/Lock";
 import HelpRoundedIcon from "@mui/icons-material/HelpRounded";
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
 
 export default function MenuContent({
   selectedPage,
   onSelectPage,
 }: {
-  selectedPage: "home" | "analytics" | "vault";
-  onSelectPage: (page: "home" | "analytics" | "vault") => void;
+  selectedPage: "discovery" | "home" | "analytics" | "vault";
+  onSelectPage: (page: "discovery" | "home" | "analytics" | "vault") => void;
 }) {
   const mainListItems = [
+    { text: "Discovery", icon: <TravelExploreIcon />, key: "discovery" },
     { text: "Home", icon: <HomeRoundedIcon />, key: "home" },
     { text: "Analytics", icon: <AnalyticsRoundedIcon />, key: "analytics" },
     { text: "Vault", icon: <LockIcon />, key: "vault" },
