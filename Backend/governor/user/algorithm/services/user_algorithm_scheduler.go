@@ -46,6 +46,7 @@ func (uas *UserAlgorithmService) CancelAlgorithmSchedule(userID, userAlgorithmID
 	}
 	if !belongsTo {
 		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "CancelAlgorithmSchedule"))
+		return fmt.Errorf("user_algorithm_id does not belong to user_id")
 	}
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
 	uas.schedulerService.CancelCronJobForUserAlgorithm(userAlgorithmUUID)

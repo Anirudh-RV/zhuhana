@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"governor/constants"
+	"governor/user/algorithm/models"
 	"io"
 	"net/http"
 )
@@ -42,7 +43,7 @@ func (ks *KubernetesService) GetUserAlgorithmToken(userAlgorithmID string) (stri
 		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 
-	var loginResp UserAlgorithmLoginResponse
+	var loginResp models.UserAlgorithmLoginResponse
 	if err := json.Unmarshal(respBody, &loginResp); err != nil {
 		return "", fmt.Errorf("failed to unmarshal response: %w", err)
 	}

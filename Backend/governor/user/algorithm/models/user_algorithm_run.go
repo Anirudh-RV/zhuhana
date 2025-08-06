@@ -1,4 +1,4 @@
-package kubernetescontroller
+package models
 
 import (
 	"fmt"
@@ -7,41 +7,46 @@ import (
 	"github.com/google/uuid"
 )
 
-type OrderDomain int
+type RunStatus int
 
 const (
-	Backtest OrderDomain = iota
-	PaperTrading
-	LiveTrading
+	StatusCreating RunStatus = iota
+	StatusRunning
+	StatusCompleted
+	StatusStopped
 )
 
-func (o OrderDomain) String() string {
-	switch o {
-	case Backtest:
-		return "Backtest"
-	case PaperTrading:
-		return "PaperTrading"
-	case LiveTrading:
-		return "LiveTrading"
+func (r RunStatus) String() string {
+	switch r {
+	case StatusCreating:
+		return "Creating"
+	case StatusRunning:
+		return "Running"
+	case StatusCompleted:
+		return "Completed"
+	case StatusStopped:
+		return "Stopped"
 	default:
 		return "Unknown"
 	}
 }
 
-func (o OrderDomain) MarshalJSON() ([]byte, error) {
-	return fmt.Appendf(nil, "\"%s\"", o.String()), nil
+func (r RunStatus) MarshalJSON() ([]byte, error) {
+	return fmt.Appendf(nil, "\"%s\"", r.String()), nil
 }
 
-func (o *OrderDomain) UnmarshalJSON(data []byte) error {
+func (r *RunStatus) UnmarshalJSON(data []byte) error {
 	switch string(data) {
-	case `"Backtest"`:
-		*o = Backtest
-	case `"PaperTrading"`:
-		*o = PaperTrading
-	case `"LiveTrading"`:
-		*o = LiveTrading
+	case `"Creating"`:
+		*r = StatusCreating
+	case `"Running"`:
+		*r = StatusRunning
+	case `"Completed"`:
+		*r = StatusCompleted
+	case `"Stopped"`:
+		*r = StatusStopped
 	default:
-		return fmt.Errorf("invalid OrderDomain: %s", data)
+		return fmt.Errorf("invalid RunStatus: %s", data)
 	}
 	return nil
 }
@@ -53,6 +58,7 @@ type UserAlgorithmRun struct {
 	StartCronSchedule *string     `db:"start_cron_schedule"`
 	EndCronSchedule   *string     `db:"end_cron_schedule"`
 	OrderDomain       OrderDomain `db:"order_domain"`
+	Status            RunStatus   `db:"status"`
 	Market            *string     `db:"market"`
 	Symbol            *string     `db:"symbol"`
 	StartTime         *time.Time  `db:"start_time"`

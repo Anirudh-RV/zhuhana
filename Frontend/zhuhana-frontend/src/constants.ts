@@ -45,6 +45,9 @@ export const USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT =
 export const USER_PYTHON_ALGORITHM_INFORMATION_V1_ENDPOINT =
   GOVERNOR_ENDPOINT + "/v1/user/algorithm/info/";
 
+export const USER_PYTHON_ALGORITHM_RUNS_V1_ENDPOINT =
+  GOVERNOR_ENDPOINT + "/v1/user/algorithm/runs/";
+
 export const PASSWORD_UPDATE_V1_ENDPOINT =
   UASAM_ENDPOINT + "/v1/user/reset-password/update/";
 

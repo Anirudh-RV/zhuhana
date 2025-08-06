@@ -2,7 +2,6 @@ import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import CustomizedDataGrid from "./CustomizedDataGrid";
 import HighlightedCard from "./HighlightedCard";
 import StatCard from "./StatCard";
 import type { StatCardProps } from "./StatCard";
@@ -10,12 +9,16 @@ import { useAuth } from "../../AuthContext";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { USER_PYTHON_ALGORITHMS_INFORMATION_V1_ENDPOINT } from "../../constants";
+import { useSearchParams } from "react-router-dom";
 
 const data: StatCardProps[] = [];
 
 export default function Analytics() {
   const { user, accessToken } = useAuth();
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const algorithmRunId = searchParams.get("algorithm_run_id");
 
   return (
     <Box sx={{ width: "100%", maxWidth: { sm: "100%", md: "1700px" } }}>

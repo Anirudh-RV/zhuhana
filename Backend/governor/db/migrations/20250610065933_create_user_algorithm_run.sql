@@ -14,6 +14,7 @@ CREATE TABLE user_algorithm_runs (
     order_domain INT NOT NULL DEFAULT 0,
     market TEXT,
     symbol TEXT,
+    status INTEGER NOT NULL DEFAULT 0,
     start_time TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     end_time TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     frequency INTEGER,
@@ -26,5 +27,5 @@ CREATE TABLE user_algorithm_runs (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE user_algorithm_run;
+DROP TABLE user_algorithm_runs;
 -- +goose StatementEnd

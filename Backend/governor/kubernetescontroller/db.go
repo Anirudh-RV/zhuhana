@@ -112,6 +112,31 @@ func (ks *KubernetesService) AddUserAlgorithmRun(
 	return id, nil
 }
 
+func (ks *KubernetesService) UpdateUserAlgorithmRunStatus(runID uuid.UUID, status models.RunStatus) error {
+	query := `
+		UPDATE user_algorithm_runs
+		SET status = $1,
+		    updated_at = NOW()
+		WHERE id = $2
+	`
+
+	result, err := ks.db.Exec(query, status, runID)
+	if err != nil {
+		return fmt.Errorf("failed to update status: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get affected rows: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no user_algorithm_run found with id: %s", runID)
+	}
+
+	return nil
+}
+
 func (ks *KubernetesService) GetUserAlgorithmRunsByUserAlgorithmID(userAlgorithmID string) ([]uuid.UUID, error) {
 	query := `
 		SELECT id
