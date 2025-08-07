@@ -3,6 +3,7 @@ package kubernetescontroller
 import (
 	"context"
 	"fmt"
+	"governor/constants"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,13 +14,22 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) error {
-	// TEST THIS OUT
+func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol string, startTime, endTime *time.Time, portfolioSize, frequency int) error {
 	userAlgorithm, err := ks.GetUserAlgorithm(userAlgorithmID)
 	if err != nil {
 		go ks.logger.Error("could not get useralgorithm from db", zap.String("Execution Level", "KubernetesStart"))
 		return err
 	}
+	userAlgorithmToken, err := ks.GetUserAlgorithmToken(userAlgorithmID.String())
+	if err != nil {
+		go ks.logger.Error("could not get userAlgorithmToken", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
+		return err
+	}
+	if userAlgorithmToken == "" {
+		go ks.logger.Error("user algorithm token is empty", zap.String("Execution Level", "KubernetesStart"))
+		return fmt.Errorf("user algorithm token is empty")
+	}
+
 	dockerImageName := fmt.Sprintf("user-algorithm-%s-%s", userAlgorithm.UserID, userAlgorithmID)
 	pullImageName := fmt.Sprintf("%s/%s", DOCKER_REPOSITORY, dockerImageName)
 	go ks.logger.Info(fmt.Sprintf("trying to start: %s \n full name: %s", dockerImageName, pullImageName), zap.String("Execution Level", "KubernetesStart"))
@@ -33,7 +43,16 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) error {
 	if userAlgorithm.EndCronSchedule != nil {
 		endCronSchedule = *userAlgorithm.EndCronSchedule
 	}
-	userAlgorithmRunUUID, err := ks.AddUserAlgorithmRun(userAlgorithmID, startCronSchedule, endCronSchedule, int(userAlgorithm.OrderDomain))
+	userAlgorithmRunUUID, err := ks.AddUserAlgorithmRun(
+		userAlgorithmID,
+		startCronSchedule,
+		endCronSchedule,
+		int(userAlgorithm.OrderDomain),
+		market,
+		symbol,
+		startTime,
+		endTime,
+		portfolioSize)
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())
 		return err
@@ -55,7 +74,45 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID) error {
 						{
 							Name:  containerName,
 							Image: pullImageName,
-							Args:  []string{}, // Optional: pass args here
+							Args:  []string{},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "USER_ALGORITHM_TOKEN",
+									Value: userAlgorithmToken,
+								},
+								{
+									Name:  "ORDER_DOMAIN",
+									Value: userAlgorithm.OrderDomain.String(),
+								},
+								{
+									Name:  "MARKET",
+									Value: market,
+								},
+								{
+									Name:  "SYMBOL",
+									Value: symbol,
+								},
+								{
+									Name:  "START_TIME",
+									Value: startTime.String(),
+								},
+								{
+									Name:  "END_TIME",
+									Value: endTime.String(),
+								},
+								{
+									Name:  "PORTFOLIO_SIZE",
+									Value: fmt.Sprint(portfolioSize),
+								},
+								{
+									Name:  "FREQUENCY",
+									Value: fmt.Sprint(frequency),
+								},
+								{
+									Name:  "API_ENDPOINT",
+									Value: constants.USER_ALGORITHM_API_ENDPOINT,
+								},
+							},
 						},
 					},
 				},

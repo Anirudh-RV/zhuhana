@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: zk-data-pvc
+  name: zk-governor-data-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,7 +12,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: zk-datalog-pvc
+  name: zk-algonexus-datalog-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -45,7 +45,7 @@ spec:
         app: governor-zookeeper
     spec:
       containers:
-        - name: zookeeper
+        - name: governor-zookeeper
           image: confluentinc/cp-zookeeper:7.4.0
           ports:
             - containerPort: 2181
@@ -55,9 +55,9 @@ spec:
             - name: ZOOKEEPER_TICK_TIME
               value: "2000"
           volumeMounts:
-            - name: zk-data
+            - name: zk-algonexus-data
               mountPath: /var/lib/zookeeper/data
-            - name: zk-datalog
+            - name: zk-algonexus-datalog
               mountPath: /var/lib/zookeeper/log
           readinessProbe:
             tcpSocket:
@@ -67,9 +67,9 @@ spec:
             timeoutSeconds: 3
             failureThreshold: 6
       volumes:
-        - name: zk-data
+        - name: zk-algonexus-data
           persistentVolumeClaim:
-            claimName: zk-data-pvc
-        - name: zk-datalog
+            claimName: zk-governor-data-pvc
+        - name: zk-algonexus-datalog
           persistentVolumeClaim:
-            claimName: zk-datalog-pvc
+            claimName: zk-algonexus-datalog-pvc

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"governor/user/algorithm/models"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -59,25 +60,62 @@ func (ks *KubernetesService) GetUserAlgorithm(algorithmID uuid.UUID) (*models.Us
 	return &userAlgorithm, nil
 }
 
-func (ks *KubernetesService) AddUserAlgorithmRun(userAlgorithmID uuid.UUID, start_cron_schedule, end_cron_schedule string, order_domain int) (uuid.UUID, error) {
+func (ks *KubernetesService) AddUserAlgorithmRun(
+	userAlgorithmID uuid.UUID,
+	startCronSchedule,
+	endCronSchedule string,
+	orderDomain int,
+	market,
+	symbol string,
+	startTime,
+	endTime *time.Time,
+	portfolioSize int,
+) (uuid.UUID, error) {
+
 	query := `
-		INSERT INTO user_algorithm_run (user_algorithm_id, start_cron_schedule, end_cron_schedule, order_domain)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO user_algorithm_runs (
+			user_algorithm_id,
+			start_cron_schedule,
+			end_cron_schedule,
+			order_domain,
+			market,
+			symbol,
+			start_time,
+			end_time,
+			portfolio_size,
+			created_at,
+			updated_at,
+			is_active
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW(), TRUE)
 		RETURNING id
 	`
 
 	var id uuid.UUID
-	err := ks.db.QueryRow(query, userAlgorithmID, start_cron_schedule, end_cron_schedule, order_domain).Scan(&id)
+	err := ks.db.QueryRow(
+		query,
+		userAlgorithmID,
+		startCronSchedule,
+		endCronSchedule,
+		orderDomain,
+		market,
+		symbol,
+		startTime,
+		endTime,
+		portfolioSize,
+	).Scan(&id)
+
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("insert failed: %w", err)
 	}
+
 	return id, nil
 }
 
 func (ks *KubernetesService) GetUserAlgorithmRunsByUserAlgorithmID(userAlgorithmID string) ([]uuid.UUID, error) {
 	query := `
 		SELECT id
-		FROM "user_algorithm_run"
+		FROM "user_algorithm_runs"
 		WHERE user_algorithm_id = $1 AND is_active = true
 	`
 
@@ -105,14 +143,14 @@ func (ks *KubernetesService) GetUserAlgorithmRunsByUserAlgorithmID(userAlgorithm
 
 func (ks *KubernetesService) DeactivateUserAlgorithmRunByID(runID uuid.UUID) error {
 	query := `
-		UPDATE "user_algorithm_run"
+		UPDATE "user_algorithm_runs"
 		SET is_active = false
 		WHERE id = $1
 	`
 
 	result, err := ks.db.Exec(query, runID)
 	if err != nil {
-		return fmt.Errorf("failed to deactivate user_algorithm_run %s: %w", runID, err)
+		return fmt.Errorf("failed to deactivate user_algorithm_runs %s: %w", runID, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
@@ -121,7 +159,7 @@ func (ks *KubernetesService) DeactivateUserAlgorithmRunByID(runID uuid.UUID) err
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("no user_algorithm_run found with id %s", runID)
+		return fmt.Errorf("no user_algorithm_runs found with id %s", runID)
 	}
 
 	return nil

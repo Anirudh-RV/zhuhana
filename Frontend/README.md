@@ -9,7 +9,7 @@ TODO:
 
 ## Running frontend for dev
 
-> npm start
+> npm run dev
 
 ## For building the Frontend
 
@@ -20,7 +20,7 @@ TODO:
 ## To run the server
 
 > npx tsc
-> node dist/index.js
+> `node dist/index.js`
 
 ## For Docker
 

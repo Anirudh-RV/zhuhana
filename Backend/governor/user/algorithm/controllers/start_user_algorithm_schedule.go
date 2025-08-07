@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"governor/user/algorithm/models"
 	"net/http"
@@ -23,22 +22,31 @@ import (
 // @Security     USER_TOKEN
 // @Router       /user/algorithm/start/ [post]
 func (uac *UserAlgorithmController) StartUserAlgorithm(c *gin.Context) {
-	var startUserAlgorithmRequest models.StartUserAlgorithmRequest
+	var startUseAlgorithmRequest models.StartUserAlgorithmRequest
 	userID, _ := c.Get("USER_ID")
 
-	if err := json.NewDecoder(c.Request.Body).Decode(&startUserAlgorithmRequest); err != nil {
+	if err := c.ShouldBindJSON(&startUseAlgorithmRequest); err != nil {
 		c.JSON(http.StatusBadRequest, models.StartUserAlgorithmResponse{
 			Status:            0,
-			StatusDescription: "Invalid request payload",
+			StatusDescription: "Invalid request payload: " + err.Error(),
 		})
 		return
 	}
 
-	err := uac.userAlgorithmService.StartUserAlgorithm(fmt.Sprint(userID), startUserAlgorithmRequest.AlgorithmID)
+	err := uac.userAlgorithmService.StartUserAlgorithm(
+		fmt.Sprint(userID),
+		startUseAlgorithmRequest.AlgorithmID,
+		startUseAlgorithmRequest.Market,
+		startUseAlgorithmRequest.Symbol,
+		startUseAlgorithmRequest.StartTime,
+		startUseAlgorithmRequest.EndTime,
+		startUseAlgorithmRequest.PortfolioSize,
+		startUseAlgorithmRequest.Frequency,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.StartUserAlgorithmResponse{
 			Status:            0,
-			StatusDescription: "Algorithm schedule update failed",
+			StatusDescription: "Algorithm schedule update failed: " + err.Error(),
 		})
 		return
 	}

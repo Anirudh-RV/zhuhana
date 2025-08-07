@@ -17,7 +17,13 @@ import (
 	userService "uasam/users/user/services"
 )
 
-func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc) {
+func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, emailService *email.EmailService, jwtService *commonutils.JWTService, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc) {
+	notificationRepo := userRepository.NewNotificationRepository(db)
+	go log.Info("notification repository created", zap.String("execution level", "UserRoutesV1"))
+
+	notifService := userService.NewNotificationService(notificationRepo, log)
+	go log.Info("notification service created", zap.String("execution level", "UserRoutesV1"))
+
 	user := r.Group("user/")
 	{
 		userRepo := userRepository.NewUserRepository(db)
@@ -26,11 +32,14 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 		otpService := userService.NewOTPService(ctx, log, redis, emailService, userRepo)
 		go log.Info("otp service created", zap.String("execution level", "UserRoutesV1"))
 
-		userService := userService.NewUserService(ctx, otpService, jwtService, userRepo, log, redis)
+		userService := userService.NewUserService(ctx, otpService, jwtService, notifService, userRepo, log, redis)
 		go log.Info("user service created", zap.String("execution level", "UserRoutesV1"))
 
 		userAuthenticateController := userController.NewUserAuthenticateController(log, userService)
 		go log.Info("user service created", zap.String("execution level", "UserRoutesV1"))
+
+		userFieldsUpdateController := userController.NewUpdateUserFieldsController(userService, log)
+		go log.Info("user fields update controller created", zap.String("execution level", "UserRoutesV1"))
 
 		signUp := user.Group("sign-up/")
 		{
@@ -70,7 +79,7 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				Source:      "body",
 				Param:       "emailId",
 				EnableParam: true,
-				Limit:       3,
+				Limit:       10,
 				Window:      300,
 				EnableIP:    true,
 				IPLimit:     15,
@@ -117,6 +126,17 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 				IPWindow:    300,
 				Endpoint:    "user/reset-password/reset",
 			}), resetPasswordController.ResetPasswordHandler)
+			resetPassword.PUT("update/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_TOKEN",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     15,
+				IPWindow:    300,
+				Endpoint:    "user/reset-password/update",
+			}), userAuthMiddleware, resetPasswordController.UpdatePasswordHandler)
 		}
 
 		user.POST("authenticate/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
@@ -130,5 +150,45 @@ func UserRoutesV1(ctx *context.Context, r *gin.RouterGroup, log *logger.Logger, 
 			IPWindow:    300,
 			Endpoint:    "/v1/user/authenticate/",
 		}), userAuthenticateController.UserAuthenticateHandler)
+
+		user.PUT("edit/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     300,
+			IPWindow:    300,
+			Endpoint:    "/v1/user/edit/",
+		}), userAuthMiddleware, userFieldsUpdateController.UpdateUserFieldsHandler)
+	}
+
+	notification := r.Group("notification/")
+	{
+		notificationsController := userController.NewNotificationController(log, notifService)
+		notification.GET("list/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     300,
+			IPWindow:    300,
+			Endpoint:    "/v1/notification/list/",
+		}), userAuthMiddleware, notificationsController.GetNotificationsHandler)
+
+		notification.POST("read/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       300,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     300,
+			IPWindow:    300,
+			Endpoint:    "/v1/notification/read/",
+		}), userAuthMiddleware, notificationsController.ReadNotificationsHandler)
 	}
 }

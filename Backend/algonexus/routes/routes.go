@@ -3,13 +3,15 @@ package routes
 import (
 	_ "algonexus/docs"
 	"algonexus/logger"
+	backtestRoutes "algonexus/ordermanager/backtestengine/routes"
 	orderHubServices "algonexus/ordermanager/orderhub/services"
-	orderManageRroutes "algonexus/ordermanager/routes"
+	orderManagerRoutes "algonexus/ordermanager/routes"
 	"database/sql"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
@@ -18,9 +20,9 @@ import (
 	"algonexus/ordermanager/backtestengine/marketsimulator/marketfeed/loaders"
 )
 
-func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc) {
+func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, clickHouse *clickhouse.Conn, redis *redis.Client, orderHubService *orderHubServices.OrderHubService, authMiddleware gin.HandlerFunc, userAlgorithmAuthMiddleware gin.HandlerFunc) {
 
-	v1 := r.Group("/v1/algonexus")
+	v1 := r.Group("/v1/")
 	{
 		v1.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		v1.GET("/ping", func(c *gin.Context) {
@@ -28,29 +30,7 @@ func RegisterRoutes(r *gin.Engine, log *logger.Logger, db *sql.DB, redis *redis.
 				"status": "ok",
 			})
 		})
-		orderManageRroutes.RegisterOrderManagerRoutesV1(v1, log, db, redis, orderHubService, authMiddleware)
-
-		dev := v1.Group("dev")
-		{
-			dev.GET("/loadcsv", func(context *gin.Context) {
-				dur := 5 * time.Minute
-				tickets, err := loaders.LoadTicksFromCSV(dur)
-
-				if err != nil {
-					log.Error("loadcsv error", zap.Error(err))
-					context.JSON(http.StatusInternalServerError, gin.H{
-						"error": err,
-					})
-				}
-
-				//data, err := json.Marshal(tickets)
-				//if err != nil {
-				//	log.Error("failed to marshal tickets", zap.Error(err))
-				//	return
-				//}
-				//log.Info("tickets", zap.String("data", string(data)))
-				context.JSON(http.StatusOK, tickets)
-			})
-		}
+		orderManagerRoutes.RegisterOrderManagerRoutesV1(v1, log, db, clickHouse, redis, orderHubService, authMiddleware)
+		backtestRoutes.RegisterBacktestRoutesV1(v1, log, db, clickHouse, redis, authMiddleware, userAlgorithmAuthMiddleware)
 	}
 }

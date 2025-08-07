@@ -6,10 +6,11 @@ import (
 	"algonexus/ordermanager/orderhub/registry"
 	"context"
 	"errors"
-	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 	"sync"
 	"time"
+
+	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 type RsOrderConsumer struct {
@@ -87,7 +88,7 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 	}
 
 	if entries == nil {
-		c.Logger.Info("XReadGroup returned nil entries")
+		// c.Logger.Warning("XReadGroup returned nil entries")
 		return
 	}
 

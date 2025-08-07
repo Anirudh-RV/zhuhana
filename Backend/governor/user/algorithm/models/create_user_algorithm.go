@@ -1,7 +1,7 @@
 package models
 
 type CreateUserAlgorithmRequest struct {
-	ScriptName string `form:"scriptName" binding:"required"`
+	AlgorithmName string `form:"algorithmName" binding:"required"`
 }
 
 type CreateUserAlgorithmResponse struct {

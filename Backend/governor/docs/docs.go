@@ -97,6 +97,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/user/algorithm/info": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific user algorithm by its ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserAlgorithm"
+                ],
+                "summary": "Get user algorithm details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Algorithm ID",
+                        "name": "algorithm_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Algorithm fetched successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid algorithm_id",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/user/algorithm/python/upload/": {
             "post": {
                 "security": [
@@ -254,46 +303,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/v1/user/algorithm/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "USER_TOKEN": []
-                    }
-                ],
-                "description": "Retrieves a specific user algorithm for the authenticated user using the algorithm ID.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "UserAlgorithm"
-                ],
-                "summary": "Get user algorithm by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Algorithm ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Algorithm fetched successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to fetch user algorithm",
-                        "schema": {
-                            "$ref": "#/definitions/models.GetUserAlgorithmResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -376,8 +385,35 @@ const docTemplate = `{
         },
         "models.StartUserAlgorithmRequest": {
             "type": "object",
+            "required": [
+                "algorithmID",
+                "end_time",
+                "frequency",
+                "market",
+                "portfolio_size",
+                "start_time",
+                "symbol"
+            ],
             "properties": {
                 "algorithmID": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "frequency": {
+                    "type": "integer"
+                },
+                "market": {
+                    "type": "string"
+                },
+                "portfolio_size": {
+                    "type": "integer"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "symbol": {
                     "type": "string"
                 }
             }

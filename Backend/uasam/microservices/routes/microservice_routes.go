@@ -56,5 +56,34 @@ func MicroServiceRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, re
 				Endpoint:    "microservice/user/authenticate/",
 			}), authMiddleware, microServiceUserAuthenticateController.MicroServiceUserAuthenticateHandler)
 		}
+
+		userAlgorithm := microservicesRoute.Group("user-algorithm/")
+		{
+			microServiceAlgorithmUserLoginController := microServiceController.NewMicroServiceUserAlgorithmLoginController(microServiceServiceObj, log)
+			go log.Info("microservice user algorithm login controller created", zap.String("execution level", "MicroServiceRoutesV1"))
+
+			microServiceAlgorithmUserAuthenticateController := microServiceController.NewMicroServiceUserAlgorithmAuthenticateController(microServiceServiceObj, log)
+			go log.Info("microservice user algorithm login controller created", zap.String("execution level", "MicroServiceRoutesV1"))
+
+			userAlgorithm.POST("login/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "body",
+				Param:       "userAlgorithmID",
+				EnableParam: true,
+				Limit:       3,
+				Window:      300,
+				EnableIP:    false,
+				Endpoint:    "/v1/microservice/user-algorithm/login/",
+			}), authMiddleware, microServiceAlgorithmUserLoginController.MicroServiceUserAlgorithmLoginHandler)
+
+			userAlgorithm.POST("authenticate/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_ALGORITHM_TOKEN",
+				EnableParam: true,
+				Limit:       300,
+				Window:      300,
+				EnableIP:    false,
+				Endpoint:    "/v1/microservice/user-algorithm/authenticate/",
+			}), authMiddleware, microServiceAlgorithmUserAuthenticateController.MicroServiceUserAlgorithmAuthenticateHandler)
+		}
 	}
 }

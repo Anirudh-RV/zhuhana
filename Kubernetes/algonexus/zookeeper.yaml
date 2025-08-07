@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zk-algonexus-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zk-algonexus-datalog-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: algonexus-zookeeper
+spec:
+  selector:
+    app: algonexus-zookeeper
+  ports:
+    - name: zk-2183
+      port: 2183
+      targetPort: 2181
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algonexus-zookeeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algonexus-zookeeper
+  template:
+    metadata:
+      labels:
+        app: algonexus-zookeeper
+    spec:
+      containers:
+        - name: algonexus-zookeeper
+          image: confluentinc/cp-zookeeper:7.4.0
+          ports:
+            - containerPort: 2181
+          env:
+            - name: ZOOKEEPER_CLIENT_PORT
+              value: "2181"
+            - name: ZOOKEEPER_TICK_TIME
+              value: "2000"
+          volumeMounts:
+            - name: zk-algonexus-data
+              mountPath: /var/lib/zookeeper/data
+            - name: zk-algonexus-datalog
+              mountPath: /var/lib/zookeeper/log
+          readinessProbe:
+            tcpSocket:
+              port: 2181
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+      volumes:
+        - name: zk-algonexus-data
+          persistentVolumeClaim:
+            claimName: zk-algonexus-data-pvc
+        - name: zk-algonexus-datalog
+          persistentVolumeClaim:
+            claimName: zk-algonexus-datalog-pvc

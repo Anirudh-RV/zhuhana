@@ -10,8 +10,11 @@ import (
 	"governor/middleware"
 	"governor/routes"
 	"governor/scheduler"
+	"time"
 
 	constants "governor/constants"
+
+	"github.com/gin-contrib/cors"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -29,7 +32,11 @@ func main() {
 	cache.InitRedis(ctx, log)
 	go log.Info("redis connection successful", zap.String("Execution Level", "Root"))
 
-	kubernetesService := kubernetescontroller.NewKubernetesService(log, db.DB)
+	microserviceAuthenticator := middleware.NewMicroSeviceAuthenticator(log)
+	microserviceAuthenticator.GetAllServiceTokens()
+	go log.Info("microservice authenticator initialization successful", zap.String("execution level", "Root"))
+
+	kubernetesService := kubernetescontroller.NewKubernetesService(log, db.DB, microserviceAuthenticator)
 	go log.Info("scheduler initialization successful", zap.String("Execution Level", "Root"))
 
 	kafkaService := kafka.NewKafkaService(log, kubernetesService)
@@ -43,15 +50,23 @@ func main() {
 	router := gin.Default()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "USER_TOKEN"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)
 	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
 
 	userAuthMiddleware := middleware.UserAuthMiddleware(constants.USER_AUTHENTICATION_ENDPOINT)
-	go log.Info("authentication middleware initialization successful", zap.String("execution level", "Root"))
+	go log.Info("user authentication middleware initialization successful", zap.String("execution level", "Root"))
 
-	microserviceAuthenticator := middleware.NewMicroSeviceAuthenticator(log)
-	microserviceAuthenticator.GetAllServiceTokens()
-	go log.Info("microservice authenticator initialization successful", zap.String("execution level", "Root"))
+	userAlgorithmAuthMiddleware := middleware.UserAlgorithmAuthMiddleware(constants.MICROSERVICE_USER_ALGORITHM_AUTHENTICATE_ENDPOINT)
+	go log.Info("user algorithm authentication middleware initialization successful", zap.String("execution level", "Root"))
 
 	router.Use(middleware.RequestLogger(log))
 	go log.Info("registered logger for the router", zap.String("execution level", "Root"))
@@ -59,7 +74,7 @@ func main() {
 	router.Use(gin.Recovery())
 	go log.Info("using panic recovery", zap.String("execution level", "Root"))
 
-	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
+	routes.RegisterRoutes(router, log, db.DB, cache.RedisObj, authMiddleware, userAuthMiddleware, userAlgorithmAuthMiddleware, microserviceAuthenticator, schedulerService, kafkaService, kubernetesService)
 
 	go log.Info("Starting application at port 8080...", zap.String("Execution Level", "Root"))
 	router.Run(":8080")

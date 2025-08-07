@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"governor/logger"
+	"governor/middleware"
 	"os/exec"
 
 	"go.uber.org/zap"
@@ -12,13 +13,14 @@ import (
 )
 
 type KubernetesService struct {
-	logger    *logger.Logger
-	db        *sql.DB
-	clientSet *kubernetes.Clientset
-	namespace string
+	logger                    *logger.Logger
+	db                        *sql.DB
+	clientSet                 *kubernetes.Clientset
+	namespace                 string
+	microserviceAuthenticator *middleware.MicroSeviceAuthenticator
 }
 
-func NewKubernetesService(logger *logger.Logger, db *sql.DB) *KubernetesService {
+func NewKubernetesService(logger *logger.Logger, db *sql.DB, microserviceAuthenticator *middleware.MicroSeviceAuthenticator) *KubernetesService {
 	// TODO: Login to Docker registry
 	logger.Info("Logging in to Docker registry...",
 		zap.String("registry", DOCKER_SERVER_ADDRESS),
@@ -57,9 +59,10 @@ func NewKubernetesService(logger *logger.Logger, db *sql.DB) *KubernetesService 
 	fmt.Printf("Connected to Kubernetes cluster version: %s\n", versionInfo.GitVersion)
 
 	return &KubernetesService{
-		logger:    logger,
-		db:        db,
-		clientSet: clientSet,
-		namespace: "user-algorithm",
+		logger:                    logger,
+		db:                        db,
+		clientSet:                 clientSet,
+		namespace:                 "user-algorithm",
+		microserviceAuthenticator: microserviceAuthenticator,
 	}
 }

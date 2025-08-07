@@ -76,7 +76,7 @@ func (us *UserService) SignUpVerifyOTPHandler(signUpVerifyOTPRequest *models.Sig
 		return nil, "", 0, err
 	}
 
-	userObject, err := us.userRepository.CreateUser(signUpInitRequestObject.FirstName, signUpInitRequestObject.MiddleName, signUpInitRequestObject.LastName, signUpInitRequestObject.EmailID, signUpInitRequestObject.Password)
+	userObject, err := us.CreateUser(signUpInitRequestObject.FirstName, *signUpInitRequestObject.MiddleName, signUpInitRequestObject.LastName, signUpInitRequestObject.EmailID, signUpInitRequestObject.Password)
 	if err != nil {
 		go us.logger.Warning("errors creating user object", zap.String("execution level", "SignUpVerifyOTPHandler"), zap.String("Error", err.Error()))
 		return nil, "", 0, err

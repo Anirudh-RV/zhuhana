@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: algonexus-redis
+spec:
+  selector:
+    app: algonexus-redis
+  ports:
+    - protocol: TCP
+      port: 6378
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algonexus-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: algonexus-redis
+  template:
+    metadata:
+      labels:
+        app: algonexus-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7
+          args: ["redis-server", "--requirepass", "password"]
+          ports:
+            - containerPort: 6379

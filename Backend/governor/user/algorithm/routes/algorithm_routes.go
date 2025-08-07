@@ -16,7 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) {
+func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, redis *redis.Client, authMiddleware gin.HandlerFunc, userAuthMiddleware gin.HandlerFunc, userAlgorithmAuthMiddleware gin.HandlerFunc, microserviceAuthenticator *middleware.MicroSeviceAuthenticator, schedulerService *scheduler.SchedulerService, kafkaService *kafka.KafkaService, kubernetesService *kubernetescontroller.KubernetesService) {
 	algorithmRoutes := r.Group("user/algorithm/")
 	{
 		userAlgorithmRepository := repositories.NewUserAlgorithmRepository(db)
@@ -80,7 +80,7 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 		}), userAuthMiddleware,
 			userAlgorithmController.CancelUserAlgorithmCronSchedule)
 
-		algorithmRoutes.GET("/:id", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+		algorithmRoutes.GET("info/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 			Source:      "header",
 			Param:       "USER_TOKEN",
 			EnableParam: true,
@@ -89,7 +89,7 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 			EnableIP:    true,
 			IPLimit:     100,
 			IPWindow:    300,
-			Endpoint:    "/v1/user/algorithm/:id",
+			Endpoint:    "/v1/user/algorithm/info/",
 		}), userAuthMiddleware,
 			userAlgorithmController.GetUserAlgorithmByID)
 
@@ -97,10 +97,10 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 			Source:      "header",
 			Param:       "USER_TOKEN",
 			EnableParam: true,
-			Limit:       10,
+			Limit:       300,
 			Window:      300,
 			EnableIP:    true,
-			IPLimit:     10,
+			IPLimit:     300,
 			IPWindow:    300,
 			Endpoint:    "/v1/user/algorithm/",
 		}), userAuthMiddleware,
@@ -120,6 +120,19 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 				Endpoint:    "/v1/user/algorith/python/upload/",
 			}), userAuthMiddleware,
 				userAlgorithmController.CreateUserAlgorithmHandler)
+
+			pythonAlgorithms.PUT("edit/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+				Source:      "header",
+				Param:       "USER_TOKEN",
+				EnableParam: true,
+				Limit:       10,
+				Window:      300,
+				EnableIP:    true,
+				IPLimit:     10,
+				IPWindow:    300,
+				Endpoint:    "/v1/user/algorith/python/edit/",
+			}), userAuthMiddleware,
+				userAlgorithmController.EditUserAlgorithmHandler)
 		}
 	}
 }

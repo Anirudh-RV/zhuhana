@@ -44,7 +44,7 @@ spec:
             - configMapRef:
                 name: secretsmanager-env
           volumeMounts:
-            - mountPath: /var/lib/secretsmanager/postgresql/data
+            - mountPath: /var/lib/postgresql/data
               name: secretsmanager-pgdata
       volumes:
         - name: secretsmanager-pgdata
