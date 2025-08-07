@@ -48,7 +48,7 @@ func (s *OrderHubService) Listen(id string) {
 	}
 }
 
-func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
+func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) *runtime.OrderSession {
 	orderSession := runtime.NewOrderSession(req)
 	s.registry.Update(req.OrderID, orderSession)
 
@@ -75,11 +75,13 @@ func (s *OrderHubService) RegisterOrder(req *models.OrderRequest) {
 		}
 	}()
 
+	return s.registry.Get(req.OrderID)
+
 	// Listener routine (listen to consumer)
 	// TODO: Refactor listener logic later
 	// TODO: Relocate per-order handling logic into OrderHandle for encapsulation
-	s.logger.Info("started a listener", zap.String("orderId", req.OrderID))
-	go s.Listen(req.OrderID)
+	//s.logger.Info("started a listener", zap.String("orderId", req.OrderID))
+	//go s.Listen(req.OrderID)
 
 }
 

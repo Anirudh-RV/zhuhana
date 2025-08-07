@@ -30,7 +30,8 @@ func main() {
 	orderHubService := orderHubServices.NewOrderHubService(log)
 	go log.Info("OrderHub service started", zap.String("Execution level", "Root"))
 
-	router := gin.Default()
+	//router := gin.Default()
+	router := gin.New()
 	go log.Info("Router setup successful", zap.String("Execution Level", "Root"))
 
 	authMiddleware := middleware.AuthMiddleware(constants.API_AUTHENTICATION_ENDPOINT)

@@ -32,6 +32,7 @@ func (r *OrderHubRegistry) Get(id string) *runtime.OrderSession {
 func (r *OrderHubRegistry) Update(id string, handle *runtime.OrderSession) {
 	r.rwmu.Lock()
 	defer r.rwmu.Unlock()
+
 	r.orders[id] = handle
 }
 

@@ -26,6 +26,7 @@ func NewLogger() *Logger {
 		config.EncoderConfig.TimeKey = "timestamp"                   // Explicitly set timestamp key
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder // Format as ISO8601
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		config.Level = zap.NewAtomicLevelAt(zap.WarnLevel)
 		logger, _ := config.Build()
 		instance = &Logger{zapLogger: logger}
 	})

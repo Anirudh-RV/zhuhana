@@ -75,14 +75,33 @@ func (c *OrderManagerController) SubmitBacktestOrder(req *models.OrderRequest) e
 	//	Time:          time.Now(),
 	//}, nil
 
-	err := c.service.DeliverOrderToHub(req)
+	err, channel := c.service.DeliverOrderToHub(req)
 
 	if err != nil {
 		c.logger.Error("order delivery to OrderHub failed", zap.Error(err))
 		return err
 	}
-
 	c.logger.Info("order delivered to OrderHub")
 
+	//go func(channel <-chan hubmodels.OrderEvent) {
+	//	for event := range channel {
+	//		//TODO Stop Condition
+	//		s.logger.Info("OrderHub received event", zap.String("order_id", id), zap.String("type", string(event.Type)))
+	//	}
+	//}(channel)
+
+	//!!! TEST ONLY !!!
+	//go func() {
+	//	event := <-channel
+	//	c.logger.Info("OrderHub received event",
+	//		zap.String("order_id", req.OrderID),
+	//		zap.String("type", string(event.Type)),
+	//	)
+	//}()
+	event := <-channel
+	c.logger.Info("OrderHub received event",
+		zap.String("order_id", req.OrderID),
+		zap.String("type", string(event.Type)))
+	
 	return nil
 }

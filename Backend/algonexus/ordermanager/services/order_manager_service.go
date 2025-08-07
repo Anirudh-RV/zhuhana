@@ -4,6 +4,7 @@ import (
 	"algonexus/logger"
 	orderLogger "algonexus/ordermanager/logger"
 	"algonexus/ordermanager/models"
+	hubmodels "algonexus/ordermanager/orderhub/models"
 	orderHubServices "algonexus/ordermanager/orderhub/services"
 )
 
@@ -34,8 +35,8 @@ func NewOrderManagerService(logger *logger.Logger, hubService *orderHubServices.
 //	return nil
 //}
 
-func (oms *OrderManagerService) DeliverOrderToHub(req *models.OrderRequest) error {
+func (oms *OrderManagerService) DeliverOrderToHub(req *models.OrderRequest) (error, <-chan hubmodels.OrderEvent) {
 	//Register Order Handle in hub first
-	oms.orderHubService.RegisterOrder(req)
-	return nil
+	session := oms.orderHubService.RegisterOrder(req)
+	return nil, session.Channel
 }
