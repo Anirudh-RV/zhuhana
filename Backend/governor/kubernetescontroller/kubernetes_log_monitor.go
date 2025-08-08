@@ -24,7 +24,7 @@ func (ks *KubernetesService) StreamPodLogs(podName string) error {
 	scanner := bufio.NewScanner(stream)
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println("Log:", line)
+		go ks.logger.Info(fmt.Sprintf("Log: %s", line), zap.String("Execution Level", "KubernetesStart"))
 
 		// 🧠 Do custom processing here:
 		if strings.Contains(line, "error") {
@@ -34,7 +34,7 @@ func (ks *KubernetesService) StreamPodLogs(podName string) error {
 
 		if strings.Contains(line, "Job Completed") {
 			// Optionally trigger some follow-up action
-			fmt.Println("Job completed detected")
+			go ks.logger.Info("job completed", zap.String("Execution Level", "KubernetesStart"))
 		}
 	}
 

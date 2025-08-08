@@ -32,8 +32,6 @@ import {
   createHoverTooltipSource,
 } from "codemirror-languageservice";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
-import { completionKeymap, acceptCompletion } from "@codemirror/autocomplete";
-import { indentMore } from "@codemirror/commands";
 import EditableFileName, {
   type EditableFileNameHandle,
 } from "./components/EditableFileName";
@@ -62,7 +60,6 @@ import {
 } from "../constants";
 import { useColorScheme } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { Snackbar, Alert } from "@mui/material";
 
 const md = new MarkdownIt();
 const FILE_URI =
@@ -980,6 +977,7 @@ export default function CodeEditorDashboard(props: {
                 setSessionId={setSessionId}
                 isNewSession={isNewSession}
                 setIsNewSession={setIsNewSession}
+                inputBoxPlaceHolder="Describe your trading idea..."
               />
             </Box>
           </>

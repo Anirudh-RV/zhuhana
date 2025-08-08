@@ -1,6 +1,8 @@
 package services
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -13,6 +15,7 @@ func (uas *UserAlgorithmService) StopUserAlgorithm(userID, userAlgorithmID strin
 	}
 	if !belongsTo {
 		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "StopUserAlgorithm"))
+		return fmt.Errorf("user_algorithm_id does not belong to user_id")
 	}
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
 	go uas.kubernetesService.Stop(userAlgorithmUUID)

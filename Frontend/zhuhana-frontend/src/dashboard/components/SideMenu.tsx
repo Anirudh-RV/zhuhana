@@ -24,8 +24,8 @@ export default function SideMenu({
   selectedPage,
   onSelectPage,
 }: {
-  selectedPage: "home" | "analytics" | "vault";
-  onSelectPage: (page: "home" | "analytics" | "vault") => void;
+  selectedPage: "discovery" | "home" | "analytics" | "vault";
+  onSelectPage: (page: "discovery" | "home" | "analytics" | "vault") => void;
 }) {
   const { user } = useAuth();
 

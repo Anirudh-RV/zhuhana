@@ -219,3 +219,67 @@ func (uar *UserAlgorithmRepository) DoesUserAlgorithmBelongsToUser(userID, userA
 
 	return false, nil // No matching row found
 }
+
+func (uar *UserAlgorithmRepository) GetUserAlgorithmRunsByUserAlgorithmID(userAlgorithmID uuid.UUID) ([]models.UserAlgorithmRun, error) {
+	query := `
+		SELECT
+			id,
+			is_active,
+			user_algorithm_id,
+			start_cron_schedule,
+			end_cron_schedule,
+			order_domain,
+			market,
+			symbol,
+			start_time,
+			end_time,
+			frequency,
+			portfolio_size,
+			status,
+			created_at,
+			stopped_at,
+			updated_at
+		FROM user_algorithm_runs
+		WHERE user_algorithm_id = $1
+		ORDER BY created_at DESC
+	`
+
+	rows, err := uar.db.Query(query, userAlgorithmID)
+	if err != nil {
+		return nil, fmt.Errorf("query failed: %w", err)
+	}
+	defer rows.Close()
+
+	var runs []models.UserAlgorithmRun
+	for rows.Next() {
+		var run models.UserAlgorithmRun
+		err := rows.Scan(
+			&run.ID,
+			&run.IsActive,
+			&run.UserAlgorithmID,
+			&run.StartCronSchedule,
+			&run.EndCronSchedule,
+			&run.OrderDomain,
+			&run.Market,
+			&run.Symbol,
+			&run.StartTime,
+			&run.EndTime,
+			&run.Frequency,
+			&run.PortfolioSize,
+			&run.Status,
+			&run.CreatedAt,
+			&run.StoppedAt,
+			&run.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scan failed: %w", err)
+		}
+		runs = append(runs, run)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+
+	return runs, nil
+}
