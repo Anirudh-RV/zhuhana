@@ -23,9 +23,14 @@ CREATE TABLE user_algorithm_runs (
     stopped_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_algorithm_runs_user_algorithm_id
+    ON user_algorithm_runs (user_algorithm_id);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX CONCURRENTLY IF EXISTS idx_user_algorithm_runs_user_algorithm_id;
 DROP TABLE user_algorithm_runs;
 -- +goose StatementEnd
