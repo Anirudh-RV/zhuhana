@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Box, Button, IconButton, Typography, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  Tooltip,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import BacktestConfig from "./BacktestConfig";
 import PaperTradeConfig from "./PaperTradingConfig";
 import LiveTradeConfig from "./LiveTradingConfig";
@@ -43,6 +51,8 @@ export default function CodeSideMenu({
     endDate: null, // means not chosen
     portfolioSize: 10000,
   });
+
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
 
   const handleRunBacktest = async () => {
     const params = new URLSearchParams(window.location.search);
@@ -109,6 +119,7 @@ export default function CodeSideMenu({
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+      setSnackbarOpen(true);
     } catch (err) {
       console.error("Failed to start backtest", err);
     }
@@ -252,6 +263,35 @@ export default function CodeSideMenu({
           {mode}
         </Button>
       </Box>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          variant="outlined"
+          sx={{
+            width: "100%",
+            backgroundColor: "background.paper",
+            color: "text.primary",
+            borderColor: "success.main",
+            boxShadow: 2,
+            "&.MuiAlert-outlinedSuccess": {
+              backgroundColor: "background.paper",
+              border: 0,
+            },
+          }}
+          iconMapping={{
+            success: <span>✅</span>,
+          }}
+        >
+          {mode} started..
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
