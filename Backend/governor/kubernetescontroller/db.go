@@ -69,6 +69,7 @@ func (ks *KubernetesService) AddUserAlgorithmRun(
 	symbol string,
 	startTime,
 	endTime *time.Time,
+	frequency,
 	portfolioSize int,
 ) (uuid.UUID, error) {
 
@@ -82,12 +83,13 @@ func (ks *KubernetesService) AddUserAlgorithmRun(
 			symbol,
 			start_time,
 			end_time,
+			frequency,
 			portfolio_size,
 			created_at,
 			updated_at,
 			is_active
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW(), TRUE)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW(), TRUE)
 		RETURNING id
 	`
 
@@ -102,6 +104,7 @@ func (ks *KubernetesService) AddUserAlgorithmRun(
 		symbol,
 		startTime,
 		endTime,
+		frequency,
 		portfolioSize,
 	).Scan(&id)
 

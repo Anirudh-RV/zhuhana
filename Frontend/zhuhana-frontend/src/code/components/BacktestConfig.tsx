@@ -1,15 +1,35 @@
-import { useState } from "react";
-import { Typography, TextField, Stack, Box, Button } from "@mui/material";
-import { Autocomplete } from "@mui/material";
-import { LocalizationProvider } from "@mui/x-date-pickers";
+import {
+  Typography,
+  TextField,
+  Stack,
+  Box,
+  Button,
+  Autocomplete,
+  InputAdornment,
+  Tooltip,
+} from "@mui/material";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { DatePicker } from "@mui/x-date-pickers";
-import InputAdornment from "@mui/material/InputAdornment";
 import { useColorScheme } from "@mui/material/styles";
-import { Tooltip } from "@mui/material";
 
-export default function BacktestConfig() {
+export interface BacktestValues {
+  instrument: string;
+  timeDuration: string;
+  frequencyType: string; // "1D" | "1W" | "1M" | "Custom"
+  customFrequencyDays: number | "";
+  startDate: dayjs.Dayjs | null;
+  endDate: dayjs.Dayjs | null;
+  portfolioSize: number;
+}
+
+export default function BacktestConfig({
+  values,
+  onChange,
+}: {
+  values: BacktestValues;
+  onChange: (changes: Partial<BacktestValues>) => void;
+}) {
   const timeDurations = [
     { value: "1D", label: "1 Day" },
     { value: "1M", label: "1 Month" },
@@ -17,20 +37,14 @@ export default function BacktestConfig() {
     { value: "Custom", label: "Custom Range" },
   ];
 
-  const [timeDuration, setTimeDuration] = useState("1Y");
-
   const frequencies = [
     { value: "1D", label: "1 Day" },
     { value: "1W", label: "1 Week" },
     { value: "1M", label: "1 Month" },
     { value: "Custom", label: "Custom Frequency" },
   ];
-  const [frequency, setFrequency] = useState("1D");
 
   const instruments = ["SPY", "AAPL", "GOOGL", "MSFT", "AMZN"];
-  const [instrument, setInstrument] = useState("SPY");
-  const [startDate, setStartDate] = useState(dayjs().subtract(1, "year"));
-  const [endDate, setEndDate] = useState(dayjs());
 
   const { mode, systemMode } = useColorScheme();
   const resolvedMode = mode === "system" ? systemMode : mode;
@@ -46,25 +60,22 @@ export default function BacktestConfig() {
         fullWidth
         size="small"
         options={instruments}
-        value={instrument}
+        value={values.instrument}
         onChange={(_, newValue) => {
-          if (newValue) setInstrument(newValue);
+          if (newValue) onChange({ instrument: newValue });
         }}
         renderInput={(params) => (
           <TextField
             {...params}
             size="small"
             sx={{
-              // Match the container height
               "& .MuiInputBase-root": {
                 height: 48,
-                backgroundColor: "background.default", // matches theme background
+                backgroundColor: "background.default",
               },
-              // Match text input padding
               "& .MuiInputBase-input": {
                 padding: "12px 14px",
               },
-              // Optional: match label size
               "& .MuiInputLabel-root": {
                 top: -5,
               },
@@ -74,7 +85,7 @@ export default function BacktestConfig() {
         sx={{
           mb: 2,
           "& .MuiAutocomplete-endAdornment": {
-            backgroundColor: "background.default", // match input background
+            backgroundColor: "background.default",
             borderRadius: 0,
             height: "100%",
             display: "flex",
@@ -99,11 +110,11 @@ export default function BacktestConfig() {
         }}
       >
         {timeDurations.map(({ value, label }, index) => {
-          const isSelected = timeDuration === value;
+          const isSelected = values.timeDuration === value;
           return (
             <Tooltip key={value} title={label} arrow>
               <Button
-                onClick={() => setTimeDuration(value)}
+                onClick={() => onChange({ timeDuration: value })}
                 variant="text"
                 sx={{
                   flex: 1,
@@ -130,13 +141,15 @@ export default function BacktestConfig() {
         })}
       </Box>
 
-      {timeDuration === "Custom" && (
+      {values.timeDuration === "Custom" && (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
             <DatePicker
               label="Start Date"
-              value={startDate}
-              onChange={(newValue) => newValue && setStartDate(newValue)}
+              value={values.startDate}
+              onChange={(newValue) =>
+                newValue && onChange({ startDate: newValue })
+              }
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -146,8 +159,10 @@ export default function BacktestConfig() {
             />
             <DatePicker
               label="End Date"
-              value={endDate}
-              onChange={(newValue) => newValue && setEndDate(newValue)}
+              value={values.endDate}
+              onChange={(newValue) =>
+                newValue && onChange({ endDate: newValue })
+              }
               slotProps={{
                 textField: {
                   fullWidth: true,
@@ -159,6 +174,7 @@ export default function BacktestConfig() {
         </LocalizationProvider>
       )}
 
+      {/* Frequency */}
       {/* Frequency */}
       <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
         Select Frequency
@@ -175,11 +191,11 @@ export default function BacktestConfig() {
         }}
       >
         {frequencies.map(({ value, label }, index) => {
-          const isSelected = frequency === value;
+          const isSelected = values.frequencyType === value;
           return (
             <Tooltip key={value} title={label} arrow>
               <Button
-                onClick={() => setFrequency(value)}
+                onClick={() => onChange({ frequencyType: value })}
                 variant="text"
                 sx={{
                   flex: 1,
@@ -206,23 +222,26 @@ export default function BacktestConfig() {
         })}
       </Box>
 
-      {frequency === "Custom" && (
+      {values.frequencyType === "Custom" && (
         <TextField
           fullWidth
           label="Frequency (Days)"
           type="number"
           size="small"
-          defaultValue={60}
+          value={values.customFrequencyDays}
+          onChange={(e) =>
+            onChange({ customFrequencyDays: Number(e.target.value) })
+          }
           sx={{
             mb: 2,
             "& .MuiInputBase-root": {
-              height: 48, // You can adjust this
+              height: 48,
             },
             "& .MuiInputLabel-root": {
               color: "text.secondary",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "text.secondary", // Prevents label from turning blue
+              color: "text.secondary",
             },
           }}
         />
@@ -239,16 +258,13 @@ export default function BacktestConfig() {
           label="Portfolio Size"
           type="number"
           size="small"
-          defaultValue={10000}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">$</InputAdornment>
-              ),
-              inputProps: {
-                min: 0,
-                step: 100,
-              },
+          value={values.portfolioSize}
+          onChange={(e) => onChange({ portfolioSize: Number(e.target.value) })}
+          InputProps={{
+            startAdornment: <InputAdornment position="start">$</InputAdornment>,
+            inputProps: {
+              min: 0,
+              step: 100,
             },
           }}
           sx={{

@@ -52,6 +52,7 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 		symbol,
 		startTime,
 		endTime,
+		frequency,
 		portfolioSize)
 	if err != nil {
 		go ks.logger.Info("error while creating the user_algorithm_runs", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))

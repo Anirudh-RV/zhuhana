@@ -49,6 +49,7 @@ interface Run {
   Symbol: string;
   StartTime: string;
   EndTime: string;
+  Frequency: string;
   PortfolioSize: number;
 }
 
@@ -261,6 +262,7 @@ export default function MainGrid() {
                                       <TableCell>Symbol</TableCell>
                                       <TableCell>Start</TableCell>
                                       <TableCell>End</TableCell>
+                                      <TableCell>Frequency</TableCell>
                                       <TableCell>Portfolio Size</TableCell>
                                     </TableRow>
                                   </TableHead>
@@ -281,6 +283,7 @@ export default function MainGrid() {
                                             run.EndTime
                                           ).toLocaleDateString()}
                                         </TableCell>
+                                        <TableCell>{run.Frequency}</TableCell>
                                         <TableCell>
                                           {run.PortfolioSize}
                                         </TableCell>

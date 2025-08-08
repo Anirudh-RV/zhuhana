@@ -49,7 +49,7 @@ func (ks *KubernetesService) GetUserAlgorithmToken(userAlgorithmID string) (stri
 	}
 
 	if loginResp.Status != 1 {
-		return "", fmt.Errorf("login failed: %s", loginResp.StatusDescription)
+		return "", fmt.Errorf("login failed : %s", loginResp.StatusDescription)
 	}
 
 	return loginResp.AccessToken, nil
