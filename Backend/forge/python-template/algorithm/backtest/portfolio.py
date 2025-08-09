@@ -1,10 +1,10 @@
-class BacktestPortfolio:
-    def __init__(self, initial_cash: float = 100_000):
-        self.cash = initial_cash
-        self.position = 0
-        self.avg_price = 0
-        self.last_price = 0 
-        self.history = []
+class ZhuhanaBacktestPortfolio:
+    def __init__(self, init_cash: float = 100.000):
+        self.cash = init_cash
+        self.positions: dict[str, int] = {}         # symbol -> volume
+        self.avg_prices: dict[str, float] = {}      # symbol -> avg cost
+        self.last_prices: dict[str, float] = {}     # symbol -> latest close
+        self.history: list[tuple] = []              # (symbol, side, price, volume)
 
     def update_price(self, price: float):
         self.last_price = price

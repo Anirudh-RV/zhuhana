@@ -7,6 +7,7 @@ class ZhuhanaStrategy:
     def __init__(self, zhuhana_sdk: zhuhana.ZhuhanaClass):
         self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
 
+
     def on_data(self, current_data: OHLCData):
         pass
 
