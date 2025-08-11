@@ -148,12 +148,23 @@ from zhuhana.types import (
 
 class ZhuhanaStrategy:
     def __init__(self, zhuhana_sdk: zhuhana.ZhuhanaClass):
+      """
+      Init function for the Strategy to initialize any variables you want to.
+      """
       self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
 
     def on_data(self, current_data: OHLCData):
+      """
+      Use this function to describe what you want to do when you get a new data point.
+      For example,
+      Describe all the variables and setup you want to do for the logic iteration for this data point.
+      """
       pass
 
     def condition_for_sell(self, current_data: OHLCData) -> OrderInstruction:
+      """
+      Use this function to describe the logic required for a Sell condition
+      """
       return OrderInstruction(
             side=OrderSide.SELL,
             type=OrderType.MARKET,
@@ -164,6 +175,9 @@ class ZhuhanaStrategy:
         )
 
     def condition_for_buy(self, current_data: OHLCData) -> OrderInstruction:
+      """
+      Use this function to describe the logic required for a Buy condition
+      """
       return OrderInstruction(
             side=OrderSide.BUY,
             type=OrderType.MARKET,
@@ -203,8 +217,6 @@ export default function CodeEditorDashboard(props: {
   const [algorithmId, setAlgorithmId] = useState<string | null>(
     initialAlgorithmId
   );
-
-  const [isSuccessDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
 
@@ -252,8 +264,6 @@ export default function CodeEditorDashboard(props: {
 
     fetchAlgorithmDetails();
   }, [initialAlgorithmId, accessToken]);
-
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSaveAlgorithm = async (nameOverride?: string) => {
     if (!user || !accessToken) {
@@ -317,8 +327,6 @@ export default function CodeEditorDashboard(props: {
   const dragLlmInfo = useRef<{ startX: number; startWidth: number } | null>(
     null
   );
-
-  const [aiPrompt, setAiPrompt] = useState<string>("");
 
   const handleLlmMouseMove = (e: MouseEvent) => {
     if (!dragLlmInfo.current) return;
@@ -499,7 +507,7 @@ export default function CodeEditorDashboard(props: {
     signal: AbortSignal
   ) => {
     try {
-      const prompt = messages
+      let prompt = messages
         .map(
           (msg) =>
             `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
@@ -514,6 +522,8 @@ export default function CodeEditorDashboard(props: {
         onChunk("[Error: No user message found]");
         return;
       }
+
+      prompt += '\nThe current code the user is using is:\n"' + code + '"\n';
 
       // Local variable to ensure correct sessionId usage
       let currentSessionId = sessionId;
