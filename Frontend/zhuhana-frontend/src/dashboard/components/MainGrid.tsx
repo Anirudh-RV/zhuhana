@@ -200,134 +200,148 @@ export default function MainGrid() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {algorithms.map((algo, index) => (
-                    <>
-                      <TableRow
-                        key={algo.id}
-                        sx={{
-                          "&:hover": {
-                            cursor: "pointer",
-                          },
-                        }}
-                        onClick={() => handleExpand(algo.id)}
+                  {algorithms.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        align="center"
+                        sx={{ color: "gray" }}
                       >
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>{algo.scriptName}</TableCell>
-                        <TableCell>{algo.order_domain}</TableCell>
-                        <TableCell>
-                          {new Date(algo.created_at).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(algo.updated_at).toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right">
-                          <Tooltip title="Open Algorithm">
-                            <IconButton
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/code?algorithm_id=${algo.id}`);
-                              }}
-                              sx={{ border: 0 }}
-                            >
-                              <OpenInNewIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </TableCell>
-                      </TableRow>
-
-                      <TableRow>
-                        <TableCell
-                          colSpan={6}
+                        No algorithms created yet.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    algorithms.map((algo, index) => (
+                      <>
+                        <TableRow
+                          key={algo.id}
                           sx={{
-                            p: 0,
-                            backgroundColor:
-                              resolvedMode === "dark"
-                                ? "#000000"
-                                : "background.default",
+                            "&:hover": {
+                              cursor: "pointer",
+                            },
                           }}
+                          onClick={() => handleExpand(algo.id)}
                         >
-                          <Collapse
-                            in={expandedIds.has(algo.id)}
-                            timeout="auto"
-                            unmountOnExit
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{algo.scriptName}</TableCell>
+                          <TableCell>{algo.order_domain}</TableCell>
+                          <TableCell>
+                            {new Date(algo.created_at).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(algo.updated_at).toLocaleString()}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Tooltip title="Open Algorithm">
+                              <IconButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/code?algorithm_id=${algo.id}`);
+                                }}
+                                sx={{ border: 0 }}
+                              >
+                                <OpenInNewIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            sx={{
+                              p: 0,
+                              backgroundColor:
+                                resolvedMode === "dark"
+                                  ? "#000000"
+                                  : "background.default",
+                            }}
                           >
-                            <Box sx={{ margin: 2 }}>
-                              {runsMap[algo.id]?.length ? (
-                                <Table size="small">
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell>Order Domain</TableCell>
-                                      <TableCell>Status</TableCell>
-                                      <TableCell>Market</TableCell>
-                                      <TableCell>Symbol</TableCell>
-                                      <TableCell>Start</TableCell>
-                                      <TableCell>End</TableCell>
-                                      <TableCell>Frequency</TableCell>
-                                      <TableCell>Portfolio Size</TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    {runsMap[algo.id].map((run) => (
-                                      <TableRow key={run.ID}>
-                                        <TableCell>{run.OrderDomain}</TableCell>
-                                        <TableCell>{run.Status}</TableCell>
-                                        <TableCell>{run.Market}</TableCell>
-                                        <TableCell>{run.Symbol}</TableCell>
-                                        <TableCell>
-                                          {new Date(
-                                            run.StartTime
-                                          ).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell>
-                                          {new Date(
-                                            run.EndTime
-                                          ).toLocaleDateString()}
-                                        </TableCell>
-                                        <TableCell>{run.Frequency}</TableCell>
-                                        <TableCell>
-                                          {run.PortfolioSize}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                          <Tooltip title="Open Run Analytics">
-                                            <IconButton
-                                              onClick={() => {
-                                                const url = new URL(
-                                                  window.location.href
-                                                );
-                                                url.hash = "analytics";
-                                                url.searchParams.set(
-                                                  "algorithm_run_id",
-                                                  run.ID
-                                                );
-                                                window.location.href =
-                                                  url.toString();
-                                              }}
-                                              sx={{
-                                                border: 0,
-                                              }}
-                                            >
-                                              <OpenInNewIcon />
-                                            </IconButton>
-                                          </Tooltip>
-                                        </TableCell>
+                            <Collapse
+                              in={expandedIds.has(algo.id)}
+                              timeout="auto"
+                              unmountOnExit
+                            >
+                              <Box sx={{ margin: 2 }}>
+                                {runsMap[algo.id]?.length ? (
+                                  <Table size="small">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>Order Domain</TableCell>
+                                        <TableCell>Status</TableCell>
+                                        <TableCell>Market</TableCell>
+                                        <TableCell>Symbol</TableCell>
+                                        <TableCell>Start</TableCell>
+                                        <TableCell>End</TableCell>
+                                        <TableCell>Frequency</TableCell>
+                                        <TableCell>Portfolio Size</TableCell>
                                       </TableRow>
-                                    ))}
-                                  </TableBody>
-                                </Table>
-                              ) : (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: "gray" }}
-                                >
-                                  No runs found.
-                                </Typography>
-                              )}
-                            </Box>
-                          </Collapse>
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  ))}
+                                    </TableHead>
+                                    <TableBody>
+                                      {runsMap[algo.id].map((run) => (
+                                        <TableRow key={run.ID}>
+                                          <TableCell>
+                                            {run.OrderDomain}
+                                          </TableCell>
+                                          <TableCell>{run.Status}</TableCell>
+                                          <TableCell>{run.Market}</TableCell>
+                                          <TableCell>{run.Symbol}</TableCell>
+                                          <TableCell>
+                                            {new Date(
+                                              run.StartTime
+                                            ).toLocaleDateString()}
+                                          </TableCell>
+                                          <TableCell>
+                                            {new Date(
+                                              run.EndTime
+                                            ).toLocaleDateString()}
+                                          </TableCell>
+                                          <TableCell>{run.Frequency}</TableCell>
+                                          <TableCell>
+                                            {run.PortfolioSize}
+                                          </TableCell>
+                                          <TableCell align="right">
+                                            <Tooltip title="Open Run Analytics">
+                                              <IconButton
+                                                onClick={() => {
+                                                  const url = new URL(
+                                                    window.location.href
+                                                  );
+                                                  url.hash = "analytics";
+                                                  url.searchParams.set(
+                                                    "algorithm_run_id",
+                                                    run.ID
+                                                  );
+                                                  window.location.href =
+                                                    url.toString();
+                                                }}
+                                                sx={{
+                                                  border: 0,
+                                                }}
+                                              >
+                                                <OpenInNewIcon />
+                                              </IconButton>
+                                            </Tooltip>
+                                          </TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                ) : (
+                                  <Typography
+                                    variant="body2"
+                                    sx={{ color: "gray" }}
+                                  >
+                                    No runs found.
+                                  </Typography>
+                                )}
+                              </Box>
+                            </Collapse>
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

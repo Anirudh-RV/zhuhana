@@ -17,3 +17,7 @@
 - To update Swagger:
 
   > swag init
+
+- To add spy data, use the container name that is running:
+  > kubectl exec -it algonexus-59f75448f4-l85d2 bash
+  > run load_spy_data.py
