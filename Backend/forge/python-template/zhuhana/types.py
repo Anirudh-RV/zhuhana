@@ -45,7 +45,7 @@ class OrderInstruction:
     mode: OrderMode              #: Whether INTRADAY or DELIVERY
     tif: OrderTIF                #: Time in force (DAY, IOC, GTC)
     domain: OrderDomain          #: The execution context (e.g., BACKTEST)
-    quantity: float              #: Number of units
+    quantity: int              #: Number of units
     price: Optional[float] = None  #: Price (optional for MARKET orders)
 
 
