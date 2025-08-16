@@ -1,9 +1,10 @@
+# WIP: will be replaced by zhuhana-sdk and Engines
+
 import os
 import requests
 import zhuhana
 from zhuhana.types import OHLCData, OHLCResponse
-
-from algorithm.zhuhana_algorithm import ZhuhanaStrategy
+from zhuhana import ZhuhanaStrategy
 
 class ZhuhanaStrategyRunner:
     def __init__(self, USER_ALGORITHM_TOKEN, ORDER_DOMAIN, API_ENDPOINT):

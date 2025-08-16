@@ -1,8 +1,14 @@
 from __future__ import annotations
 import requests
+import math
+import random
+
 from typing import Iterator, Optional, NoReturn
-from zhuhana.types import OHLCData, OHLCResponse
+import zhuhana
 from zhuhana import ZhuhanaClass
+from zhuhana.types import OHLCData, OHLCResponse
+
+
 
 class ZhuhanaBacktestDataStream:
     """
@@ -80,3 +86,50 @@ class ZhuhanaBacktestDataStream:
             return ohlc
         except Exception:
             self._stop()
+
+
+def fake_ohlc_stream(
+    symbol: str = "FAKE",
+    bars: int = 100,
+    start_price: float = 100.0,
+    noise: float = 0.5
+) -> Iterator[OHLCData]:
+    """
+    Generate a fake OHLC data stream for testing.
+    :param symbol: Ticker symbol
+    :param bars: Number of bars to generate
+    :param start_price: Initial price
+    :param noise: Random noise level
+    """
+    price = start_price
+    for i in range(bars):
+        # base trend using sine wave
+        base_change = math.sin(i / 10) * 0.5
+        # random noise
+        rnd = random.uniform(-noise, noise)
+        open_price = price
+        close_price = max(1.0, price + base_change + rnd)  # avoid negative prices
+        high_price = max(open_price, close_price) + random.uniform(0, 0.3)
+        low_price = min(open_price, close_price) - random.uniform(0, 0.3)
+
+        data = OHLCData(
+            Symbol=symbol,
+            Open=round(open_price, 2),
+            High=round(high_price, 2),
+            Low=round(low_price, 2),
+            Close=round(close_price, 2),
+            Market="FAKE",
+            Date_Time=str(i),  # use index as datetime
+            Volume=1000,  # constant volume for simplicity
+            Day= i % 30 + 1,
+            Weekday=i % 7,
+            Week=i // 7 + 1,
+            Month=(i // 30) + 1,
+            Year=2025
+        )
+
+        print(f"Generated OHLC: {data}")
+
+        yield data
+
+        price = close_price

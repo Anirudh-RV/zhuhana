@@ -1,24 +1,9 @@
-from typing import Iterable, List
-from algorithm.zhuhana_algorithm import ZhuhanaStrategy
+from typing import Iterable
+from zhuhana.strategy import ZhuhanaStrategy
 from zhuhana.types import OHLCData
 from .portfolio import ZhuhanaBacktestPortfolio
+from .execution import SimpleExecutionModel
 
-class SimpleExecutionModel:
-    """MVP Execution Model"""
-    def __init__(self, fee_rate: float = 0.0, min_fee: float = 0.0, slippage: float = 0.0):
-        self.fee_rate = fee_rate
-        self.min_fee = min_fee
-        self.slippage = slippage  # Price slippage as a fraction (e.g., 0.001 for 0.1% slippage)
-
-    def fill_price(self, side: str, ref_price: float) -> float:
-        # Buy: add slippage; Sell: subtract slippage
-        if side == "BUY":
-            return ref_price * (1.0 + self.slippage)
-        else:
-            return ref_price * (1.0 - self.slippage)
-
-    def fee(self, gross: float) -> float:
-        return max(abs(gross) * self.fee_rate, self.min_fee)
 
 class ZhuhanaBacktestEngine:
     """
@@ -92,7 +77,6 @@ class ZhuhanaBacktestEngine:
         """
         first_bar = True
         prev_bar = None
-
         for bar in self.bars:
             # Always update marks first (so unrealized PnL is correct)
             self._update_marks(bar)

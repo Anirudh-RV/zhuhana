@@ -1,7 +1,8 @@
 from collections import deque
-from zhuhana.types import OHLCData, OrderInstruction, OrderSide, OrderType, OrderMode, OrderTIF, OrderDomain
+from zhuhana.types import OrderInstruction, OrderSide, OrderType, OrderMode, OrderTIF, OrderDomain
+from zhuhana import ZhuhanaStrategy
 
-class ZhuhanaStrategy:
+class SMA2Strategy(ZhuhanaStrategy):
     """
     SMA Crossover Strategy:
     - BUY when short MA crosses above long MA (golden cross)
@@ -44,8 +45,9 @@ class ZhuhanaStrategy:
 
     # --- helpers -------------------------------------------------------------
     def _make_order(self, side: str, qty: int, current_data):
-        """Build OrderInstruction; pass symbol if supported, else attach dynamically."""
+        """Build OrderInstruction; pass a symbol if supported, else attach dynamically."""
         return OrderInstruction(
+            symbol=current_data.Symbol,
             side=OrderSide.BUY if side == "BUY" else OrderSide.SELL,
             type=OrderType.MARKET,
             mode=OrderMode.INTRADAY,
@@ -71,6 +73,7 @@ class ZhuhanaStrategy:
         """Return SELL order on death cross; otherwise None."""
         if self._prev_diff is None or self._curr_diff is None:
             return None
+        
         crossed_down = self._prev_diff >= 0 and self._curr_diff < 0
         if crossed_down and self.last_signal != "SELL":
             self.last_signal = "SELL"
