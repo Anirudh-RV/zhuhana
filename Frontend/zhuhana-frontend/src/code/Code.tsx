@@ -32,8 +32,6 @@ import {
   createHoverTooltipSource,
 } from "codemirror-languageservice";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
-import { completionKeymap, acceptCompletion } from "@codemirror/autocomplete";
-import { indentMore } from "@codemirror/commands";
 import EditableFileName, {
   type EditableFileNameHandle,
 } from "./components/EditableFileName";
@@ -62,7 +60,6 @@ import {
 } from "../constants";
 import { useColorScheme } from "@mui/material/styles";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { Snackbar, Alert } from "@mui/material";
 
 const md = new MarkdownIt();
 const FILE_URI =
@@ -151,12 +148,23 @@ from zhuhana.types import (
 
 class ZhuhanaStrategy:
     def __init__(self, zhuhana_sdk: zhuhana.ZhuhanaClass):
+      """
+      Init function for the Strategy to initialize any variables you want to.
+      """
       self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana_sdk
 
     def on_data(self, current_data: OHLCData):
+      """
+      Use this function to describe what you want to do when you get a new data point.
+      For example,
+      Describe all the variables and setup you want to do for the logic iteration for this data point.
+      """
       pass
 
     def condition_for_sell(self, current_data: OHLCData) -> OrderInstruction:
+      """
+      Use this function to describe the logic required for a Sell condition
+      """
       return OrderInstruction(
             side=OrderSide.SELL,
             type=OrderType.MARKET,
@@ -167,6 +175,9 @@ class ZhuhanaStrategy:
         )
 
     def condition_for_buy(self, current_data: OHLCData) -> OrderInstruction:
+      """
+      Use this function to describe the logic required for a Buy condition
+      """
       return OrderInstruction(
             side=OrderSide.BUY,
             type=OrderType.MARKET,
@@ -206,8 +217,6 @@ export default function CodeEditorDashboard(props: {
   const [algorithmId, setAlgorithmId] = useState<string | null>(
     initialAlgorithmId
   );
-
-  const [isSuccessDialogOpen, setSuccessDialogOpen] = useState(false);
 
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
 
@@ -255,8 +264,6 @@ export default function CodeEditorDashboard(props: {
 
     fetchAlgorithmDetails();
   }, [initialAlgorithmId, accessToken]);
-
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSaveAlgorithm = async (nameOverride?: string) => {
     if (!user || !accessToken) {
@@ -320,8 +327,6 @@ export default function CodeEditorDashboard(props: {
   const dragLlmInfo = useRef<{ startX: number; startWidth: number } | null>(
     null
   );
-
-  const [aiPrompt, setAiPrompt] = useState<string>("");
 
   const handleLlmMouseMove = (e: MouseEvent) => {
     if (!dragLlmInfo.current) return;
@@ -502,7 +507,7 @@ export default function CodeEditorDashboard(props: {
     signal: AbortSignal
   ) => {
     try {
-      const prompt = messages
+      let prompt = messages
         .map(
           (msg) =>
             `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
@@ -517,6 +522,8 @@ export default function CodeEditorDashboard(props: {
         onChunk("[Error: No user message found]");
         return;
       }
+
+      prompt += '\nThe current code the user is using is:\n"' + code + '"\n';
 
       // Local variable to ensure correct sessionId usage
       let currentSessionId = sessionId;
@@ -619,9 +626,65 @@ export default function CodeEditorDashboard(props: {
       { text: ">> Executing Python code...", type: "info" },
     ]);
 
+    const header = `
+ohlc_data = OHLCData(
+    Symbol="AAPL",
+    Market="NASDAQ",
+    Date_Time="2025-08-11 09:30:00",
+    Open=150.0,
+    High=152.0,
+    Low=149.0,
+    Close=151.5,
+    Volume=1000000,
+    Day=11,
+    Weekday=1,
+    Week=33,
+    Month=8,
+    Year=2025
+)
+`;
+
+    const footer = `
+try:
+    strategy = ZhuhanaStrategy(zhuhana_sdk=None)
+    strategy.on_data(ohlc_data)
+
+    sellInstruction = strategy.condition_for_sell(ohlc_data)
+    buyInstruction = strategy.condition_for_buy(ohlc_data)
+
+    output = {
+        "sellInstruction": sellInstruction.__dict__ if sellInstruction else None,
+        "buyInstruction": buyInstruction.__dict__ if buyInstruction else None
+    }
+
+    print(json.dumps(output))
+except Exception as e:
+    print(json.dumps({"error": str(e)}))
+    raise
+`;
+
+    const finalCode = `import json\n${code}\n${header}\n${footer}`;
+
     try {
-      pyodideInstanceRef.current.FS.writeFile("/main_editor_code.py", code);
-      await pyodideInstanceRef.current.runPythonAsync(code);
+      // Redirect stdout
+      await pyodideInstanceRef.current.runPythonAsync(`
+import sys, io
+sys.stdout = io.StringIO()
+    `);
+
+      pyodideInstanceRef.current.FS.writeFile(
+        "/main_editor_code.py",
+        finalCode
+      );
+
+      // Run Python code
+      await pyodideInstanceRef.current.runPythonAsync(finalCode);
+
+      // Capture printed output
+      const pyOutput = pyodideInstanceRef.current.runPython(
+        `sys.stdout.getvalue()`
+      );
+      console.log("Python output:", pyOutput);
 
       setRuntimeDiagnostics([]);
       setTerminalOutput((prev) => [
@@ -633,13 +696,21 @@ export default function CodeEditorDashboard(props: {
         setSaveStatus("idle");
       }, 5000);
     } catch (error: any) {
+      // Capture any output before error
+      const pyOutput = pyodideInstanceRef.current.runPython(
+        `sys.stdout.getvalue()`
+      );
+      if (pyOutput) console.log("Python output before error:", pyOutput);
+
+      console.log("error: ", error);
       const message = error.message || String(error);
       const execLineMatch = message.match(/File "<exec>", line (\d+)/);
       const line = execLineMatch
         ? parseInt(execLineMatch[1], 10) - 1
         : undefined;
 
-      if (line !== undefined && editorViewRef.current) {
+      const userCodeLines = code.split("\n").length;
+      if (line !== undefined && line < userCodeLines && editorViewRef.current) {
         const from = editorViewRef.current.state.doc.line(line + 1).from;
         const to = editorViewRef.current.state.doc.line(line + 1).to;
 
@@ -660,7 +731,7 @@ export default function CodeEditorDashboard(props: {
       ]);
 
       // ❌ Send error message to LLMPanel
-      const formattedPrompt = `While running your code, it encountered the following error:\n\n\`\`\`python\n${message}\n\`\`\`\nDo you want me to help you fix it?\nJust response with a 'Yes' and I'll the fix it for you!`;
+      const formattedPrompt = `While running your code, it encountered the following error:\n\n\`\`\`python\n${message}\n\`\`\`\nDo you want me to help you fix it?\nJust respond with a 'Yes' and I'll fix it for you!`;
       const defaultTitle = "Zhuhana AI code fix";
 
       try {
@@ -980,6 +1051,7 @@ export default function CodeEditorDashboard(props: {
                 setSessionId={setSessionId}
                 isNewSession={isNewSession}
                 setIsNewSession={setIsNewSession}
+                inputBoxPlaceHolder="Describe your trading idea..."
               />
             </Box>
           </>

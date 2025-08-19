@@ -10,6 +10,7 @@ import (
 	_ "uasam/docs"
 
 	microservice_routes "uasam/microservices/routes"
+	news_routes "uasam/news/routes"
 	user_routes "uasam/users/routes"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,7 @@ func RegisterRoutes(ctx *context.Context, r *gin.Engine, log *logger.Logger, db 
 			})
 		})
 		user_routes.UserRoutesV1(ctx, v1, log, db, redis, emailService, jwtService, authMiddleware, userAuthMiddleware)
+		news_routes.NewsRoutesV1(ctx, v1, log, db, redis, emailService, jwtService, authMiddleware, userAuthMiddleware)
 		microservice_routes.MicroServiceRoutesV1(v1, log, db, redis, jwtService, authMiddleware)
 	}
 }

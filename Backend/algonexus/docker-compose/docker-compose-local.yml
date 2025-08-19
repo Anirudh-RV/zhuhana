@@ -22,7 +22,7 @@ services:
     volumes:
       - algonexus_pgdata:/var/lib/postgresql/data
     ports:
-      - "5425:${POSTGRES_PORT}"
+      - "5422:${POSTGRES_PORT}"
     env_file:
       - ../env/local-env.env
     restart: unless-stopped

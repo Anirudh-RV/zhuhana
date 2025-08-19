@@ -93,6 +93,19 @@ func UserAlgorithmRoutesV1(r *gin.RouterGroup, log *logger.Logger, db *sql.DB, r
 		}), userAuthMiddleware,
 			userAlgorithmController.GetUserAlgorithmByID)
 
+		algorithmRoutes.GET("runs/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
+			Source:      "header",
+			Param:       "USER_TOKEN",
+			EnableParam: true,
+			Limit:       100,
+			Window:      300,
+			EnableIP:    true,
+			IPLimit:     100,
+			IPWindow:    300,
+			Endpoint:    "/v1/user/algorithm/runs/",
+		}), userAuthMiddleware,
+			userAlgorithmController.GetUserAlgorithmRunsHandler)
+
 		algorithmRoutes.GET("/", middleware.RateLimiter(redis, log, middleware.RateLimiterConfig{
 			Source:      "header",
 			Param:       "USER_TOKEN",

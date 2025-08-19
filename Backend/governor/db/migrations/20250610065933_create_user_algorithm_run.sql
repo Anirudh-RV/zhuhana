@@ -14,6 +14,7 @@ CREATE TABLE user_algorithm_runs (
     order_domain INT NOT NULL DEFAULT 0,
     market TEXT,
     symbol TEXT,
+    status INTEGER NOT NULL DEFAULT 0,
     start_time TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     end_time TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     frequency INTEGER,
@@ -22,9 +23,14 @@ CREATE TABLE user_algorithm_runs (
     stopped_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_algorithm_runs_user_algorithm_id
+    ON user_algorithm_runs (user_algorithm_id);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE user_algorithm_run;
+DROP INDEX IF EXISTS idx_user_algorithm_runs_user_algorithm_id;
+DROP TABLE user_algorithm_runs;
 -- +goose StatementEnd

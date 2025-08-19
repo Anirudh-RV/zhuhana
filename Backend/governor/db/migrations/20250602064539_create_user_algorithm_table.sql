@@ -16,9 +16,14 @@ CREATE TABLE user_algorithm (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_algorithm_user_id
+    ON user_algorithm (user_id);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX IF EXISTS idx_user_algorithm_user_id;
 DROP TABLE user_algorithm;
 -- +goose StatementEnd

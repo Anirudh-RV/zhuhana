@@ -52,9 +52,10 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 		symbol,
 		startTime,
 		endTime,
+		frequency,
 		portfolioSize)
 	if err != nil {
-		fmt.Printf("Error detected %s\n", err.Error())
+		go ks.logger.Info("error while creating the user_algorithm_runs", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
 		return err
 	}
 	userAlgorithmRunID := fmt.Sprint(userAlgorithmRunUUID)
@@ -123,9 +124,9 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 	// Create Job
 	_, err = ks.clientSet.BatchV1().Jobs(ks.namespace).Create(context.TODO(), job, meta.CreateOptions{})
 	if err != nil {
-		panic(err)
+		go ks.logger.Info("error while creating kubernetes job", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
+		return err
 	}
-	fmt.Printf("Job %s created\n", jobName)
 
 	// Wait for Pod to be ready and completed
 	var podName string
@@ -136,18 +137,18 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 			LabelSelector: "job-name=" + jobName,
 		})
 		if err != nil {
-			fmt.Printf("[PollLoop] Error listing pods: %s\n", err)
+			go ks.logger.Info("[poll_loop] error listing pods", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
 			return false, nil
 		}
 		if len(pods.Items) == 0 {
-			fmt.Println("[PollLoop] No pods found for job yet")
+			go ks.logger.Info("[poll_loop] no pods found for job yet", zap.String("Execution Level", "KubernetesStart"))
 			return false, nil
 		}
 
 		for _, pod := range pods.Items {
-			fmt.Printf("[PollLoop] Found pod: %s, Phase: %s\n", pod.Name, pod.Status.Phase)
+			go ks.logger.Info(fmt.Sprintf("[poll_loop] Found pod: %s, Phase: %s\n", pod.Name, pod.Status.Phase), zap.String("Execution Level", "KubernetesStart"))
 			for _, cs := range pod.Status.ContainerStatuses {
-				fmt.Printf("[PollLoop] Container %s - Ready: %v, State: %+v\n", cs.Name, cs.Ready, cs.State)
+				go ks.logger.Info(fmt.Sprintf("[poll_loop] Container %s - Ready: %v, State: %+v\n", cs.Name, cs.Ready, cs.State), zap.String("Execution Level", "KubernetesStart"))
 			}
 		}
 
@@ -155,24 +156,25 @@ func (ks *KubernetesService) Start(userAlgorithmID uuid.UUID, market, symbol str
 		switch pod.Status.Phase {
 		case corev1.PodRunning:
 			podName = pod.Name
-			fmt.Printf("[PollLoop] Pod %s is now Running\n", podName)
+			go ks.logger.Info(fmt.Sprintf("[poll_loop] Pod %s is now Running\n", podName), zap.String("Execution Level", "KubernetesStart"))
 			return true, nil
 		case corev1.PodFailed:
 			return false, fmt.Errorf("pod %s failed", pod.Name)
 		default:
-			fmt.Printf("[PollLoop] Pod %s in Phase: %s\n", pod.Name, pod.Status.Phase)
+			go ks.logger.Info(fmt.Sprintf("[poll_loop] Pod %s in Phase: %s\n", pod.Name, pod.Status.Phase), zap.String("Execution Level", "KubernetesStart"))
 			return false, nil
 		}
 	})
 
 	if err != nil {
-		fmt.Printf("unable to stream logs: %s", err.Error())
+		go ks.logger.Info("error while creating kubernetes job", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
+		return err
 	}
 
 	// Stream Logs
 	go func() {
 		if err := ks.StreamPodLogs(podName); err != nil {
-			fmt.Printf("log stream error: %s\n", err)
+			go ks.logger.Info("log stream error", zap.String("Execution Level", "KubernetesStart"), zap.String("Error", err.Error()))
 		}
 	}()
 

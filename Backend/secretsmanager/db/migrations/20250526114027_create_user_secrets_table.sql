@@ -14,9 +14,14 @@ CREATE TABLE user_secret (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT user_secret_user_id_key_unique UNIQUE (user_id, key)
 );
+
+CREATE INDEX IF NOT EXISTS idx_user_secret_user_id
+    ON user_secret (user_id);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX IF EXISTS idx_user_secret_user_id;
+
 DROP TABLE user_secret;
 -- +goose StatementEnd

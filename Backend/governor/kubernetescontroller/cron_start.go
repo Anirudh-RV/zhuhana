@@ -51,6 +51,7 @@ func (ks *KubernetesService) CronStart(userAlgorithmID uuid.UUID) error {
 		"",
 		nil,
 		nil,
+		0,
 		0)
 	if err != nil {
 		fmt.Printf("Error detected %s\n", err.Error())

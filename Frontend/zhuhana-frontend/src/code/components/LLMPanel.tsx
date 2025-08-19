@@ -51,6 +51,7 @@ type LLMPanelProps = {
   setSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   isNewSession: boolean;
   setIsNewSession: React.Dispatch<React.SetStateAction<boolean>>;
+  inputBoxPlaceHolder: string;
 };
 
 export default function LLMPanel({
@@ -62,6 +63,7 @@ export default function LLMPanel({
   setSessionId,
   isNewSession,
   setIsNewSession,
+  inputBoxPlaceHolder,
 }: LLMPanelProps) {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -338,9 +340,11 @@ export default function LLMPanel({
                 // Optional: also update the URL to remove ?session_id=
                 const params = new URLSearchParams(window.location.search);
                 params.delete("session_id");
-                const newUrl = `${
-                  window.location.pathname
-                }?${params.toString()}`;
+
+                const newUrl = `${window.location.pathname}${
+                  params.toString() ? `?${params.toString()}` : ""
+                }${window.location.hash}`;
+
                 window.history.replaceState({}, "", newUrl);
               }}
               disableRipple
@@ -391,11 +395,13 @@ export default function LLMPanel({
                     setAnchorEl(null);
                     setSessionId(session.id);
                     setIsNewSession(false);
+
                     const params = new URLSearchParams(window.location.search);
                     params.set("session_id", session.id);
+
                     const newUrl = `${
                       window.location.pathname
-                    }?${params.toString()}`;
+                    }?${params.toString()}${window.location.hash}`;
                     window.history.pushState({}, "", newUrl);
                   }}
                 >
@@ -439,7 +445,7 @@ export default function LLMPanel({
               variant="h4"
               sx={{ color: "text.secondary", fontWeight: 500 }}
             >
-              Hi {user?.FirstName}, Let&apos;s get started!
+              Hi {user?.FirstName}, Let's get started!
             </Typography>
           </Box>
         ) : (
@@ -527,7 +533,7 @@ export default function LLMPanel({
           multiline
           minRows={1}
           maxRows={6}
-          placeholder="Describe your trading idea..."
+          placeholder={inputBoxPlaceHolder}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {

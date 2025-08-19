@@ -112,6 +112,90 @@ definitions:
       statusDescription:
         type: string
     type: object
+  models.NewsArticle:
+    properties:
+      ai_content:
+        type: string
+      ai_org:
+        type: string
+      ai_region:
+        type: string
+      ai_summary:
+        type: string
+      ai_tag:
+        type: string
+      article_id:
+        type: string
+      category:
+        items:
+          type: string
+        type: array
+      content:
+        type: string
+      country:
+        items:
+          type: string
+        type: array
+      creator:
+        items:
+          type: string
+        type: array
+      description:
+        type: string
+      duplicate:
+        type: boolean
+      image_url:
+        type: string
+      keywords:
+        items:
+          type: string
+        type: array
+      language:
+        type: string
+      link:
+        type: string
+      pubDate:
+        type: string
+      pubDateTZ:
+        type: string
+      sentiment:
+        type: string
+      sentiment_stats:
+        type: string
+      source_icon:
+        type: string
+      source_id:
+        type: string
+      source_name:
+        type: string
+      source_priority:
+        type: integer
+      source_url:
+        type: string
+      title:
+        type: string
+      video_url:
+        description: optional
+        type: string
+    type: object
+  models.NewsArticleData:
+    properties:
+      nextPage:
+        type: string
+      results:
+        items:
+          $ref: '#/definitions/models.NewsArticle'
+        type: array
+    type: object
+  models.NewsArticleResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.NewsArticleData'
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
   models.NotificationSwagger:
     properties:
       created_at:
@@ -214,6 +298,34 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.UserObject'
+    type: object
+  models.UpdatePasswordRequest:
+    properties:
+      password:
+        type: string
+    type: object
+  models.UpdatePasswordResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
+    type: object
+  models.UpdateUserFieldsRequest:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      middle_name:
+        type: string
+    type: object
+  models.UpdateUserFieldsResponse:
+    properties:
+      status:
+        type: integer
+      statusDescription:
+        type: string
     type: object
   models.UserObject:
     properties:
@@ -364,6 +476,36 @@ paths:
       summary: Authenticate a microservice user
       tags:
       - Microservice Authentication
+  /v1/news/article/:
+    get:
+      consumes:
+      - application/json
+      description: Returns financial news articles based on the query and page number
+      parameters:
+      - description: Search query (e.g., 'crypto', 'stocks')
+        in: query
+        name: query
+        type: string
+      - description: Pagination cursor (e.g., 'nextPageToken')
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.NewsArticleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.NewsArticleResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get news articles
+      tags:
+      - News
   /v1/notification/list:
     get:
       consumes:
@@ -423,6 +565,39 @@ paths:
       summary: Mark notifications as read
       tags:
       - Notification
+  /v1/user/edit/:
+    put:
+      consumes:
+      - application/json
+      description: Updates first name, middle name, and last name of the authenticated
+        user
+      parameters:
+      - description: User fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserFieldsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User fields updated successfully
+          schema:
+            $ref: '#/definitions/models.UpdateUserFieldsResponse'
+        "400":
+          description: Invalid request payload or USER_ID format
+          schema:
+            $ref: '#/definitions/models.UpdateUserFieldsResponse'
+        "401":
+          description: Unauthorized - update failed
+          schema:
+            $ref: '#/definitions/models.UpdateUserFieldsResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user name fields
+      tags:
+      - user
   /v1/user/login/verify-otp/:
     post:
       consumes:
@@ -563,6 +738,38 @@ paths:
       summary: Complete Password Reset
       tags:
       - User
+  /v1/user/reset-password/update/:
+    put:
+      consumes:
+      - application/json
+      description: Allows an authenticated user to update their password
+      parameters:
+      - description: New password payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated successfully
+          schema:
+            $ref: '#/definitions/models.UpdatePasswordResponse'
+        "400":
+          description: Invalid request payload or missing USER_ID
+          schema:
+            $ref: '#/definitions/models.UpdatePasswordResponse'
+        "401":
+          description: Unauthorized or update failed
+          schema:
+            $ref: '#/definitions/models.UpdatePasswordResponse'
+      security:
+      - BearerAuth: []
+      summary: Update password
+      tags:
+      - user
   /v1/user/sign-up/init/:
     post:
       consumes:

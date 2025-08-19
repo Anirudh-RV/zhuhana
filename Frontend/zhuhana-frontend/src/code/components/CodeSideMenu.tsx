@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Box, Button, IconButton, Typography, Tooltip } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  Tooltip,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import BacktestConfig from "./BacktestConfig";
 import PaperTradeConfig from "./PaperTradingConfig";
 import LiveTradeConfig from "./LiveTradingConfig";
@@ -7,6 +15,10 @@ import MenuIcon from "@mui/icons-material/Menu";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useColorScheme } from "@mui/material/styles";
 import TerminalPanel, { TerminalLine } from "./TerminalPanel";
+import { BacktestValues } from "./BacktestConfig";
+import dayjs from "dayjs";
+import { useAuth } from "../../AuthContext";
+import { START_USER_PYTHON_ALGORITHM_V1_ENDPOINT } from "../../constants";
 
 const executionModes = ["Backtest", "Paper Trade", "Live Trade"];
 
@@ -28,6 +40,90 @@ export default function CodeSideMenu({
   const resolvedThemeMode =
     themeMode === "system" ? themeSystemMode : themeMode;
   const selectedColor = resolvedThemeMode === "dark" ? "grey.700" : "grey.300";
+  const { user, accessToken } = useAuth();
+
+  const [backtestValues, setBacktestValues] = React.useState<BacktestValues>({
+    instrument: "SPY",
+    timeDuration: "1Y",
+    frequencyType: "1D",
+    customFrequencyDays: "",
+    startDate: null, // means not chosen
+    endDate: null, // means not chosen
+    portfolioSize: 10000,
+  });
+
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+
+  const handleRunBacktest = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const algorithmID = params.get("algorithm_id"); // adjust name if different
+    if (!algorithmID) {
+      console.error("No algorithmID in URL");
+      return;
+    }
+
+    // Determine dates
+    let startDate = backtestValues.startDate;
+    let endDate = backtestValues.endDate;
+
+    if (!startDate || !endDate) {
+      endDate = dayjs();
+      const unit = backtestValues.timeDuration.slice(-1); // Y, M, W, D
+      const amount = parseInt(backtestValues.timeDuration.slice(0, -1));
+      startDate = endDate.subtract(
+        amount,
+        unit === "Y"
+          ? "year"
+          : unit === "M"
+          ? "month"
+          : unit === "W"
+          ? "week"
+          : "day"
+      );
+    }
+
+    let frequencySeconds: number;
+
+    if (backtestValues.frequencyType === "1D") {
+      frequencySeconds = 86400;
+    } else if (backtestValues.frequencyType === "1W") {
+      frequencySeconds = 604800;
+    } else if (backtestValues.frequencyType === "1M") {
+      frequencySeconds = 2592000;
+    } else if (backtestValues.frequencyType === "Custom") {
+      // Custom: days → seconds
+      frequencySeconds = Number(backtestValues.customFrequencyDays) * 86400;
+    } else {
+      // Fallback to daily
+      frequencySeconds = 86400;
+    }
+
+    const body = {
+      algorithmID,
+      market: "NYSEARCA",
+      symbol: backtestValues.instrument,
+      start_time: startDate.toISOString(),
+      end_time: endDate.toISOString(),
+      frequency: frequencySeconds,
+      portfolio_size: backtestValues.portfolioSize,
+    };
+
+    try {
+      const res = await fetch(START_USER_PYTHON_ALGORITHM_V1_ENDPOINT, {
+        method: "POST",
+        headers: {
+          ...(accessToken ? { USER_TOKEN: accessToken } : {}),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setSnackbarOpen(true);
+    } catch (err) {
+      console.error("Failed to start backtest", err);
+    }
+  };
 
   return (
     <Box
@@ -144,14 +240,58 @@ export default function CodeSideMenu({
         </Box>
 
         {/* Conditional Configs */}
-        {mode === "Backtest" && <BacktestConfig />}
+        {mode === "Backtest" && (
+          <BacktestConfig
+            values={backtestValues}
+            onChange={(changes) =>
+              setBacktestValues((prev) => ({ ...prev, ...changes }))
+            }
+          />
+        )}
+
         {mode === "Paper Trade" && <PaperTradeConfig />}
         {mode === "Live Trade" && <LiveTradeConfig />}
 
-        <Button variant="contained" fullWidth sx={{ mt: 2 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2 }}
+          onClick={() => {
+            if (mode === "Backtest") handleRunBacktest();
+          }}
+        >
           {mode}
         </Button>
       </Box>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          variant="outlined"
+          sx={{
+            width: "100%",
+            backgroundColor: "background.paper",
+            color: "text.primary",
+            borderColor: "success.main",
+            boxShadow: 2,
+            "&.MuiAlert-outlinedSuccess": {
+              backgroundColor: "background.paper",
+              border: 0,
+            },
+          }}
+          iconMapping={{
+            success: <span>✅</span>,
+          }}
+        >
+          {mode} started..
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

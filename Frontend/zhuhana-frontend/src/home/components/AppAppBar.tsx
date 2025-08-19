@@ -63,6 +63,7 @@ export default function AppAppBar() {
           >
             <Typography
               variant="h6"
+              color="text.primary"
               onClick={() => navigate("/")}
               sx={{
                 display: "flex",

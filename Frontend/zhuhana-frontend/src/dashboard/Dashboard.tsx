@@ -13,6 +13,8 @@ import SideMenu from "./components/SideMenu";
 import AppTheme from "../shared-ui-theme/AppTheme";
 import Analytics from "./components/Analytics";
 import Vault from "./components/Vault";
+import Discovery from "./components/Discovery";
+import { useSearchParams } from "react-router-dom";
 
 import {
   chartsCustomizations,
@@ -30,8 +32,10 @@ const xThemeComponents = {
 
 export default function Dashboard(props: { disableCustomTheme?: boolean }) {
   const [selectedPage, setSelectedPage] = useState<
-    "home" | "analytics" | "vault"
+    "discovery" | "home" | "analytics" | "vault"
   >("home");
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
     document.title = "Zhuhana - Dashboard";
@@ -40,7 +44,12 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "");
-      if (hash === "analytics" || hash === "vault" || hash === "home") {
+      if (
+        hash === "analytics" ||
+        hash === "vault" ||
+        hash === "home" ||
+        hash === "discovery"
+      ) {
         setSelectedPage(hash as typeof selectedPage);
       }
     };
@@ -59,6 +68,9 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
           selectedPage={selectedPage}
           onSelectPage={(page) => {
             setSelectedPage(page);
+            const params = new URLSearchParams(searchParams);
+            params.delete("session_id");
+            setSearchParams(params, { replace: true });
             window.location.hash = page;
           }}
         />
@@ -86,9 +98,10 @@ export default function Dashboard(props: { disableCustomTheme?: boolean }) {
         >
           <Stack
             spacing={2}
-            sx={{ alignItems: "center", mx: 3, pb: 5, mt: { xs: 8, md: 0 } }}
+            sx={{ alignItems: "center", mx: 2, pb: 5, mt: { xs: 8, md: 0 } }}
           >
             <Header />
+            {selectedPage === "discovery" && <Discovery />}
             {selectedPage === "home" && <MainGrid />}
             {selectedPage === "analytics" && <Analytics />}
             {selectedPage === "vault" && <Vault />}

@@ -16,9 +16,14 @@ CREATE TABLE cron_job (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_cron_job_user_algorithm_id
+    ON cron_job (user_algorithm_id);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP INDEX IF EXISTS idx_cron_job_user_algorithm_id;
 DROP TABLE cron_job;
 -- +goose StatementEnd

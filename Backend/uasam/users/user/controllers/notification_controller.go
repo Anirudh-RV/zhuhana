@@ -40,7 +40,7 @@ func (nc *NotificationController) GetNotificationsHandler(c *gin.Context) {
 	rawUserID, _ := c.Get("USER_ID")
 	userIDStr, ok := rawUserID.(string)
 	if !ok {
-		c.JSON(http.StatusOK, &models.GetNotificationsResponse{
+		c.JSON(http.StatusBadRequest, &models.GetNotificationsResponse{
 			Status:            -1,
 			StatusDescription: "unable to find USER_ID",
 		})
@@ -50,7 +50,7 @@ func (nc *NotificationController) GetNotificationsHandler(c *gin.Context) {
 	// Parse to UUID
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		c.JSON(http.StatusOK, &models.GetNotificationsResponse{
+		c.JSON(http.StatusBadRequest, &models.GetNotificationsResponse{
 			Status:            -1,
 			StatusDescription: "unable to find USER_ID",
 		})

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +16,7 @@ func (uas *UserAlgorithmService) StartUserAlgorithm(userID, userAlgorithmID, mar
 	}
 	if !belongsTo {
 		go uas.logger.Error("user_algorithm_id does not belong to user_id", zap.String("execution level", "StartUserAlgorithm"))
+		return fmt.Errorf("user_algorithm_id does not belong to user_id")
 	}
 	userAlgorithmUUID, _ := uuid.Parse(userAlgorithmID)
 	go uas.kubernetesService.Start(userAlgorithmUUID, market, symbol, startTime, endTime, portfolioSize, frequency)
