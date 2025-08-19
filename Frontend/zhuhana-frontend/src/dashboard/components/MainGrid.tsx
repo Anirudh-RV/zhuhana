@@ -200,7 +200,7 @@ export default function MainGrid() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {algorithms.length === 0 ? (
+                  {algorithms === null || algorithms.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={6}
