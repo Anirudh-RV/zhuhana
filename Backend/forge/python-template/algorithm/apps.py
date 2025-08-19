@@ -28,8 +28,7 @@ class AlgorithmConfig(AppConfig):
                         ORDER_DOMAIN=ORDER_DOMAIN,
                         API_ENDPOINT=API_ENDPOINT
                     )
-                    while runner.OnData():
-                        pass
+                    runner.run()
                 case _:
                     print("Unsupported ORDER_DOMAIN")
 

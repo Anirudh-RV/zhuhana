@@ -6,7 +6,7 @@ import zhuhana
 from zhuhana.types import OHLCData, OHLCResponse
 from zhuhana import ZhuhanaStrategy
 
-class ZhuhanaStrategyRunner:
+class ZhuhanaStrategyRunner_obsolete:
     def __init__(self, USER_ALGORITHM_TOKEN, ORDER_DOMAIN, API_ENDPOINT):
         self.zhuhana_sdk: zhuhana.ZhuhanaClass = zhuhana.init(api_endpoint=API_ENDPOINT, token=USER_ALGORITHM_TOKEN)
         self.order_domain = ORDER_DOMAIN

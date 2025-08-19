@@ -10,3 +10,6 @@
 
 - Run:
   > docker run --name tester --env-file env.env -e PYTHONUNBUFFERED=1 -p 8050:8000 anirudhrv1234/template-django-app:latest
+
+- Update SDK
+  > pip install --upgrade --index-url https://test.pypi.org/simple/ zhuhana==[x.x.x]
