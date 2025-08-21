@@ -7,8 +7,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { SparkLineChart } from "@mui/x-charts/SparkLineChart";
 import { areaElementClasses } from "@mui/x-charts/LineChart";
+import { useNavigate } from "react-router-dom";
 
 export type StatCardProps = {
+  id: string;
   title: string;
   value: string;
   interval: string;
@@ -42,12 +44,14 @@ function AreaGradient({ color, id }: { color: string; id: string }) {
   );
 }
 
-export default function StatCard({
-  title,
-  value,
-  interval,
-  trend,
-  data,
+export default function StatCard
+({
+   id,
+   title,
+   value,
+   interval,
+   trend,
+   data,
 }: StatCardProps) {
   const theme = useTheme();
   const daysInWeek = getDaysInMonth(4, 2024);
@@ -77,8 +81,25 @@ export default function StatCard({
   const chartColor = trendColors[trend];
   const trendValues = { up: "+25%", down: "-25%", neutral: "+5%" };
 
+  const navigate = useNavigate();
+
   return (
-    <Card variant="outlined" sx={{ height: "100%", flexGrow: 1 }}>
+    <Card
+        variant="outlined"
+        onClick={() => navigate(`/analytics/${id}`)}
+        sx={{
+          height: "100%",
+          flexGrow: 1,
+          transition: "all 0.3s ease-in-out",
+          cursor: "pointer",
+          "&:hover": {
+            transform: "scale(1.02)",
+            backgroundColor: "rgba(255,255,255,0.05)",
+            boxShadow: 3,
+          },
+    }}
+
+    >
       <CardContent>
         <Typography component="h2" variant="subtitle2" gutterBottom>
           {title}
