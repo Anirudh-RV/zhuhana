@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: job-creator-binding
+  namespace: user-algorithm
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: default # <- The governor pod runs under this
+roleRef:
+  kind: Role
+  name: job-creator
+  apiGroup: rbac.authorization.k8s.io

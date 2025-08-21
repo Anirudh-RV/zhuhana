@@ -109,7 +109,9 @@ export default function SideMenuMobile({
             flexDirection: "column",
           }}
         >
-          <MenuContent />
+          <MenuContent selectedPage={"discovery"} onSelectPage={function(page: "discovery" | "home" | "analytics" | "vault"): void {
+                      throw new Error("Function not implemented.");
+                  } } />
           <Divider sx={{ mt: "auto" }} />
           <Copyright sx={{ my: 2 }} />
         </Box>

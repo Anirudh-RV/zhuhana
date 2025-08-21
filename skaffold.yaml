@@ -85,7 +85,9 @@ manifests:
     - Kubernetes/governor/kafka.yaml
     - Kubernetes/governor/deployment.yaml
     - Kubernetes/governor/service.yaml
+    - Kubernetes/governor/namespace.yaml
     - Kubernetes/governor/job-role.yaml
+    - Kubernetes/governor/job-role-binding.yaml
 
     # Forge
     - Kubernetes/forge/configmap.yaml
