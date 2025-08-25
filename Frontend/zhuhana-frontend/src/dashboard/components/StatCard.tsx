@@ -48,6 +48,7 @@ export default function StatCard
 ({
    id,
    title,
+   icon,
    value,
    interval,
    trend,
@@ -101,6 +102,7 @@ export default function StatCard
 
     >
       <CardContent>
+          {icon}
         <Typography component="h2" variant="subtitle2" gutterBottom>
           {title}
         </Typography>

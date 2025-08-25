@@ -14,20 +14,6 @@ const COLORS = [
 ];
 
 export function PortfolioPieChart() {
-    <defs>
-        <linearGradient id="pieGradient" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-            <stop offset="100%" stopColor="#9333ea" stopOpacity={0.8}/>
-        </linearGradient>
-        <filter id="glow">
-            <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
-            <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-        </filter>
-    </defs>
-
     return (
         <Box sx={{ width: "100%", height: 300 }}>
             <ResponsiveContainer>

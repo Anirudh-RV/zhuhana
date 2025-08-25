@@ -7,25 +7,9 @@ import type { StatCardProps } from "./StatCard";
 import { useAuth } from "../../AuthContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { WatchlistSection } from "./Analytics/Watchlist";
+import { OverviewSection } from "./Analytics/Overview";
+import { BacktestHistorySection } from "./Analytics/BacktestHistory";
 
-const overviewData: StatCardProps[] = [
-    {
-        id: "total-return",
-        title: "Total Return",
-        value: "23.5%",
-        interval: "Since inception",
-        trend: "up",
-        data: [10, 20, 25, 30, 28, 35, 40],
-    },
-    {
-        id: "annualized-return",
-        title: "Annualized Return",
-        value: "12.1%",
-        interval: "CAGR",
-        trend: "up",
-        data: [5, 10, 12, 13, 14, 16],
-    },
-];
 
 export default function Analytics() {
     const { user, accessToken } = useAuth();
@@ -39,12 +23,8 @@ export default function Analytics() {
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
                 Analytics Overview
             </Typography>
-            <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }} >
-                {/*<Grid size={{ xs: 12, sm: 6, lg: 3 }}></Grid>*/}
-                {overviewData.map((card, index) => (
-                    <Grid key={index} size={{ xs: 12, sm: 6, lg: 6 }}> <StatCard {...card} /> </Grid>
-                ))}
-            </Grid>
+            <OverviewSection></OverviewSection>
+
 
             {/* ---------- Section 1: Watchlist ---------- */}
             <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
@@ -68,10 +48,7 @@ export default function Analytics() {
                 Backtest History
             </Typography>
             <Box sx={{ mb: 4, p: 2, border: "1px solid", borderColor: "divider", borderRadius: 2 }}>
-                {/* TODO: Replace with equity curve + drawdown + trade history */}
-                <Typography variant="body2" color="text.secondary">
-                    Equity curve + drawdown chart + trade history placeholder
-                </Typography>
+                <BacktestHistorySection></BacktestHistorySection>
             </Box>
         </Box>
     );

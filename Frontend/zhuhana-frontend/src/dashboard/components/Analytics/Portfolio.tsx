@@ -12,19 +12,15 @@ import {
 } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import {BaselineSeries, createChart, ISeriesApi} from "lightweight-charts";
-import {useTheme} from "@mui/material/styles";
+import {useTheme,useColorScheme} from "@mui/material/styles";
 import {PortfolioPieChart} from "./PortfolioPieChart";
-
-const portfolioData = [
-    { symbol: "AAPL", position: 100, avgCost: 150, currentPrice: 170, pnl: 2000, weight: 0.35 },
-    { symbol: "MSFT", position: 50, avgCost: 250, currentPrice: 310, pnl: 3000, weight: 0.40 },
-    { symbol: "TSLA", position: 30, avgCost: 700, currentPrice: 680, pnl: -600, weight: 0.25 },
-];
-
+import {PortfolioTable} from "./PortfolioTable";
 
 export default function PortfolioSection() {
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const theme = useTheme();
+    const { mode, systemMode } = useColorScheme();
+    const resolvedMode = mode === "system" ? systemMode : mode;
 
     useEffect(() => {
         if (!chartContainerRef.current) return;
@@ -90,69 +86,21 @@ export default function PortfolioSection() {
                 </Grid>
 
                 <Grid size={{xs: 12, md: 7}}>
-                    <Typography gutterBottom variant="subtitle1" color="text.secondary"
-                                sx={{
+                    <Typography gutterBottom variant="subtitle1"
+                                sx={(theme) => ({
                                     fontSize: "0.9rem",
                                     fontWeight: 600,
                                     textTransform: "uppercase",
-                                    letterSpacing: "0.05em",
-                                }}
+                                    letterSpacing: "0.025em",
+                                    mb: 1,
+                                    color: resolvedMode === "dark"
+                                        ? "rgba(255,255,255,0.7)"
+                                        : "rgba(0,0,0,1)"
+                                })}
                     >
                         Holdings
                     </Typography>
-                    <Paper sx={{ mb: 3 }} >
-                        <Table
-                            size="medium"
-                            sx={{
-                                "& th": {
-                                    backgroundColor: "rgba(255,255,255,0.05)",
-                                    color: "#9ca3af",
-                                    fontWeight: 600,
-                                    textTransform: "uppercase",
-                                    fontSize: "0.75rem",
-                                    letterSpacing: "0.05em",
-                                },
-                                "& td": {
-                                    borderBottom: "1px solid rgba(255,255,255,0.05)",
-                                    fontFamily: "monospace",
-                                    fontSize: "0.9rem",
-                                    color: "#e5e7eb",
-                                },
-                                "& tr:hover": {
-                                    background: "rgba(59,130,246,0.08)",
-                                    boxShadow: "0 0 12px rgba(59,130,246,0.4)",
-                                    transition: "0.2s ease",
-                                },
-                            }}
-                        >
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Symbol</TableCell>
-                                    <TableCell>Position</TableCell>
-                                    <TableCell>Avg Cost</TableCell>
-                                    <TableCell>Current Price</TableCell>
-                                    <TableCell>P&L</TableCell>
-                                    <TableCell>Weight</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {portfolioData.map((row, idx) => (
-                                    <TableRow key={idx}>
-                                        <TableCell>{row.symbol}</TableCell>
-                                        <TableCell>{row.position}</TableCell>
-                                        <TableCell>${row.avgCost}</TableCell>
-                                        <TableCell>${row.currentPrice}</TableCell>
-                                        <TableCell
-                                            sx={{ color: row.pnl >= 0 ? "success.main" : "error.main" }}
-                                        >
-                                            {row.pnl}
-                                        </TableCell>
-                                        <TableCell>{(row.weight * 100).toFixed(1)}%</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Paper>
+                    <PortfolioTable />
                 </Grid>
             </Grid>
             <Grid size={{xs:12, md:6}}>
