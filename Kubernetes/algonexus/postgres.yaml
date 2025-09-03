@@ -18,7 +18,7 @@ spec:
     app: algonexus-postgres
   ports:
     - protocol: TCP
-      port: 5425
+      port: 5422
       targetPort: 5432
 ---
 apiVersion: apps/v1
