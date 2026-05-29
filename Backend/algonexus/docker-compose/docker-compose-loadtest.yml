@@ -1,0 +1,36 @@
+# Override used only for local load testing.
+# Adds a static mock for the UASAM microservice-auth dependency so the
+# app's startup token fetch (GetAllServiceTokens) does not os.Exit.
+services:
+  algonexus-uasam-mock:
+    image: hashicorp/http-echo
+    container_name: algonexus-uasam-mock-container
+    command:
+      - "-listen=:80"
+      - '-text={"status":1,"accessToken":"mock-token"}'
+    restart: unless-stopped
+
+  algonexus:
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile-loadtest
+    # Broker submitCh overflow policy for the run (failfast default). Set via host env
+    # so run_loadtest.ps1 can switch it: BROKER_OVERFLOW_POLICY=backpressure
+    environment:
+      - BROKER_OVERFLOW_POLICY=${BROKER_OVERFLOW_POLICY:-failfast}
+      # Load-test profile runs QUIET by default (this is the #1 throughput lever).
+      # Reproduce the logging-on numbers with: GIN_MODE=debug LOG_LEVEL=info HTTP_LOG=on
+      - GIN_MODE=${GIN_MODE:-release}
+      - LOG_LEVEL=${LOG_LEVEL:-error}
+      - HTTP_LOG=${HTTP_LOG:-off}
+    # Pin the app to a single vCPU to find the per-core throughput ceiling.
+    cpus: 1.0
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+    depends_on:
+      - algonexus-postgres
+      - algonexus-redis
+      - algonexus-clickhouse
+      - algonexus-uasam-mock

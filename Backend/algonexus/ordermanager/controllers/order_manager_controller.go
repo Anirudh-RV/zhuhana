@@ -64,17 +64,6 @@ func (omc *OrderManagerController) SubmitOrder(c *gin.Context) {
 }
 
 func (c *OrderManagerController) SubmitBacktestOrder(req *models.OrderRequest) error {
-	//return &models.OrderResponse{
-	//	OrderID:       req.OrderID,
-	//	OrderDetails:  req.Order,
-	//	SubmitTime:    req.Timestamp,
-	//	BrokerOrderID: "SIM-" + uuid.New().String(),
-	//	Status:        models.ResponseStatusSubmitted,
-	//	Message:       "Order successfully accepted in simulation.",
-	//	Fills:         []models.OrderFill{},
-	//	Time:          time.Now(),
-	//}, nil
-
 	err := c.service.DeliverOrderToHub(req)
 
 	if err != nil {

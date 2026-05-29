@@ -1,12 +1,13 @@
 package consumers
 
 import (
+	"algonexus/constants"
 	"algonexus/logger"
 	"algonexus/ordermanager/orderhub/eventqueue"
+	"algonexus/ordermanager/orderhub/ports"
 	"algonexus/ordermanager/orderhub/registry"
 	"context"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -16,24 +17,21 @@ import (
 type RsOrderConsumer struct {
 	Logger         *logger.Logger
 	EventQueue     *eventqueue.RedisStreamEventQueue
-	Registry       *registry.OrderHubRegistry
 	Group          string
 	ConsumerName   string
 	StreamKey      string
 	MessageHandler StreamMessageHandler
-	WaitGroup      *sync.WaitGroup
+	sem            chan struct{}
 }
 
 type StreamMessageHandler interface {
 	Handle(ctx context.Context, msg redis.XMessage) error
 }
 
-func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStreamEventQueue, registry *registry.OrderHubRegistry, stream, group, consumer string) *RsOrderConsumer {
+func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStreamEventQueue, registry *registry.OrderHubRegistry, broker ports.Broker, stream, group, consumer string) *RsOrderConsumer {
 	ctx := context.Background()
 
-	err := eventQueue.Client.XGroupCreateMkStream(ctx, stream, group, "0").Err() // Sole consumer
-
-	// Non-BUSYGROUP error
+	err := eventQueue.Client.XGroupCreateMkStream(ctx, stream, group, "0").Err()
 	if err != nil && !redis.HasErrorPrefix(err, "BUSYGROUP") {
 		logger.Fatal("Failed to create consumer group",
 			zap.String("stream", stream),
@@ -51,19 +49,19 @@ func NewRsOrderConsumer(logger *logger.Logger, eventQueue *eventqueue.RedisStrea
 		Group:          group,
 		ConsumerName:   consumer,
 		StreamKey:      stream,
-		WaitGroup:      &sync.WaitGroup{},
-		MessageHandler: NewRsOrderConsumerMsgHandler(logger, registry),
+		MessageHandler: NewRsOrderConsumerMsgHandler(logger, registry, broker),
+		sem:            make(chan struct{}, constants.AnchorConcurrency),
 	}
 }
 
-// Run Polling Consumer
+// Run is the polling consumer loop.
 func (c *RsOrderConsumer) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			c.pollOnce(ctx, 5)
+			c.pollOnce(ctx, constants.AnchorConcurrency)
 		}
 	}
 }
@@ -73,7 +71,7 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 		Group:    c.Group,
 		Consumer: c.ConsumerName,
 		Streams:  []string{c.StreamKey, ">"},
-		Count:    count,           //set to 1 to ensure sequential read
+		Count:    count,
 		Block:    5 * time.Second, // avoid fast polling
 	}).Result()
 
@@ -88,29 +86,26 @@ func (c *RsOrderConsumer) pollOnce(ctx context.Context, count int64) {
 	}
 
 	if entries == nil {
-		// c.Logger.Warning("XReadGroup returned nil entries")
 		return
 	}
 
+	// Bounded worker pool (AnchorConcurrency): each message is handled in its own
+	// goroutine, but the semaphore caps in-flight work. No per-batch WaitGroup barrier,
+	// so one slow order never head-of-line blocks the others; when the pool is full the
+	// loop stalls on `sem <-`, the next XReadGroup is deferred, and orderstream applies
+	// backpressure.
 	for _, stream := range entries {
 		for _, msg := range stream.Messages {
-			c.WaitGroup.Add(1)
+			c.sem <- struct{}{}
 			go func(m redis.XMessage) {
-				defer c.WaitGroup.Done()
-				c.Logger.Info("Message received", zap.String("msgID", msg.ID))
-				err := c.MessageHandler.Handle(ctx, msg)
-				if err != nil {
-					c.Logger.Error("Fail to handle message", zap.String("msgID", msg.ID), zap.Error(err))
+				defer func() { <-c.sem }()
+				if err := c.MessageHandler.Handle(ctx, m); err != nil {
+					c.Logger.Error("Fail to handle message", zap.String("msgID", m.ID), zap.Error(err))
 				}
-
-				_, err = c.EventQueue.Client.XAck(ctx, c.StreamKey, c.Group, msg.ID).Result()
-
-				if err != nil {
-					c.Logger.Error("XAck failed", zap.String("msgID", msg.ID), zap.Error(err))
+				if _, err := c.EventQueue.Client.XAck(ctx, c.StreamKey, c.Group, m.ID).Result(); err != nil {
+					c.Logger.Error("XAck failed", zap.String("msgID", m.ID), zap.Error(err))
 				}
 			}(msg)
 		}
-		c.WaitGroup.Wait()
 	}
-
 }

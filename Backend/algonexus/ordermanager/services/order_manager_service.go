@@ -23,17 +23,6 @@ func NewOrderManagerService(logger *logger.Logger, hubService *orderHubServices.
 	}
 }
 
-//func (oms *OrderManagerService) EnqueueOrder(req *models.OrderRequest) error {
-//	var ctx = context.Background()
-//	//Round trip, sync (catch response) in service and return to controller
-//
-//	err := oms.rsOrderService.PushOrder(ctx, *req)
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}
-
 func (oms *OrderManagerService) DeliverOrderToHub(req *models.OrderRequest) error {
 	//Register Order Handle in hub first
 	oms.orderHubService.RegisterOrder(req)

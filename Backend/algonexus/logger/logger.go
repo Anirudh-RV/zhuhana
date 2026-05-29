@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -25,6 +26,14 @@ func NewLogger() *Logger {
 		config := zap.NewProductionConfig()
 		config.EncoderConfig.TimeKey = "timestamp"                   // Explicitly set timestamp key
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder // Format as ISO8601
+
+		// Level overridable via LOG_LEVEL (e.g. "error" to silence hot-path INFO logs
+		// during load tests). Defaults to production INFO.
+		if lvl := os.Getenv("LOG_LEVEL"); lvl != "" {
+			if parsed, perr := zapcore.ParseLevel(lvl); perr == nil {
+				config.Level = zap.NewAtomicLevelAt(parsed)
+			}
+		}
 
 		logger, _ := config.Build()
 		instance = &Logger{zapLogger: logger}

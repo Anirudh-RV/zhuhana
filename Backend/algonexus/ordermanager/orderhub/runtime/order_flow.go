@@ -3,6 +3,7 @@ package runtime
 import (
 	"algonexus/ordermanager/models"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -31,10 +32,15 @@ var terminateStatus = map[OrderStatus]struct{}{
 	models.StatusCancelled: {},
 }
 
-// OrderFlow Map-based FSM
+// OrderFlow is a map-based FSM.
+//
+// Concurrency: across one order's life the producer (ingress goroutine), a submit
+// worker (anchor pool) and a Listener (fills pool) advance the same OrderFlow from
+// different goroutines, so all access to status/history is guarded by mu.
 type OrderFlow struct {
 	OrderID      string
 	OrderRequest *models.OrderRequest
+	mu           sync.Mutex
 	status       OrderStatus
 	history      []OrderStatusTransition
 	OnChange     func(from OrderStatus, to OrderStatus) // hook
@@ -50,15 +56,28 @@ func NewOrderFlow(orderRequest *models.OrderRequest) *OrderFlow {
 }
 
 func (fsm *OrderFlow) Current() OrderStatus {
+	fsm.mu.Lock()
+	defer fsm.mu.Unlock()
 	return fsm.status
 }
 
 func (fsm *OrderFlow) GetHistory() []OrderStatusTransition {
-	return fsm.history
+	fsm.mu.Lock()
+	defer fsm.mu.Unlock()
+	out := make([]OrderStatusTransition, len(fsm.history))
+	copy(out, fsm.history)
+	return out
 }
 
 func (fsm *OrderFlow) CanTransition(to OrderStatus) bool {
-	allowed, ok := validTransitions[fsm.status]
+	fsm.mu.Lock()
+	defer fsm.mu.Unlock()
+	return canTransition(fsm.status, to)
+}
+
+// canTransition is the lock-free core, callable while mu is already held.
+func canTransition(from OrderStatus, to OrderStatus) bool {
+	allowed, ok := validTransitions[from]
 	if !ok {
 		return false
 	}
@@ -71,13 +90,18 @@ func (fsm *OrderFlow) CanTransition(to OrderStatus) bool {
 }
 
 func (fsm *OrderFlow) IsTerminated() bool {
+	fsm.mu.Lock()
+	defer fsm.mu.Unlock()
 	_, ok := terminateStatus[fsm.status]
 	return ok
 }
 
 func (fsm *OrderFlow) Transition(to OrderStatus) error {
-	if !fsm.CanTransition(to) {
-		return fmt.Errorf("orderflow invalid transition: %s → %s", fsm.status, to)
+	fsm.mu.Lock()
+	if !canTransition(fsm.status, to) {
+		from := fsm.status
+		fsm.mu.Unlock()
+		return fmt.Errorf("orderflow invalid transition: %s → %s", from, to)
 	}
 	from := fsm.status
 	fsm.status = to
@@ -86,8 +110,11 @@ func (fsm *OrderFlow) Transition(to OrderStatus) error {
 		To:        to,
 		Timestamp: time.Now(),
 	})
-	if fsm.OnChange != nil {
-		fsm.OnChange(from, to) // Hook for all transitions
+	hook := fsm.OnChange
+	fsm.mu.Unlock()
+
+	if hook != nil {
+		hook(from, to) // invoked without the lock held
 	}
 	return nil
 }
